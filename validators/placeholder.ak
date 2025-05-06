@@ -1,94 +1,89 @@
-use aiken/hash
+use aiken/hash.{blake2b_256, sha2_256}
 use aiken/bytearray
-use aiken/transaction/credential
+use aiken/transaction.{ScriptContext, Transaction, Spending, OutputReference, Output}
+use aiken/list
+use aiken/option.{Option, None, Some}
+use aiken/transaction/credential.{Credential, VerificationKeyCredential, ScriptCredential}
 
-// Define our validator types
-type DatumType {
-  hashed_seed: ByteArray,
-  owner: Credential,
+type Datum {
+    hashed_seed: ByteArray,
+    owner: Credential,
 }
 
-type RedeemerType {
-  action: Action,
-  seed_phrase: ByteArray,
+type Redeemer {
+    action: Action,
+    seed_phrase: ByteArray,
 }
 
 type Action {
-  Verify
-  Update
+    Verify
+    Update
 }
 
-// Main validator function
-validator {
-  fn seed_phrase_manager(datum: DatumType, redeemer: RedeemerType, context: ScriptContext) -> Bool {
-    // Extract the transaction information
-    let ScriptContext { transaction, purpose } = context
+validator seed_phrase_manager {
+    spend(datum: Datum, redeemer: Redeemer, context: ScriptContext) {
+        let tx = context.transaction
+        let is_owner = is_signed_by(tx, datum.owner)
+        
+        if is_owner {
+            case redeemer.action {
+                Verify {verify_seed(datum, redeemer)}
+                Update { update_seed(tx, context.purpose, datum, redeemer) }
+            }
+        } else {
+            False
+        }
+    }
+}
+
+fn verify_seed(datum: Datum, redeemer: Redeemer) -> Bool {
+    hash_seed(redeemer.seed_phrase) == datum.hashed_seed
+}
+
+// fn update_seed(tx: Transaction, purpose: ScriptPurpose, old_datum: Datum, redeemer: Redeemer) -> Bool {
+//     let new_hashed_seed = hash_seed(redeemer.seed_phrase)
     
-    // We only care about spending
-    when purpose is {
-      Spending(output_reference) -> {
-        // Check that the transaction is signed by the owner
-        must_be_signed_by(transaction, datum.owner) &&
-          // Handle different actions
-          when redeemer.action is {
-            // Verify action: check if provided seed_phrase hashes to stored value
-            Verify -> {
-              let hashed_input = hash_seed_phrase(redeemer.seed_phrase)
-              hashed_input == datum.hashed_seed
-            }
+//     case purpose {
+//         Spending(output_ref) {
+//             find_script_output(tx, output_ref)
+//                 |> option.and_then(fn(output) {
+//                     case output.datum {
+//                         Some(new_datum) ->
+//                             Some(
+//                                 new_datum.hashed_seed == new_hashed_seed
+//                                 && new_datum.owner == old_datum.owner
+//                             )
+//                         None -> None
+//                     }
+//                 })
+//                 |> option.with_default(False)
+//         _ 
+//         }-> False
+//     }
+// }
+
+fn hash_seed(seed: ByteArray) -> ByteArray {
+    seed |> blake2b_256 // Simplified to one hash
+}
+
+fn is_signed_by(tx: Transaction, credential: Credential) -> Bool {
+    case credential {
+        VerificationKeyCredential(vkh) {
+          list.has(tx.signatories, vkh)
+        }
             
-            // Update action: update the hashed seed phrase
-            Update -> {
-              // Ensure new datum contains new hashed seed phrase
-              let new_output = must_find_script_output(transaction, purpose)
-              let new_datum: DatumType = new_output.datum
-              
-              // Verify the new hash is valid
-              let hashed_input = hash_seed_phrase(redeemer.seed_phrase)
-              new_datum.hashed_seed == hashed_input &&
-                new_datum.owner == datum.owner
-            }
-          }
-      }
-      _ -> False
-    }
-  }
-}
-
-// Helper function to hash a seed phrase
-fn hash_seed_phrase(seed_phrase: ByteArray) -> ByteArray {
-  // Use double-hashing for extra security
-  hash.blake2b_256(hash.sha2_256(seed_phrase))
-}
-
-// Helper to check signatures
-fn must_be_signed_by(transaction: Transaction, credential: Credential) -> Bool {
-  list.has(transaction.extra_signatories, credential.hash) ||
-    when credential is {
-      VerificationKeyCredential(vk) -> list.has(transaction.extra_signatories, vk)
-      ScriptCredential(_) -> False
+        ScriptCredential(_) -{
+          False
+        } 
+            
     }
 }
 
-// Helper to find outputs containing our script
-fn must_find_script_output(transaction: Transaction, purpose: ScriptPurpose) -> Output {
-  // Implementation would find the correct output 
-  // based on the transaction outputs that contain our script address
-  // This is pseudocode, actual implementation would be more detailed
-  let script_address = get_script_address(purpose)
-  
-  when list.find(transaction.outputs, fn(output) { output.address == script_address }) is {
-    Some(output) -> output
-    None -> error("No script output found")
-  }
-}
-
-// Helper to get script address
-fn get_script_address(purpose: ScriptPurpose) -> Address {
-  // Implementation would extract the script address from the purpose
-  // Pseudocode for now
-  when purpose is {
-    Spending(output_reference) -> /*derive address logic*/
-    _ -> error("Not a spending purpose")
-  }
+fn find_script_output(tx: Transaction, output_ref: OutputReference) -> Option<Output> {
+    tx.outputs
+        |> list.find(fn(output) {
+            // Adjust based on actual Output type
+            // Placeholder: assumes Output has a reference field
+            output.reference == output_ref
+        })
 }
