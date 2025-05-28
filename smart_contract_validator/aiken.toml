@@ -1,0 +1,18 @@
+name = "k33pteam/smart_contract_validator"
+version = "0.0.0"
+compiler = "v1.1.17"
+plutus = "v3"
+license = "Apache-2.0"
+description = "Aiken contracts for project 'k33pteam/smart_contract_validator'"
+
+[repository]
+user = "k33pteam"
+project = "smart_contract_validator"
+platform = "github"
+
+[[dependencies]]
+name = "aiken-lang/stdlib"
+version = "v2.2.0"
+source = "github"
+
+[config]

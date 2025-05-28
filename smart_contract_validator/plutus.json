@@ -1,0 +1,446 @@
+{
+  "preamble": {
+    "title": "k33pteam/smart_contract_validator",
+    "description": "Aiken contracts for project 'k33pteam/smart_contract_validator'",
+    "version": "0.0.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.17+c3a7fba"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "combined_validator.k33p_validator.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/combined_validator~1K33pDatum"
+        }
+      },
+      "redeemer": {
+        "title": "redeemer",
+        "schema": {
+          "$ref": "#/definitions/combined_validator~1K33pRedeemer"
+        }
+      },
+      "compiledCode": "5904ce01010029800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400530080024888966002600460106ea800e3300130093754007370e90024dc3a4001300837540089111194c00466002660200026602001297ae08a50911919800800801912cc00400629422b30013371e6eb8c05400400e2946266004004602c002808101348c048c04cc04cc04cc04cc04cc04cc04cc04c0066e2120009ba54800246024602660260032259800800c52000899b8048008cc008008c05000501124444444465300122232598009808000c566002602860346ea8012266e1cdc69bae301e301b3754603c60366ea800d20388a504065159800980a000c566002602060346ea80122b30013014301a3754600e60366ea8c078c06cdd5002456600266e1cdc69bae301e301b3754603c60366ea800d20388980498029bac300a301b375400514a080ca2941019452820328acc004c040c068dd50024566002602860346ea8c01cc06cdd5180f180d9baa0048980498029bac300a301b375400514a080ca29410192032406460326ea800a444646644b30013012301c37540051323259800980a000c5660026028603c6ea8c088c08c016264b30013015301f37540031330103758601e60406ea801cdd7181198101baa0018a50407864b30013015301f37540031300d3302230233020375400297ae08a6103d87a800040786044603e6ea8c088c07cdd51811180f9baa002801a03a8acc004c0600062b30013018301e37546044604600b1300d375a60446046603e6ea8c088c07cdd5001400d01d4566002602a603c6ea8c088c08c016264b30013015301f37540031330103758601e60406ea801cdd7181198101baa0018a50407864b30013015301f37540031300d3302230233020375400297ae08a6103d87a800040786044603e6ea8c088c07cdd51811180f9baa002801a03a407480e8c074dd50009810180e9baa002800a036301e00114a0660380066603800497ae0980d004a444b3001300f30193754003132598009808180d1baa0018992cc004c044c06cdd5000c6600260126603c603e60386ea80092f5c1301f301c3754003014401500d4068603c603e01b13259800980a980d9baa0018cc004c024cc078c07cc070dd500125eb82603e60386ea8006028802201a80d0c078c07c035019180e980d1baa0018992cc004c040c068dd5000c66002980103d87a8000980f180d9baa001809a0088cc005300103d87a8000980f180d9baa001809a0064064603a603c01880c06002002912cc004c014c03cdd500144c8c966002602c0050038b2026375c602800260206ea800a2c8072602200a9112cc004c018016264b30013016001899192cc004c024006264b30013019001899803180c000803c59016180a1baa0028acc004c034006264b30013019001899803180c000803c59016180a1baa0028acc004c0280062b3001301437540050068b202a8b202440488090c048dd5000980a800c5901318089baa00c8acc004c028016264b30013016001899192cc004c0240062b3001301437540050068b202a8acc004c0340062b3001301437540050068b202a8acc004c0280062b3001301437540050068b202a8b202440488090c048dd5000980a800c5901318089baa00c8b201e403c301030110044590070c020004c00cdd5004452689b2b200201",
+      "hash": "a459958d686c99c9e55ea2db84d2427480fd5cbbf95ca55e1a6d6482"
+    },
+    {
+      "title": "combined_validator.k33p_validator.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "5904ce01010029800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400530080024888966002600460106ea800e3300130093754007370e90024dc3a4001300837540089111194c00466002660200026602001297ae08a50911919800800801912cc00400629422b30013371e6eb8c05400400e2946266004004602c002808101348c048c04cc04cc04cc04cc04cc04cc04cc04c0066e2120009ba54800246024602660260032259800800c52000899b8048008cc008008c05000501124444444465300122232598009808000c566002602860346ea8012266e1cdc69bae301e301b3754603c60366ea800d20388a504065159800980a000c566002602060346ea80122b30013014301a3754600e60366ea8c078c06cdd5002456600266e1cdc69bae301e301b3754603c60366ea800d20388980498029bac300a301b375400514a080ca2941019452820328acc004c040c068dd50024566002602860346ea8c01cc06cdd5180f180d9baa0048980498029bac300a301b375400514a080ca29410192032406460326ea800a444646644b30013012301c37540051323259800980a000c5660026028603c6ea8c088c08c016264b30013015301f37540031330103758601e60406ea801cdd7181198101baa0018a50407864b30013015301f37540031300d3302230233020375400297ae08a6103d87a800040786044603e6ea8c088c07cdd51811180f9baa002801a03a8acc004c0600062b30013018301e37546044604600b1300d375a60446046603e6ea8c088c07cdd5001400d01d4566002602a603c6ea8c088c08c016264b30013015301f37540031330103758601e60406ea801cdd7181198101baa0018a50407864b30013015301f37540031300d3302230233020375400297ae08a6103d87a800040786044603e6ea8c088c07cdd51811180f9baa002801a03a407480e8c074dd50009810180e9baa002800a036301e00114a0660380066603800497ae0980d004a444b3001300f30193754003132598009808180d1baa0018992cc004c044c06cdd5000c6600260126603c603e60386ea80092f5c1301f301c3754003014401500d4068603c603e01b13259800980a980d9baa0018cc004c024cc078c07cc070dd500125eb82603e60386ea8006028802201a80d0c078c07c035019180e980d1baa0018992cc004c040c068dd5000c66002980103d87a8000980f180d9baa001809a0088cc005300103d87a8000980f180d9baa001809a0064064603a603c01880c06002002912cc004c014c03cdd500144c8c966002602c0050038b2026375c602800260206ea800a2c8072602200a9112cc004c018016264b30013016001899192cc004c024006264b30013019001899803180c000803c59016180a1baa0028acc004c034006264b30013019001899803180c000803c59016180a1baa0028acc004c0280062b3001301437540050068b202a8b202440488090c048dd5000980a800c5901318089baa00c8acc004c028016264b30013016001899192cc004c0240062b3001301437540050068b202a8acc004c0340062b3001301437540050068b202a8acc004c0280062b3001301437540050068b202a8b202440488090c048dd5000980a800c5901318089baa00c8b201e403c301030110044590070c020004c00cdd5004452689b2b200201",
+      "hash": "a459958d686c99c9e55ea2db84d2427480fd5cbbf95ca55e1a6d6482"
+    }
+  ],
+  "definitions": {
+    "Bool": {
+      "title": "Bool",
+      "anyOf": [
+        {
+          "title": "False",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        },
+        {
+          "title": "True",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "Int": {
+      "dataType": "integer"
+    },
+    "Option$cardano/address/StakeCredential": {
+      "title": "Option",
+      "anyOf": [
+        {
+          "title": "Some",
+          "description": "An optional value.",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/cardano~1address~1StakeCredential"
+            }
+          ]
+        },
+        {
+          "title": "None",
+          "description": "Nothing.",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "String": {
+      "dataType": "bytes"
+    },
+    "aiken/crypto/ScriptHash": {
+      "title": "ScriptHash",
+      "dataType": "bytes"
+    },
+    "aiken/crypto/VerificationKeyHash": {
+      "title": "VerificationKeyHash",
+      "dataType": "bytes"
+    },
+    "cardano/address/Address": {
+      "title": "Address",
+      "description": "A Cardano `Address` typically holding one or two credential references.\n\n Note that legacy bootstrap addresses (a.k.a. 'Byron addresses') are\n completely excluded from Plutus contexts. Thus, from an on-chain\n perspective only exists addresses of type 00, 01, ..., 07 as detailed\n in [CIP-0019 :: Shelley Addresses](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019/#shelley-addresses).",
+      "anyOf": [
+        {
+          "title": "Address",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payment_credential",
+              "$ref": "#/definitions/cardano~1address~1PaymentCredential"
+            },
+            {
+              "title": "stake_credential",
+              "$ref": "#/definitions/Option$cardano~1address~1StakeCredential"
+            }
+          ]
+        }
+      ]
+    },
+    "cardano/address/Credential": {
+      "title": "Credential",
+      "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+      "anyOf": [
+        {
+          "title": "VerificationKey",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1VerificationKeyHash"
+            }
+          ]
+        },
+        {
+          "title": "Script",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1ScriptHash"
+            }
+          ]
+        }
+      ]
+    },
+    "cardano/address/PaymentCredential": {
+      "title": "PaymentCredential",
+      "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+      "anyOf": [
+        {
+          "title": "VerificationKey",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1VerificationKeyHash"
+            }
+          ]
+        },
+        {
+          "title": "Script",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1ScriptHash"
+            }
+          ]
+        }
+      ]
+    },
+    "cardano/address/StakeCredential": {
+      "title": "StakeCredential",
+      "description": "Represent a type of object that can be represented either inline (by hash)\n or via a reference (i.e. a pointer to an on-chain location).\n\n This is mainly use for capturing pointers to a stake credential\n registration certificate in the case of so-called pointer addresses.",
+      "anyOf": [
+        {
+          "title": "Inline",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/cardano~1address~1Credential"
+            }
+          ]
+        },
+        {
+          "title": "Pointer",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "title": "slot_number",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "transaction_index",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "certificate_index",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/AuthData": {
+      "title": "AuthData",
+      "anyOf": [
+        {
+          "title": "AuthData",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "phone_hash",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/AuthDatum": {
+      "title": "AuthDatum",
+      "anyOf": [
+        {
+          "title": "AuthDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "version",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "auth_data",
+              "$ref": "#/definitions/combined_validator~1AuthData"
+            },
+            {
+              "title": "is_active",
+              "$ref": "#/definitions/Bool"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/AuthRedeemer": {
+      "title": "AuthRedeemer",
+      "anyOf": [
+        {
+          "title": "StoreAuthData",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1AuthData"
+            }
+          ]
+        },
+        {
+          "title": "UpdateAuthData",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1AuthData"
+            }
+          ]
+        },
+        {
+          "title": "DeleteAuthData",
+          "dataType": "constructor",
+          "index": 2,
+          "fields": []
+        }
+      ]
+    },
+    "combined_validator/DeleteDatumValue": {
+      "title": "DeleteDatumValue",
+      "anyOf": [
+        {
+          "title": "DeleteDatumValue",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "wallet",
+              "$ref": "#/definitions/cardano~1address~1Address"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/IdentityDatum": {
+      "title": "IdentityDatum",
+      "anyOf": [
+        {
+          "title": "SignupDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1SignupDatumValue"
+            }
+          ]
+        },
+        {
+          "title": "RefundDatum",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1RefundDatumValue"
+            }
+          ]
+        },
+        {
+          "title": "DeleteDatum",
+          "dataType": "constructor",
+          "index": 2,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1DeleteDatumValue"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/IdentityRedeemer": {
+      "title": "IdentityRedeemer",
+      "anyOf": [
+        {
+          "title": "SignupRedeemer",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        },
+        {
+          "title": "RefundRedeemer",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        },
+        {
+          "title": "DeleteRedeemer",
+          "dataType": "constructor",
+          "index": 2,
+          "fields": []
+        }
+      ]
+    },
+    "combined_validator/K33pDatum": {
+      "title": "K33pDatum",
+      "anyOf": [
+        {
+          "title": "AuthDatumType",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1AuthDatum"
+            }
+          ]
+        },
+        {
+          "title": "IdentityDatumType",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1IdentityDatum"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/K33pRedeemer": {
+      "title": "K33pRedeemer",
+      "anyOf": [
+        {
+          "title": "AuthRedeemerType",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1AuthRedeemer"
+            }
+          ]
+        },
+        {
+          "title": "IdentityRedeemerType",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1IdentityRedeemer"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/RefundDatumValue": {
+      "title": "RefundDatumValue",
+      "anyOf": [
+        {
+          "title": "RefundDatumValue",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "wallet",
+              "$ref": "#/definitions/cardano~1address~1Address"
+            },
+            {
+              "title": "refund_amount",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/SignupDatumValue": {
+      "title": "SignupDatumValue",
+      "anyOf": [
+        {
+          "title": "SignupDatumValue",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "wallet",
+              "$ref": "#/definitions/cardano~1address~1Address"
+            },
+            {
+              "title": "user_id",
+              "$ref": "#/definitions/String"
+            },
+            {
+              "title": "zk_proof",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
