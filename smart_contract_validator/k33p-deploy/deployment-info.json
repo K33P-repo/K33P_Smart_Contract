@@ -1,0 +1,12 @@
+{
+  "contractName": "k33p_validator",
+  "network": "Preprod",
+  "txHash": "61db4922435cc1769cf7c8df9a10234d5ac27225b8c851423c170927782f7bad",
+  "scriptAddress": "addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734",
+  "deployedAt": "2025-05-29T05:01:02.268Z",
+  "blockfrostApiKey": "preprodb...",
+  "validator": {
+    "type": "PlutusV2",
+    "scriptSize": 0
+  }
+}
