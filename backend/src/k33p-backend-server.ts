@@ -99,6 +99,9 @@ interface SignupRequest {
   userId: string;
   phoneNumber: string;
   txHash: string;
+  pin?: string;
+  biometricData?: string;
+  verificationMethod?: 'phone' | 'pin' | 'biometric';
 }
 
 interface VerificationRequest {
@@ -174,24 +177,37 @@ app.post('/api/signup', [
     .withMessage('Phone number must be at least 10 characters'),
   body('txHash')
     .isLength({ min: 64, max: 64 })
-    .withMessage('Transaction hash must be exactly 64 characters')
+    .withMessage('Transaction hash must be exactly 64 characters'),
+  body('pin')
+    .optional()
+    .isLength({ min: 4, max: 4 })
+    .isNumeric()
+    .withMessage('PIN must be exactly 4 digits'),
+  body('verificationMethod')
+    .optional()
+    .isIn(['phone', 'pin', 'biometric'])
+    .withMessage('Verification method must be one of: phone, pin, biometric')
 ], handleValidationErrors, async (req: Request, res: Response) => {
   try {
-    const { userAddress, userId, phoneNumber, txHash }: SignupRequest = req.body;
+    const { userAddress, userId, phoneNumber, txHash, pin, biometricData, verificationMethod = 'phone' }: SignupRequest = req.body;
     
-    logger.info('Processing signup request', { userId, userAddress, txHash });
+    logger.info('Processing signup request', { userId, userAddress, txHash, verificationMethod });
     
     const result = await k33pManager.recordSignupWithVerification(
       userAddress, 
       userId, 
       phoneNumber, 
-      txHash
+      txHash,
+      pin,
+      biometricData,
+      verificationMethod
     );
     
     if (result.success) {
       res.json(createResponse(true, {
         verified: result.verified,
         userId,
+        verificationMethod,
         message: result.message
       }, 'Signup processed successfully'));
     } else {

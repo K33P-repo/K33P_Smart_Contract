@@ -50,6 +50,9 @@ interface UserDeposit {
   verified: boolean;        // New: tx verification status
   verificationAttempts: number; // New: track verification attempts
   lastVerificationAttempt: string; // New: timestamp of last attempt
+  pinHash?: string;         // Optional: hash of the 4-digit PIN
+  biometricHash?: string;   // Optional: hash of the biometric data
+  verificationMethod?: 'phone' | 'pin' | 'biometric'; // Method chosen for verification
 }
 
 interface TransactionDetails {
@@ -269,11 +272,14 @@ class EnhancedK33PManager {
     userAddress: string, 
     userId: string, 
     phoneNumber: string, 
-    txHash: string
+    txHash: string,
+    pin?: string,
+    biometricData?: string,
+    verificationMethod: 'phone' | 'pin' | 'biometric' = 'phone'
   ): Promise<{ success: boolean; message: string; verified: boolean }> {
     
     // Validate user input first
-    const validation = this.validateUserInput(userId, phoneNumber);
+    const validation = this.validateUserInput(userId, phoneNumber, pin, biometricData, verificationMethod);
     if (!validation.isValid) {
       return {
         success: false,
@@ -294,7 +300,7 @@ class EnhancedK33PManager {
       };
     }
 
-    console.log(`🔄 Recording signup for ${userId} with verification...`);
+    console.log(`🔄 Recording signup for ${userId} with verification method: ${verificationMethod}...`);
 
     // Verify transaction
     const verificationResult = await this.verifier.verifyTransaction(
@@ -304,7 +310,20 @@ class EnhancedK33PManager {
     );
 
     const phoneHash = this.generatePhoneHash(phoneNumber);
-    const zkProof = this.generateZKProof(phoneHash, userId);
+    let pinHash: string | undefined;
+    let biometricHash: string | undefined;
+    
+    // Generate PIN hash if provided
+    if (pin && (verificationMethod === 'pin')) {
+      pinHash = this.generatePinHash(pin);
+    }
+    
+    // Generate biometric hash if provided
+    if (biometricData && (verificationMethod === 'biometric')) {
+      biometricHash = this.generateBiometricHash(biometricData);
+    }
+    
+    const zkProof = this.generateZKProof(phoneHash, userId, pinHash, biometricHash);
     
     const deposit: UserDeposit = {
       userAddress,
@@ -318,7 +337,10 @@ class EnhancedK33PManager {
       signupCompleted: false,
       verified: verificationResult.isValid,
       verificationAttempts: 1,
-      lastVerificationAttempt: new Date().toISOString()
+      lastVerificationAttempt: new Date().toISOString(),
+      pinHash,
+      biometricHash,
+      verificationMethod
     };
     
     deposits.push(deposit);
@@ -511,7 +533,7 @@ class EnhancedK33PManager {
   // UTILITY METHODS (From original class)
   // ============================================================================
 
-  private validateUserInput(userId: string, phoneNumber: string): { isValid: boolean; error?: string } {
+  private validateUserInput(userId: string, phoneNumber: string, pin?: string, biometricData?: string, verificationMethod?: 'phone' | 'pin' | 'biometric'): { isValid: boolean; error?: string } {
     if (userId.length < CONFIG.minUserIdLength || userId.length > CONFIG.maxUserIdLength) {
       return {
         isValid: false,
@@ -533,6 +555,31 @@ class EnhancedK33PManager {
       };
     }
 
+    // Validate PIN if verification method is PIN
+    if (verificationMethod === 'pin') {
+      if (!pin) {
+        return {
+          isValid: false,
+          error: 'PIN is required for PIN verification method'
+        };
+      }
+      
+      if (!/^\d{4}$/.test(pin)) {
+        return {
+          isValid: false,
+          error: 'PIN must be exactly 4 digits'
+        };
+      }
+    }
+
+    // Validate biometric data if verification method is biometric
+    if (verificationMethod === 'biometric' && !biometricData) {
+      return {
+        isValid: false,
+        error: 'Biometric data is required for biometric verification method'
+      };
+    }
+
     return { isValid: true };
   }
 
@@ -541,8 +588,28 @@ class EnhancedK33PManager {
     return hash.toString('hex');
   }
 
-  private generateZKProof(phoneHash: string, userId: string): string {
-    const combined = phoneHash + userId + Date.now().toString();
+  private generatePinHash(pin: string): string {
+    const hash = crypto.createHash('sha256').update(`pin:${pin.trim()}`).digest();
+    return hash.toString('hex');
+  }
+
+  private generateBiometricHash(biometricData: string): string {
+    const hash = crypto.createHash('sha256').update(`biometric:${biometricData.trim()}`).digest();
+    return hash.toString('hex');
+  }
+
+  private generateZKProof(phoneHash: string, userId: string, pinHash?: string, biometricHash?: string): string {
+    let combined = phoneHash + userId + Date.now().toString();
+    
+    // Include PIN and biometric hashes in the proof if available
+    if (pinHash) {
+      combined += pinHash;
+    }
+    
+    if (biometricHash) {
+      combined += biometricHash;
+    }
+    
     const hash = crypto.createHash('sha256').update(combined).digest();
     const padded = Buffer.concat([hash, Buffer.alloc(CONFIG.proofLength - hash.length, 0)]);
     return padded.toString('hex');
@@ -553,7 +620,12 @@ class EnhancedK33PManager {
       return [];
     }
     try {
-      return JSON.parse(fs.readFileSync(this.depositsFile, 'utf8'));
+      const deposits = JSON.parse(fs.readFileSync(this.depositsFile, 'utf8'));
+      // Convert string amounts back to BigInt
+      return deposits.map((deposit: any) => ({
+        ...deposit,
+        amount: typeof deposit.amount === 'string' ? BigInt(deposit.amount) : deposit.amount
+      }));
     } catch (error) {
       console.error('Error loading deposits:', error);
       return [];
@@ -562,7 +634,12 @@ class EnhancedK33PManager {
 
   private saveDeposits(deposits: UserDeposit[]): void {
     try {
-      fs.writeFileSync(this.depositsFile, JSON.stringify(deposits, null, 2));
+      // Convert BigInt values to strings before serialization
+      const serializableDeposits = deposits.map(deposit => ({
+        ...deposit,
+        amount: deposit.amount.toString() // Convert BigInt to string
+      }));
+      fs.writeFileSync(this.depositsFile, JSON.stringify(serializableDeposits, null, 2));
     } catch (error) {
       console.error('Error saving deposits:', error);
       throw error;

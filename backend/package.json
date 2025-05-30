@@ -5,14 +5,15 @@
   "main": "dist/k33p-backend-server.js",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node fix-imports.js",
     "start": "node dist/k33p-backend-server.js",
     "dev": "ts-node --esm k33p-backend-server.ts",
     "dev:watch": "nodemon --exec ts-node --esm k33p-backend-server.ts",
     "test": "npm run build && npm start",
     "clean": "rm -rf dist",
     "lint": "eslint . --ext .ts",
-    "lint:fix": "eslint . --ext .ts --fix"
+    "lint:fix": "eslint . --ext .ts --fix",
+    "postinstall": "npm run build"
   },
   "keywords": [
     "cardano",

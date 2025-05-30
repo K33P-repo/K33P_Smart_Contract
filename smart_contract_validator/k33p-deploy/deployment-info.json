@@ -1,9 +1,9 @@
 {
   "contractName": "k33p_validator",
   "network": "Preprod",
-  "txHash": "e23affa659545e80ae1924d5c1c4781b54a744d91fbd29838dccd7b59d45ee65",
+  "txHash": "e8a486d1b2055b83ae1c0a001524a766d9679d70fc8e0ce22f8686e88e259133",
   "scriptAddress": "addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734",
-  "deployedAt": "2025-05-30T07:17:52.374Z",
+  "deployedAt": "2025-05-30T12:54:34.698Z",
   "blockfrostApiKey": "preprodb...",
   "validator": {
     "type": "PlutusV2",

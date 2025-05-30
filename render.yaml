@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: k33p-backend
+    env: node
+    region: oregon # Choose the region closest to your users
+    plan: free # Upgrade to a paid plan for production
+    buildCommand: cd backend && npm install && npm run build && node fix-imports.js
+    startCommand: cd backend && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: BLOCKFROST_API_KEY
+        sync: false # This will be set manually in the Render dashboard
+      - key: SEED_PHRASE
+        sync: false # This will be set manually in the Render dashboard
+      - key: PORT
+        value: 3000
+    autoDeploy: true

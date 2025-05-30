@@ -73,9 +73,24 @@ Records a new user signup with transaction verification.
   "userAddress": "addr_test1...",
   "userId": "username123",
   "phoneNumber": "1234567890",
-  "txHash": "e23affa659545e80ae1924d5c1c4781b54a744d91fbd29838dccd7b59d45ee65"
+  "txHash": "e23affa659545e80ae1924d5c1c4781b54a744d91fbd29838dccd7b59d45ee65",
+  "pin": "1234",
+  "biometricData": "base64encodedbiometricdata",
+  "verificationMethod": "pin"
 }
 ```
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userAddress | string | Yes | User's wallet address |
+| userId | string | Yes | User's chosen ID (3-50 alphanumeric characters) |
+| phoneNumber | string | Yes | User's phone number (min 10 digits) |
+| txHash | string | Yes | Transaction hash of the deposit |
+| pin | string | No | 4-digit PIN for PIN verification method |
+| biometricData | string | No | Biometric data for biometric verification method |
+| verificationMethod | string | No | Verification method: 'phone', 'pin', or 'biometric' (default: 'phone') |
 
 **Response:**
 ```json
@@ -84,6 +99,7 @@ Records a new user signup with transaction verification.
   "data": {
     "verified": true,
     "userId": "username123",
+    "verificationMethod": "pin",
     "message": "Signup verified successfully"
   },
   "message": "Signup processed successfully",

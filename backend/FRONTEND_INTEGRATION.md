@@ -108,12 +108,15 @@ export const k33pService = {
     return response.data.address;
   },
 
-  async recordSignup(userAddress, userId, phoneNumber, txHash) {
+  async recordSignup(userAddress, userId, phoneNumber, txHash, pin, biometricData, verificationMethod = 'phone') {
     return await apiClient.post('signup', {
       userAddress,
       userId,
       phoneNumber,
-      txHash
+      txHash,
+      pin,
+      biometricData,
+      verificationMethod
     });
   },
 
@@ -134,7 +137,7 @@ Here's an example of a signup screen component:
 ```javascript
 // src/screens/SignupScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, ActivityIndicator, TouchableOpacity, Switch } from 'react-native';
 import { k33pService } from '../services/k33pService';
 
 const SignupScreen = ({ navigation }) => {
@@ -144,6 +147,9 @@ const SignupScreen = ({ navigation }) => {
   const [txHash, setTxHash] = useState('');
   const [depositAddress, setDepositAddress] = useState('');
   const [loading, setLoading] = useState(false);
+  const [pin, setPin] = useState('');
+  const [biometricData, setBiometricData] = useState('');
+  const [verificationMethod, setVerificationMethod] = useState('phone');
 
   useEffect(() => {
     fetchDepositAddress();
@@ -161,15 +167,45 @@ const SignupScreen = ({ navigation }) => {
     }
   };
 
+  const handleBiometricScan = async () => {
+    // This would be implemented using a biometric library like react-native-biometrics
+    // For this example, we'll just simulate a successful scan
+    Alert.alert('Biometric Scan', 'Biometric data captured successfully');
+    setBiometricData('simulated-biometric-data-hash');
+  };
+
   const handleSignup = async () => {
-    if (!userId || !phoneNumber || !userAddress || !txHash) {
-      Alert.alert('Error', 'All fields are required');
+    if (!userId || !userAddress || !txHash) {
+      Alert.alert('Error', 'User ID, Address and Transaction Hash are required');
+      return;
+    }
+
+    if (verificationMethod === 'phone' && !phoneNumber) {
+      Alert.alert('Error', 'Phone number is required for phone verification');
+      return;
+    }
+
+    if (verificationMethod === 'pin' && (!pin || pin.length !== 4)) {
+      Alert.alert('Error', 'A 4-digit PIN is required for PIN verification');
+      return;
+    }
+
+    if (verificationMethod === 'biometric' && !biometricData) {
+      Alert.alert('Error', 'Biometric data is required for biometric verification');
       return;
     }
 
     try {
       setLoading(true);
-      const result = await k33pService.recordSignup(userAddress, userId, phoneNumber, txHash);
+      const result = await k33pService.recordSignup(
+        userAddress, 
+        userId, 
+        phoneNumber, 
+        txHash, 
+        pin, 
+        biometricData, 
+        verificationMethod
+      );
       
       if (result.data.verified) {
         Alert.alert('Success', 'Signup verified successfully!');
@@ -202,13 +238,63 @@ const SignupScreen = ({ navigation }) => {
         onChangeText={setUserId}
       />
       
-      <TextInput
-        style={styles.input}
-        placeholder="Phone Number"
-        value={phoneNumber}
-        onChangeText={setPhoneNumber}
-        keyboardType="phone-pad"
-      />
+      <View style={styles.verificationSection}>
+        <Text style={styles.label}>Verification Method:</Text>
+        <View style={styles.verificationOptions}>
+          <TouchableOpacity 
+            style={[styles.verificationOption, verificationMethod === 'phone' && styles.selectedOption]}
+            onPress={() => setVerificationMethod('phone')}
+          >
+            <Text>Phone</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.verificationOption, verificationMethod === 'pin' && styles.selectedOption]}
+            onPress={() => setVerificationMethod('pin')}
+          >
+            <Text>PIN</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.verificationOption, verificationMethod === 'biometric' && styles.selectedOption]}
+            onPress={() => setVerificationMethod('biometric')}
+          >
+            <Text>Biometric</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      
+      {verificationMethod === 'phone' && (
+        <TextInput
+          style={styles.input}
+          placeholder="Phone Number"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          keyboardType="phone-pad"
+        />
+      )}
+      
+      {verificationMethod === 'pin' && (
+        <TextInput
+          style={styles.input}
+          placeholder="4-digit PIN"
+          value={pin}
+          onChangeText={setPin}
+          keyboardType="numeric"
+          maxLength={4}
+          secureTextEntry
+        />
+      )}
+      
+      {verificationMethod === 'biometric' && (
+        <View style={styles.biometricSection}>
+          <Text style={styles.biometricText}>
+            {biometricData ? 'Biometric data captured' : 'Tap to scan biometric'}
+          </Text>
+          <Button 
+            title={biometricData ? "Rescan Biometric" : "Scan Biometric"} 
+            onPress={handleBiometricScan} 
+          />
+        </View>
+      )}
       
       <TextInput
         style={styles.input}
@@ -273,6 +359,37 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 15,
     paddingHorizontal: 10,
+  },
+  verificationSection: {
+    marginBottom: 15,
+  },
+  verificationOptions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  verificationOption: {
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    width: '30%',
+    alignItems: 'center',
+  },
+  selectedOption: {
+    backgroundColor: '#e0e0e0',
+    borderColor: '#0000ff',
+  },
+  biometricSection: {
+    backgroundColor: '#f0f0f0',
+    padding: 15,
+    borderRadius: 5,
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  biometricText: {
+    marginBottom: 10,
+    textAlign: 'center',
   },
 });
 
