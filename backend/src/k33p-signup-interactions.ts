@@ -651,7 +651,7 @@ class EnhancedK33PManager {
     // ... rest of the original processSignup logic ...
     // (keeping the smart contract interaction the same)
     
-    return "transaction_hash_placeholder"; // Replace with actual transaction processing
+    return "transaction_hash_placeholder"; 
   }
 
   /**
@@ -832,9 +832,7 @@ class EnhancedK33PManager {
   }
 }
 
-// ============================================================================
-// ENHANCED CLI INTERFACE
-// ============================================================================
+//for the cli enhanced part
 
 async function main(): Promise<void> {
   const manager = new EnhancedK33PManager();
