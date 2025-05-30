@@ -1,7 +1,7 @@
 // otp.ts - OTP Authentication Routes
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { sendOtp, verifyOtp, cancelVerification } from '../utils/vonage.js';
+import { sendOtp, verifyOtp, cancelVerification, verifyFirebaseToken } from '../utils/firebase.js';
 const router = express.Router();
 // Helper function to create standardized API responses
 const createResponse = (success, data, message, error) => {
@@ -101,6 +101,38 @@ router.post('/cancel', [
     catch (error) {
         console.error('Error cancelling verification:', error);
         res.status(500).json(createResponse(false, undefined, undefined, 'Failed to cancel verification'));
+    }
+});
+/**
+ * Verify Firebase ID token from mobile app
+ * POST /api/otp/verify-token
+ */
+router.post('/verify-token', [
+    body('idToken')
+        .isString()
+        .withMessage('Firebase ID token is required')
+        .trim()
+], handleValidationErrors, async (req, res) => {
+    try {
+        const { idToken } = req.body;
+        console.log('Verifying Firebase ID token');
+        const decodedToken = await verifyFirebaseToken(idToken);
+        if (decodedToken) {
+            // Token is valid, extract user information
+            const { uid, phone_number } = decodedToken;
+            res.json(createResponse(true, {
+                uid,
+                phoneNumber: phone_number,
+                verified: true
+            }, 'Firebase token verified successfully'));
+        }
+        else {
+            res.status(401).json(createResponse(false, undefined, undefined, 'Invalid Firebase token'));
+        }
+    }
+    catch (error) {
+        console.error('Error verifying Firebase token:', error);
+        res.status(500).json(createResponse(false, undefined, undefined, 'Failed to verify Firebase token'));
     }
 });
 export default router;

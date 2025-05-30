@@ -2,7 +2,7 @@
 const { Lucid, Blockfrost, Data, fromText, toHex } = require('lucid-cardano');
 const fs = require('fs');
 
-// Helper to load backend private key from file
+// load backend private key from file
 function getBackendPrivateKey() {
   const keyPath = process.env.BACKEND_PRIVATE_KEY_PATH;
   if (!keyPath) throw new Error('BACKEND_PRIVATE_KEY_PATH not set in environment');
