@@ -4,14 +4,6 @@
 
 This guide provides instructions for integrating the K33P Identity System backend with your React Native mobile application. The K33P system uses Cardano blockchain for secure identity verification and management.
 
-## Getting Started
-
-### Prerequisites
-
-- React Native development environment
-- Access to a Cardano wallet (for testing)
-- Basic understanding of RESTful APIs
-- Basic understanding of Cardano blockchain concepts
 
 ## Backend API
 
@@ -33,7 +25,7 @@ The typical user flow for the K33P Identity System is as follows:
 
 1. **Get Deposit Address**: Your app requests the deposit address from the backend
 2. **User Sends Deposit**: User sends 2 ADA to the deposit address from their wallet
-3. **Record Signup**: Your app submits user information and transaction hash to the backend
+3. **Record Signup**: Your app submits user information and sender wallet address to the backend
 4. **Verification**: Backend verifies the transaction on the blockchain
 5. **Status Check**: Your app periodically checks the user's status
 6. **Completion**: Once verified, the user's identity is established in the system
@@ -108,15 +100,16 @@ export const k33pService = {
     return response.data.address;
   },
 
-  async recordSignup(userAddress, userId, phoneNumber, txHash, pin, biometricData, verificationMethod = 'phone') {
+  async recordSignup(userAddress, userId, phoneNumber, senderWalletAddress, pin, biometricData, verificationMethod = 'phone', biometricType) {
     return await apiClient.post('signup', {
       userAddress,
       userId,
       phoneNumber,
-      txHash,
+      senderWalletAddress,
       pin,
       biometricData,
-      verificationMethod
+      verificationMethod,
+      biometricType
     });
   },
 
@@ -144,12 +137,13 @@ const SignupScreen = ({ navigation }) => {
   const [userId, setUserId] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [userAddress, setUserAddress] = useState('');
-  const [txHash, setTxHash] = useState('');
+  const [senderWalletAddress, setSenderWalletAddress] = useState('');
   const [depositAddress, setDepositAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [pin, setPin] = useState('');
   const [biometricData, setBiometricData] = useState('');
   const [verificationMethod, setVerificationMethod] = useState('phone');
+  const [biometricType, setBiometricType] = useState('fingerprint');
 
   useEffect(() => {
     fetchDepositAddress();
@@ -175,8 +169,8 @@ const SignupScreen = ({ navigation }) => {
   };
 
   const handleSignup = async () => {
-    if (!userId || !userAddress || !txHash) {
-      Alert.alert('Error', 'User ID, Address and Transaction Hash are required');
+    if (!userId || !userAddress || !senderWalletAddress) {
+      Alert.alert('Error', 'User ID, Address and Sender Wallet Address are required');
       return;
     }
 
@@ -201,10 +195,11 @@ const SignupScreen = ({ navigation }) => {
         userAddress, 
         userId, 
         phoneNumber, 
-        txHash, 
+        senderWalletAddress, 
         pin, 
         biometricData, 
-        verificationMethod
+        verificationMethod,
+        verificationMethod === 'biometric' ? biometricType : undefined
       );
       
       if (result.data.verified) {
@@ -286,11 +281,38 @@ const SignupScreen = ({ navigation }) => {
       
       {verificationMethod === 'biometric' && (
         <View style={styles.biometricSection}>
+          <Text style={styles.label}>Biometric Type:</Text>
+          <View style={styles.verificationOptions}>
+            <TouchableOpacity 
+              style={[styles.verificationOption, biometricType === 'fingerprint' && styles.selectedOption]}
+              onPress={() => setBiometricType('fingerprint')}
+            >
+              <Text>Fingerprint</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.verificationOption, biometricType === 'faceid' && styles.selectedOption]}
+              onPress={() => setBiometricType('faceid')}
+            >
+              <Text>Face ID</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.verificationOption, biometricType === 'voice' && styles.selectedOption]}
+              onPress={() => setBiometricType('voice')}
+            >
+              <Text>Voice</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.verificationOption, biometricType === 'iris' && styles.selectedOption]}
+              onPress={() => setBiometricType('iris')}
+            >
+              <Text>Iris Scan</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.biometricText}>
-            {biometricData ? 'Biometric data captured' : 'Tap to scan biometric'}
+            {biometricData ? `${biometricType} data captured` : `Tap to scan ${biometricType}`}
           </Text>
           <Button 
-            title={biometricData ? "Rescan Biometric" : "Scan Biometric"} 
+            title={biometricData ? `Rescan ${biometricType}` : `Scan ${biometricType}`} 
             onPress={handleBiometricScan} 
           />
         </View>
@@ -298,16 +320,16 @@ const SignupScreen = ({ navigation }) => {
       
       <TextInput
         style={styles.input}
-        placeholder="Your Cardano Address"
+        placeholder="Your Wallet Address"
         value={userAddress}
         onChangeText={setUserAddress}
       />
       
       <TextInput
         style={styles.input}
-        placeholder="Transaction Hash"
-        value={txHash}
-        onChangeText={setTxHash}
+        placeholder="Sender Wallet Address"
+        value={senderWalletAddress}
+        onChangeText={setSenderWalletAddress}
       />
       
       {loading ? (

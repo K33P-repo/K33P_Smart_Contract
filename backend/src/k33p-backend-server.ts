@@ -98,9 +98,10 @@ interface SignupRequest {
   userAddress: string;
   userId: string;
   phoneNumber: string;
-  txHash: string;
+  senderWalletAddress: string;
   pin?: string;
   biometricData?: string;
+  biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris';
   verificationMethod?: 'phone' | 'pin' | 'biometric';
 }
 
@@ -175,9 +176,9 @@ app.post('/api/signup', [
   body('phoneNumber')
     .isLength({ min: 10 })
     .withMessage('Phone number must be at least 10 characters'),
-  body('txHash')
-    .isLength({ min: 64, max: 64 })
-    .withMessage('Transaction hash must be exactly 64 characters'),
+  body('senderWalletAddress')
+    .isLength({ min: 50, max: 200 })
+    .withMessage('Invalid sender wallet address format'),
   body('pin')
     .optional()
     .isLength({ min: 4, max: 4 })
@@ -186,21 +187,26 @@ app.post('/api/signup', [
   body('verificationMethod')
     .optional()
     .isIn(['phone', 'pin', 'biometric'])
-    .withMessage('Verification method must be one of: phone, pin, biometric')
+    .withMessage('Verification method must be one of: phone, pin, biometric'),
+  body('biometricType')
+    .optional()
+    .isIn(['fingerprint', 'faceid', 'voice', 'iris'])
+    .withMessage('Biometric type must be one of: fingerprint, faceid, voice, iris')
 ], handleValidationErrors, async (req: Request, res: Response) => {
   try {
-    const { userAddress, userId, phoneNumber, txHash, pin, biometricData, verificationMethod = 'phone' }: SignupRequest = req.body;
+    const { userAddress, userId, phoneNumber, senderWalletAddress, pin, biometricData, verificationMethod = 'phone', biometricType }: SignupRequest = req.body;
     
-    logger.info('Processing signup request', { userId, userAddress, txHash, verificationMethod });
+    logger.info('Processing signup request', { userId, userAddress, senderWalletAddress, verificationMethod, biometricType });
     
     const result = await k33pManager.recordSignupWithVerification(
       userAddress, 
       userId, 
       phoneNumber, 
-      txHash,
+      senderWalletAddress, // Using sender wallet address instead of txHash
       pin,
       biometricData,
-      verificationMethod
+      verificationMethod,
+      biometricType
     );
     
     if (result.success) {

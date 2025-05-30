@@ -52,6 +52,7 @@ interface UserDeposit {
   lastVerificationAttempt: string; // New: timestamp of last attempt
   pinHash?: string;         // Optional: hash of the 4-digit PIN
   biometricHash?: string;   // Optional: hash of the biometric data
+  biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'; // Type of biometric used
   verificationMethod?: 'phone' | 'pin' | 'biometric'; // Method chosen for verification
 }
 
@@ -85,6 +86,124 @@ class BlockchainVerifier {
 
   async setDepositAddress(address: string): Promise<void> {
     this.depositAddress = address;
+  }
+
+  /**
+   * Verify transactions from a specific wallet address to our deposit address
+   */
+  async verifyTransactionByWalletAddress(senderWalletAddress: string, expectedAmount: bigint): Promise<VerificationResult> {
+    try {
+      console.log(`🔍 Verifying transactions from wallet: ${senderWalletAddress}`);
+
+      // Get recent transactions from the sender address
+      const txResponse = await fetch(`${this.baseUrl}/addresses/${senderWalletAddress}/transactions?order=desc&count=10`, {
+        headers: { 'project_id': this.apiKey }
+      });
+
+      if (!txResponse.ok) {
+        return {
+          isValid: false,
+          error: `Could not fetch transactions for address: ${senderWalletAddress}`
+        };
+      }
+
+      const transactions = await txResponse.json();
+      
+      if (transactions.length === 0) {
+        return {
+          isValid: false,
+          error: `No recent transactions found for address: ${senderWalletAddress}`
+        };
+      }
+
+      // Check each transaction to find one that meets our criteria
+      for (const tx of transactions) {
+        const txHash = tx.tx_hash;
+        
+        // Get transaction details
+        const txDetailsResponse = await fetch(`${this.baseUrl}/txs/${txHash}`, {
+          headers: { 'project_id': this.apiKey }
+        });
+
+        if (!txDetailsResponse.ok) continue;
+        
+        const txData = await txDetailsResponse.json();
+        
+        // Get transaction UTXOs
+        const utxosResponse = await fetch(`${this.baseUrl}/txs/${txHash}/utxos`, {
+          headers: { 'project_id': this.apiKey }
+        });
+
+        if (!utxosResponse.ok) continue;
+        
+        const utxosData = await utxosResponse.json();
+
+        // Find output to our deposit address
+        const depositOutput = utxosData.outputs.find((output: any) => 
+          output.address === this.depositAddress
+        );
+
+        if (!depositOutput) continue;
+
+        // Check amount (lovelace)
+        const sentAmount = BigInt(depositOutput.amount.find((asset: any) => asset.unit === 'lovelace')?.quantity || '0');
+        
+        if (sentAmount < expectedAmount) continue;
+
+        // Check transaction age
+        const txTimestamp = txData.block_time;
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+        const txAge = currentTimestamp - txTimestamp;
+
+        if (txAge > CONFIG.maxTxAge) continue;
+
+        // Verify sender address matches
+        const senderAddress = utxosData.inputs[0]?.address;
+        
+        if (senderAddress !== senderWalletAddress) {
+          console.warn(`⚠️  Sender mismatch: Expected ${senderWalletAddress}, Got ${senderAddress}`);
+          continue;
+        }
+
+        const transaction: TransactionDetails = {
+          txHash,
+          amount: sentAmount,
+          fromAddress: senderAddress,
+          toAddress: this.depositAddress,
+          timestamp: txTimestamp,
+          confirmations: txData.confirmations || 0,
+          valid: true
+        };
+
+        // Check confirmations
+        if (transaction.confirmations < CONFIG.minConfirmations) {
+          return {
+            isValid: false,
+            transaction,
+            error: `Insufficient confirmations. Required: ${CONFIG.minConfirmations}, Got: ${transaction.confirmations}`
+          };
+        }
+
+        console.log(`✅ Transaction verified successfully: ${txHash}`);
+        return {
+          isValid: true,
+          transaction
+        };
+      }
+
+      // If we get here, no valid transaction was found
+      return {
+        isValid: false,
+        error: `No valid transaction found from ${senderWalletAddress} to ${this.depositAddress} with amount >= ${expectedAmount}`
+      };
+
+    } catch (error) {
+      console.error('❌ Verification error:', error);
+      return {
+        isValid: false,
+        error: `Verification failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      };
+    }
   }
 
   /**
@@ -272,14 +391,15 @@ class EnhancedK33PManager {
     userAddress: string, 
     userId: string, 
     phoneNumber: string, 
-    txHash: string,
+    senderWalletAddress: string,
     pin?: string,
     biometricData?: string,
-    verificationMethod: 'phone' | 'pin' | 'biometric' = 'phone'
+    verificationMethod: 'phone' | 'pin' | 'biometric' = 'phone',
+    biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'
   ): Promise<{ success: boolean; message: string; verified: boolean }> {
     
     // Validate user input first
-    const validation = this.validateUserInput(userId, phoneNumber, pin, biometricData, verificationMethod);
+    const validation = this.validateUserInput(userId, phoneNumber, pin, biometricData, verificationMethod, biometricType);
     if (!validation.isValid) {
       return {
         success: false,
@@ -302,11 +422,10 @@ class EnhancedK33PManager {
 
     console.log(`🔄 Recording signup for ${userId} with verification method: ${verificationMethod}...`);
 
-    // Verify transaction
-    const verificationResult = await this.verifier.verifyTransaction(
-      txHash, 
-      CONFIG.requiredDeposit, 
-      userAddress
+    // Verify transaction by wallet address instead of txHash
+    const verificationResult = await this.verifier.verifyTransactionByWalletAddress(
+      senderWalletAddress, 
+      CONFIG.requiredDeposit
     );
 
     const phoneHash = this.generatePhoneHash(phoneNumber);
@@ -330,7 +449,7 @@ class EnhancedK33PManager {
       userId,
       phoneHash,
       zkProof,
-      txHash,
+      txHash: verificationResult.transaction?.txHash || '',
       amount: CONFIG.requiredDeposit,
       timestamp: new Date().toISOString(),
       refunded: false,
@@ -340,6 +459,7 @@ class EnhancedK33PManager {
       lastVerificationAttempt: new Date().toISOString(),
       pinHash,
       biometricHash,
+      biometricType: verificationMethod === 'biometric' ? biometricType : undefined,
       verificationMethod
     };
     
@@ -386,11 +506,26 @@ class EnhancedK33PManager {
 
     console.log(`🔄 Retrying verification for ${deposit.userId}...`);
 
-    const verificationResult = await this.verifier.verifyTransaction(
+    // First try with the stored txHash
+    let verificationResult = await this.verifier.verifyTransaction(
       deposit.txHash,
       CONFIG.requiredDeposit,
       userAddress
     );
+
+    // If verification fails with txHash, try by wallet address
+    if (!verificationResult.isValid) {
+      console.log(`Transaction verification failed, trying by wallet address...`);
+      verificationResult = await this.verifier.verifyTransactionByWalletAddress(
+        userAddress,
+        CONFIG.requiredDeposit
+      );
+      
+      // Update txHash if found by wallet address
+      if (verificationResult.isValid && verificationResult.transaction?.txHash) {
+        deposit.txHash = verificationResult.transaction.txHash;
+      }
+    }
 
     deposit.verificationAttempts += 1;
     deposit.lastVerificationAttempt = new Date().toISOString();
@@ -423,11 +558,26 @@ class EnhancedK33PManager {
     for (const deposit of unverified) {
       console.log(`Checking ${deposit.userId}...`);
       
-      const verificationResult = await this.verifier.verifyTransaction(
+      // First try with txHash if available
+      let verificationResult = await this.verifier.verifyTransaction(
         deposit.txHash,
         CONFIG.requiredDeposit,
         deposit.userAddress
       );
+
+      // If verification fails with txHash, try by wallet address
+      if (!verificationResult.isValid) {
+        console.log(`Transaction verification failed, trying by wallet address...`);
+        verificationResult = await this.verifier.verifyTransactionByWalletAddress(
+          deposit.userAddress,
+          CONFIG.requiredDeposit
+        );
+        
+        // Update txHash if found by wallet address
+        if (verificationResult.isValid && verificationResult.transaction?.txHash) {
+          deposit.txHash = verificationResult.transaction.txHash;
+        }
+      }
 
       deposit.verificationAttempts += 1;
       deposit.lastVerificationAttempt = new Date().toISOString();
@@ -533,7 +683,7 @@ class EnhancedK33PManager {
   // UTILITY METHODS (From original class)
   // ============================================================================
 
-  private validateUserInput(userId: string, phoneNumber: string, pin?: string, biometricData?: string, verificationMethod?: 'phone' | 'pin' | 'biometric'): { isValid: boolean; error?: string } {
+  private validateUserInput(userId: string, phoneNumber: string, pin?: string, biometricData?: string, verificationMethod: 'phone' | 'pin' | 'biometric' = 'phone', biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'): { isValid: boolean; error?: string } {
     if (userId.length < CONFIG.minUserIdLength || userId.length > CONFIG.maxUserIdLength) {
       return {
         isValid: false,
@@ -573,11 +723,28 @@ class EnhancedK33PManager {
     }
 
     // Validate biometric data if verification method is biometric
-    if (verificationMethod === 'biometric' && !biometricData) {
-      return {
-        isValid: false,
-        error: 'Biometric data is required for biometric verification method'
-      };
+    if (verificationMethod === 'biometric') {
+      if (!biometricData) {
+        return {
+          isValid: false,
+          error: 'Biometric data is required for biometric verification method'
+        };
+      }
+      
+      if (!biometricType) {
+        return {
+          isValid: false,
+          error: 'Biometric type is required for biometric verification method'
+        };
+      }
+      
+      // Validate that biometricType is one of the allowed types
+      if (!['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
+        return {
+          isValid: false,
+          error: 'Biometric type must be one of: fingerprint, faceid, voice, iris'
+        };
+      }
     }
 
     return { isValid: true };
