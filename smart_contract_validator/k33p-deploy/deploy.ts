@@ -36,7 +36,7 @@ async function deployK33pContract() {
 
     // 3. Check wallet balance
     const utxos = await lucid.wallet.getUtxos();
-    const totalAda = utxos.reduce((sum, utxo) => sum + utxo.assets.lovelace, 0n);
+    const totalAda = utxos.reduce((sum, utxo) => sum + (utxo.assets.lovelace || 0n), 0n);
     console.log(`💰 Wallet balance: ${Number(totalAda) / 1_000_000} ADA`);
 
     if (totalAda < CONFIG.minAda) {

@@ -10,16 +10,28 @@
     "dev": "ts-node --esm interact.ts",
     "test": "npm run build && npm start"
   },
-  "keywords": ["cardano", "smart-contract", "k33p", "blockchain"],
+  "keywords": [
+    "cardano",
+    "smart-contract",
+    "k33p",
+    "blockchain"
+  ],
   "author": "K33P Team",
   "license": "MIT",
   "dependencies": {
-    "lucid-cardano": "^0.10.7"
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.1",
+    "helmet": "^8.1.0",
+    "lucid-cardano": "^0.10.7",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "typescript": "^5.3.0",
-    "ts-node": "^10.9.0"
+    "ts-node": "^10.9.0",
+    "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=18.0.0"

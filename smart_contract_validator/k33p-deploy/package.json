@@ -9,20 +9,46 @@
     "build": "tsc",
     "start": "node dist/deploy.js",
     "test": "tsx test-connection.ts",
-    "clean": "rm -rf node_modules package-lock.json",
-    "fresh-install": "npm run clean && npm install"
+    "mobile-signup": "tsx signup.ts",
+    "type-check": "tsc --noEmit",
+    "lint": "tsc --noEmit --strict",
+    "clean": "rm -rf node_modules package-lock.json dist",
+    "fresh-install": "npm run clean && npm install",
+    
+    
+    "deposit-address": "tsx signup.ts deposit-address",
+    "record-signup": "tsx signup.ts record-signup",
+    "process-signup": "tsx signup.ts process-signup",
+    "refund": "tsx signup.ts refund",
+    "balance": "tsx signup.ts balance",
+    "pending-signups": "tsx signup.ts pending-signups",
+    "pending-refunds": "tsx signup.ts pending-refunds",
+    "status": "tsx signup.ts status",
+    
+    "setup": "npm install && echo '✅ Setup complete! Use npm run deposit-address to start'"
   },
   "dependencies": {
-    "lucid-cardano": "0.10.7",
+    "lucid-cardano": "^0.10.7",
     "dotenv": "^16.4.5"
   },
   "type": "module",
   "devDependencies": {
-    "typescript": "^5.4.5",
-    "tsx": "^4.11.0",
-    "@types/node": "^20.12.12"
+    "typescript": "^5.6.0",
+    "tsx": "^4.19.0",
+    "@types/node": "^22.0.0"
   },
   "engines": {
-    "node": ">=18.0.0"
-  }
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "cardano",
+    "smart-contract",
+    "plutus",
+    "k33p",
+    "identity",
+    "blockchain"
+  ],
+  "author": "",
+  "license": "MIT"
 }
