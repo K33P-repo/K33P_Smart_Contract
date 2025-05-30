@@ -5,8 +5,10 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { body, param, validationResult } from 'express-validator';
 import winston from 'winston';
-import { EnhancedK33PManager } from './enhanced-k33p-manager.js'; // Updated import path with .js extension
+import { EnhancedK33PManager } from './enhanced-k33p-manager.js'; // Updated import path
 import { config } from 'dotenv';
+// Import routes
+import otpRoutes from './routes/otp.js';
 // Load environment variables
 config();
 // ============================================================================
@@ -38,8 +40,10 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.'
+    max: 500, // increased from 100 to 500 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: true, // Enable the `X-RateLimit-*` headers for better compatibility
 });
 app.use('/api/', limiter);
 // Body parsing
@@ -91,6 +95,8 @@ function handleValidationErrors(req, res, next) {
 // ============================================================================
 // API ROUTES
 // ============================================================================
+// Register OTP routes
+app.use('/api/otp', otpRoutes);
 // Health check endpoint
 app.get('/api/health', (req, res) => {
     res.json(createResponse(true, { status: 'healthy', uptime: process.uptime() }, 'Service is running'));
@@ -118,9 +124,9 @@ app.post('/api/signup', [
     body('phoneNumber')
         .isLength({ min: 10 })
         .withMessage('Phone number must be at least 10 characters'),
-    body('txHash')
-        .isLength({ min: 64, max: 64 })
-        .withMessage('Transaction hash must be exactly 64 characters'),
+    body('senderWalletAddress')
+        .isLength({ min: 50, max: 200 })
+        .withMessage('Invalid sender wallet address format'),
     body('pin')
         .optional()
         .isLength({ min: 4, max: 4 })
@@ -129,12 +135,17 @@ app.post('/api/signup', [
     body('verificationMethod')
         .optional()
         .isIn(['phone', 'pin', 'biometric'])
-        .withMessage('Verification method must be one of: phone, pin, biometric')
+        .withMessage('Verification method must be one of: phone, pin, biometric'),
+    body('biometricType')
+        .optional()
+        .isIn(['fingerprint', 'faceid', 'voice', 'iris'])
+        .withMessage('Biometric type must be one of: fingerprint, faceid, voice, iris')
 ], handleValidationErrors, async (req, res) => {
     try {
-        const { userAddress, userId, phoneNumber, txHash, pin, biometricData, verificationMethod = 'phone' } = req.body;
-        logger.info('Processing signup request', { userId, userAddress, txHash, verificationMethod });
-        const result = await k33pManager.recordSignupWithVerification(userAddress, userId, phoneNumber, txHash, pin, biometricData, verificationMethod);
+        const { userAddress, userId, phoneNumber, senderWalletAddress, pin, biometricData, verificationMethod = 'phone', biometricType } = req.body;
+        logger.info('Processing signup request', { userId, userAddress, senderWalletAddress, verificationMethod, biometricType });
+        const result = await k33pManager.recordSignupWithVerification(userAddress, userId, phoneNumber, senderWalletAddress, // Using sender wallet address instead of txHash
+        pin, biometricData, verificationMethod, biometricType);
         if (result.success) {
             res.json(createResponse(true, {
                 verified: result.verified,

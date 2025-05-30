@@ -24,6 +24,10 @@ declare class BlockchainVerifier {
     constructor(apiKey: string, baseUrl: string);
     setDepositAddress(address: string): Promise<void>;
     /**
+     * Verify transactions from a specific wallet address to our deposit address
+     */
+    verifyTransactionByWalletAddress(senderWalletAddress: string, expectedAmount: bigint): Promise<VerificationResult>;
+    /**
      * Verify a transaction hash against our deposit requirements
      */
     verifyTransaction(txHash: string, expectedAmount: bigint, userAddress?: string): Promise<VerificationResult>;
@@ -45,7 +49,7 @@ declare class EnhancedK33PManager {
     /**
      * Record signup with automatic transaction verification
      */
-    recordSignupWithVerification(userAddress: string, userId: string, phoneNumber: string, txHash: string, pin?: string, biometricData?: string, verificationMethod?: 'phone' | 'pin' | 'biometric'): Promise<{
+    recordSignupWithVerification(userAddress: string, userId: string, phoneNumber: string, senderWalletAddress: string, pin?: string, biometricData?: string, verificationMethod?: 'phone' | 'pin' | 'biometric', biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'): Promise<{
         success: boolean;
         message: string;
         verified: boolean;

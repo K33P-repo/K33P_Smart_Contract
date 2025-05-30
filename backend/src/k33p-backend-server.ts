@@ -9,6 +9,9 @@ import { EnhancedK33PManager, BlockchainVerifier } from './enhanced-k33p-manager
 import { config } from 'dotenv';
 import crypto from 'crypto';
 
+// Import routes
+import otpRoutes from './routes/otp';
+
 // Load environment variables
 config();
 
@@ -48,8 +51,10 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  max: 500, // increased from 100 to 500 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: true, // Enable the `X-RateLimit-*` headers for better compatibility
 });
 app.use('/api/', limiter);
 
@@ -147,6 +152,9 @@ function handleValidationErrors(req: Request, res: Response, next: NextFunction)
 // ============================================================================
 // API ROUTES
 // ============================================================================
+
+// Register OTP routes
+app.use('/api/otp', otpRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {

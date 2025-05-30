@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "blakejs": "^1.2.1"
+    "blakejs": "^1.2.1",
+    "firebase-admin": "^13.4.0"
   }
 }
