@@ -265,7 +265,7 @@ Processes an immediate refund for a user's deposit.
 ```json
 {
   "userAddress": "addr_test1...",
-  "walletAddress": "addr_test1..."
+  "walletAddress": "addr_test1..." // Optional
 }
 ```
 
@@ -274,7 +274,7 @@ Processes an immediate refund for a user's deposit.
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | userAddress | string | Yes | User's wallet address that made the deposit |
-| walletAddress | string | Yes | Wallet address where the refund should be sent |
+| walletAddress | string | No | Wallet address where the refund should be sent. If not provided, the refund will be sent to the userAddress |
 
 **Response:**
 ```json

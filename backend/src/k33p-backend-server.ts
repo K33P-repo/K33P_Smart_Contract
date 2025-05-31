@@ -355,6 +355,7 @@ app.post('/api/refund', [
     .isLength({ min: 50, max: 200 })
     .withMessage('Invalid user address format'),
   body('walletAddress')
+    .optional()
     .isLength({ min: 10 })
     .withMessage('Wallet address must be at least 10 characters')
 ], handleValidationErrors, async (req: Request, res: Response) => {
@@ -406,8 +407,11 @@ app.post('/api/refund', [
       }
     };
     
+    // Use userAddress as the refund address if walletAddress is not provided
+    const refundAddress = walletAddress || userAddress;
+    
     // Issue the refund
-    const txHash = await refundTx(walletAddress, scriptUtxo);
+    const txHash = await refundTx(refundAddress, scriptUtxo);
     
     // Update deposit status
     deposit.refunded = true;
