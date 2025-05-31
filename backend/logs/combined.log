@@ -77,3 +77,4 @@
 {"level":"info","message":"Processing signup request","service":"k33p-backend","timestamp":"2025-05-31T00:59:16.352Z","userAddress":"addr_test123","userId":"testuser","verificationMethod":"phone"}
 {"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-05-31T01:00:24.491Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.98.2 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36"}
 {"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-05-31T01:00:24.681Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.98.2 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-05-31T02:20:42.202Z"}
