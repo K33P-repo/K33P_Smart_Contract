@@ -125,7 +125,7 @@ app.post('/api/signup', [
         .isLength({ min: 10 })
         .withMessage('Phone number must be at least 10 characters'),
     body('senderWalletAddress')
-        .isLength({ min: 50, max: 200 })
+        .matches(/^addr_(test|vkh|vk)[a-zA-Z0-9]+$/)
         .withMessage('Invalid sender wallet address format'),
     body('pin')
         .optional()

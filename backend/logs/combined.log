@@ -59,3 +59,10 @@
 {"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-05-30T19:24:38.570Z"}
 {"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-05-30T19:24:38.661Z"}
 {"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-05-30T19:24:38.934Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-05-31T00:23:07.262Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-05-31T00:23:07.338Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-05-31T00:23:07.344Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-05-31T00:23:27.038Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-05-31T00:23:39.571Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-05-31T00:23:39.614Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-05-31T00:23:39.635Z"}
