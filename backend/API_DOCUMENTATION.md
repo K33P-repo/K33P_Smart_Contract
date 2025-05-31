@@ -253,6 +253,29 @@ Processes the completion of a user's signup.
 }
 ```
 
+### Immediate Refund
+
+```
+POST /refund
+```
+
+Processes an immediate refund for a user's deposit.
+
+**Request Body:**
+```json
+{
+  "userAddress": "addr_test1...",
+  "walletAddress": "addr_test1..."
+}
+```
+
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userAddress | string | Yes | User's wallet address that made the deposit |
+| walletAddress | string | Yes | Wallet address where the refund should be sent |
+
 **Response:**
 ```json
 {
@@ -260,10 +283,15 @@ Processes the completion of a user's signup.
   "data": {
     "txHash": "e23affa659545e80ae1924d5c1c4781b54a744d91fbd29838dccd7b59d45ee65"
   },
-  "message": "Signup processed successfully",
+  "message": "Refund processed successfully",
   "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
+
+**Error Responses:**
+- `400`: Bad Request - Deposit already refunded or verification failed
+- `404`: Not Found - No deposit found for the provided address
+- `500`: Internal Server Error - Failed to process refund
 
 ## Error Responses
 

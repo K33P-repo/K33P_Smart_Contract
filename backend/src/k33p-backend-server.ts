@@ -1,80 +1,37 @@
-// k33p-backend-server.ts
 import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import { body, param, validationResult } from 'express-validator';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { EnhancedK33PManager } from './k33p-signup-interactions';
 import winston from 'winston';
-import { EnhancedK33PManager, BlockchainVerifier } from './enhanced-k33p-manager'; // Updated import path
-import { config } from 'dotenv';
-import crypto from 'crypto';
-
-// Import routes
-import otpRoutes from './routes/otp';
 
 // Load environment variables
-config();
+dotenv.config();
 
-// ============================================================================
-// LOGGING SETUP
-// ============================================================================
+// Constants
+const PORT = process.env.PORT || 3000;
+
+// Initialize logger
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.errors({ stack: true }),
     winston.format.json()
   ),
   defaultMeta: { service: 'k33p-backend' },
   transports: [
-    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'logs/combined.log' }),
     new winston.transports.Console({
-      format: winston.format.simple()
-    })
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
+    }),
+    new winston.transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new winston.transports.File({ filename: 'logs/combined.log' })
   ]
 });
 
-// ============================================================================
-// EXPRESS APP SETUP
-// ============================================================================
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Security middleware
-app.use(helmet());
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 500, // increased from 100 to 500 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.',
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: true, // Enable the `X-RateLimit-*` headers for better compatibility
-});
-app.use('/api/', limiter);
-
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// Request logging
-app.use((req: Request, res: Response, next: NextFunction) => {
-  logger.info(`${req.method} ${req.path}`, {
-    ip: req.ip,
-    userAgent: req.get('User-Agent'),
-    body: req.method === 'POST' ? req.body : undefined
-  });
-  next();
-});
-
-// ============================================================================
-// K33P MANAGER INITIALIZATION
-// ============================================================================
+// Initialize K33P Manager
 let k33pManager: EnhancedK33PManager;
 
 async function initializeK33P() {
@@ -84,30 +41,64 @@ async function initializeK33P() {
     logger.info('K33P Manager initialized successfully');
   } catch (error) {
     logger.error('Failed to initialize K33P Manager:', error);
-    process.exit(1);
+    throw error;
   }
 }
 
-// ============================================================================
-// API TYPES & INTERFACES
-// ============================================================================
-interface ApiResponse<T = any> {
+// Create Express app
+const app = express();
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Request logging middleware
+app.use((req: Request, res: Response, next: NextFunction) => {
+  logger.info(`${req.method} ${req.url}`, {
+    ip: req.ip,
+    userAgent: req.get('user-agent')
+  });
+  next();
+});
+
+// Validation error handler
+const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json(createResponse(false, undefined, undefined, errors.array()[0].msg));
+  }
+  next();
+};
+
+// Response helper
+interface ApiResponse {
   success: boolean;
-  data?: T;
+  data?: any;
+  meta?: any;
   message?: string;
-  error?: string;
   timestamp: string;
 }
 
+function createResponse(success: boolean, data?: any, meta?: any, message?: string): ApiResponse {
+  return {
+    success,
+    data,
+    meta,
+    message,
+    timestamp: new Date().toISOString()
+  };
+}
+
+// Types
 interface SignupRequest {
   userAddress: string;
   userId: string;
   phoneNumber: string;
-  senderWalletAddress?: string; // Make senderWalletAddress optional
+  senderWalletAddress?: string;
   pin?: string;
   biometricData?: string;
-  biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris';
   verificationMethod?: 'phone' | 'pin' | 'biometric';
+  biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris';
 }
 
 interface VerificationRequest {
@@ -127,45 +118,19 @@ interface UserStatus {
 }
 
 // ============================================================================
-// UTILITY FUNCTIONS
+// ROUTES
 // ============================================================================
-function createResponse<T>(success: boolean, data?: T, message?: string, error?: string): ApiResponse<T> {
-  return {
-    success,
-    data,
-    message,
-    error,
-    timestamp: new Date().toISOString()
-  };
-}
-
-function handleValidationErrors(req: Request, res: Response, next: NextFunction) {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json(createResponse(false, undefined, undefined, 
-      `Validation errors: ${errors.array().map((e: { msg: string }) => e.msg).join(', ')}`
-    ));
-  }
-  next();
-}
-
-// ============================================================================
-// API ROUTES
-// ============================================================================
-
-// Register OTP routes
-app.use('/api/otp', otpRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
-  res.json(createResponse(true, { status: 'healthy', uptime: process.uptime() }, 'Service is running'));
+  res.json(createResponse(true, { status: 'ok' }, undefined, 'K33P Backend is running'));
 });
 
 // Get deposit address
 app.get('/api/deposit-address', async (req: Request, res: Response) => {
   try {
     const address = await k33pManager.getDepositAddress();
-    res.json(createResponse(true, { address }, 'Deposit address retrieved'));
+    res.json(createResponse(true, { address }, undefined, 'Deposit address retrieved'));
   } catch (error) {
     logger.error('Error getting deposit address:', error);
     res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get deposit address'));
@@ -380,6 +345,81 @@ app.post('/api/admin/process-signup', [
     logger.error('Error processing signup:', error);
     res.status(500).json(createResponse(false, undefined, undefined, 
       error instanceof Error ? error.message : 'Failed to process signup'
+    ));
+  }
+});
+
+// NEW: Immediate refund endpoint
+app.post('/api/refund', [
+  body('userAddress')
+    .isLength({ min: 50, max: 200 })
+    .withMessage('Invalid user address format'),
+  body('walletAddress')
+    .isLength({ min: 10 })
+    .withMessage('Wallet address must be at least 10 characters')
+], handleValidationErrors, async (req: Request, res: Response) => {
+  try {
+    const { userAddress, walletAddress } = req.body;
+    
+    logger.info('Processing immediate refund request', { userAddress, walletAddress });
+    
+    // Load deposits
+    const deposits = (k33pManager as any).loadDeposits();
+    const deposit = deposits.find((d: any) => d.userAddress === userAddress);
+    
+    if (!deposit) {
+      return res.status(404).json(createResponse(false, undefined, undefined, 'No deposit found for this address'));
+    }
+
+    if (!deposit.verified) {
+      // If not verified, try to verify it immediately
+      logger.info('Deposit not verified, attempting immediate verification', { userAddress });
+      
+      const verificationResult = await k33pManager.retryVerification(userAddress);
+      if (!verificationResult.success) {
+        return res.status(400).json(createResponse(false, undefined, undefined, 
+          `Cannot process refund: ${verificationResult.message}`));
+      }
+      
+      // Reload deposits after verification
+      const updatedDeposits = (k33pManager as any).loadDeposits();
+      const updatedDeposit = updatedDeposits.find((d: any) => d.userAddress === userAddress);
+      if (!updatedDeposit) {
+        return res.status(404).json(createResponse(false, undefined, undefined, 'Deposit not found after verification'));
+      }
+      Object.assign(deposit, updatedDeposit);
+    }
+    
+    if (deposit.refunded) {
+      return res.status(400).json(createResponse(false, undefined, undefined, 'Deposit already refunded'));
+    }
+    
+    // Process the refund using the Lucid utility
+    const { refundTx } = require('./utils/lucid');
+    
+    // Create a UTXO object from deposit data
+    const scriptUtxo = {
+      txHash: deposit.txHash,
+      outputIndex: 0, // Assuming output index is 0
+      assets: {
+        lovelace: deposit.amount
+      }
+    };
+    
+    // Issue the refund
+    const txHash = await refundTx(walletAddress, scriptUtxo);
+    
+    // Update deposit status
+    deposit.refunded = true;
+    deposit.refundTxHash = txHash;
+    deposit.refundTimestamp = new Date().toISOString();
+    (k33pManager as any).saveDeposits(deposits);
+    
+    res.json(createResponse(true, { txHash }, 'Refund processed successfully'));
+  } catch (error) {
+    logger.error('Error processing refund:', error);
+    res.status(500).json(createResponse(false, undefined, undefined, 
+      error instanceof Error ? error.message : 'Failed to process refund'
     ));
   }
 });
