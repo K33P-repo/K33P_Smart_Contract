@@ -103,7 +103,7 @@ interface SignupRequest {
   userAddress: string;
   userId: string;
   phoneNumber: string;
-  senderWalletAddress: string;
+  senderWalletAddress?: string; // Make senderWalletAddress optional
   pin?: string;
   biometricData?: string;
   biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris';
@@ -175,8 +175,8 @@ app.get('/api/deposit-address', async (req: Request, res: Response) => {
 // Record signup with verification
 app.post('/api/signup', [
   body('userAddress')
-    .isLength({ min: 50, max: 200 })
-    .withMessage('Invalid user address format'),
+    .isLength({ min: 10 })
+    .withMessage('User address must be at least 10 characters'),
   body('userId')
     .isLength({ min: 3, max: 50 })
     .matches(/^[a-zA-Z0-9_]+$/)
@@ -185,6 +185,7 @@ app.post('/api/signup', [
     .isLength({ min: 10 })
     .withMessage('Phone number must be at least 10 characters'),
   body('senderWalletAddress')
+    .optional() // Make senderWalletAddress optional
     .matches(/^addr_(test|vkh|vk)[a-zA-Z0-9]+$/)
     .withMessage('Invalid sender wallet address format'),
   body('pin')
@@ -222,7 +223,8 @@ app.post('/api/signup', [
         verified: result.verified,
         userId,
         verificationMethod,
-        message: result.message
+        message: result.message,
+        depositAddress: result.depositAddress // Include deposit address in response
       }, 'Signup processed successfully'));
     } else {
       res.status(400).json(createResponse(false, undefined, undefined, result.message));

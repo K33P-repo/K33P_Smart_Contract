@@ -1,0 +1,17 @@
+[
+  {
+    "userAddress": "addr_test123",
+    "userId": "testuser",
+    "phoneHash": "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646",
+    "zkProof": "6ed1cbf71085e0a8e07377867b397bdb82b3ff9f0f84c1ea9c82e8e3ca4b12480000000000000000000000000000000000000000000000000000000000000000",
+    "txHash": "",
+    "amount": "2000000",
+    "timestamp": "2025-05-31T00:59:16.356Z",
+    "refunded": false,
+    "signupCompleted": false,
+    "verified": false,
+    "verificationAttempts": 1,
+    "lastVerificationAttempt": "2025-05-31T00:59:16.356Z",
+    "verificationMethod": "phone"
+  }
+]

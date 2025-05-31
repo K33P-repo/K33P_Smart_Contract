@@ -49,10 +49,12 @@ declare class EnhancedK33PManager {
     /**
      * Record signup with automatic transaction verification
      */
-    recordSignupWithVerification(userAddress: string, userId: string, phoneNumber: string, senderWalletAddress: string, pin?: string, biometricData?: string, verificationMethod?: 'phone' | 'pin' | 'biometric', biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'): Promise<{
+    recordSignupWithVerification(userAddress: string, userId: string, phoneNumber: string, senderWalletAddress?: string, // Make senderWalletAddress optional
+    pin?: string, biometricData?: string, verificationMethod?: 'phone' | 'pin' | 'biometric', biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'): Promise<{
         success: boolean;
         message: string;
         verified: boolean;
+        depositAddress?: string;
     }>;
     /**
      * Retry verification for unverified deposits

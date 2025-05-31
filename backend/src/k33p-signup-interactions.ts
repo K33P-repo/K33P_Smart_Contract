@@ -93,21 +93,28 @@ class BlockchainVerifier {
    */
   async verifyTransactionByWalletAddress(senderWalletAddress: string, expectedAmount: bigint): Promise<VerificationResult> {
     try {
-      console.log(`🔍 Verifying transactions from wallet: ${senderWalletAddress}`);
-
-      // Get recent transactions from the sender address
-      const txResponse = await fetch(`${this.baseUrl}/addresses/${senderWalletAddress}/transactions?order=desc&count=10`, {
-        headers: { 'project_id': this.apiKey }
+      // Skip initialization check since lucid is not needed for BlockchainVerifier
+      
+      console.log(`🔍 Verifying transaction from ${senderWalletAddress} with amount ${expectedAmount}...`);
+      
+      // Get deposit address
+      const depositAddress = this.depositAddress;
+      
+      // Fetch recent transactions for the sender wallet address
+      const response = await fetch(`${CONFIG.blockfrostUrl}/addresses/${senderWalletAddress}/transactions?order=desc`, {
+        headers: {
+          'project_id': CONFIG.blockfrostApiKey
+        }
       });
 
-      if (!txResponse.ok) {
+      if (!response.ok) {
         return {
           isValid: false,
           error: `Could not fetch transactions for address: ${senderWalletAddress}`
         };
       }
 
-      const transactions = await txResponse.json();
+      const transactions = await response.json();
       
       if (transactions.length === 0) {
         return {
@@ -140,7 +147,7 @@ class BlockchainVerifier {
 
         // Find output to our deposit address
         const depositOutput = utxosData.outputs.find((output: any) => 
-          output.address === this.depositAddress
+          output.address === depositAddress
         );
 
         if (!depositOutput) continue;
@@ -169,7 +176,7 @@ class BlockchainVerifier {
           txHash,
           amount: sentAmount,
           fromAddress: senderAddress,
-          toAddress: this.depositAddress,
+          toAddress: depositAddress,
           timestamp: txTimestamp,
           confirmations: txData.confirmations || 0,
           valid: true
@@ -194,7 +201,7 @@ class BlockchainVerifier {
       // If we get here, no valid transaction was found
       return {
         isValid: false,
-        error: `No valid transaction found from ${senderWalletAddress} to ${this.depositAddress} with amount >= ${expectedAmount}`
+        error: `No valid transaction found from ${senderWalletAddress} to ${depositAddress} with amount >= ${expectedAmount}`
       };
 
     } catch (error) {
@@ -391,12 +398,12 @@ class EnhancedK33PManager {
     userAddress: string, 
     userId: string, 
     phoneNumber: string, 
-    senderWalletAddress: string,
+    senderWalletAddress?: string, // Make senderWalletAddress optional
     pin?: string,
     biometricData?: string,
     verificationMethod: 'phone' | 'pin' | 'biometric' = 'phone',
     biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'
-  ): Promise<{ success: boolean; message: string; verified: boolean }> {
+  ): Promise<{ success: boolean; message: string; verified: boolean; depositAddress?: string }> {
     
     // Validate user input first
     const validation = this.validateUserInput(userId, phoneNumber, pin, biometricData, verificationMethod, biometricType);
@@ -422,11 +429,19 @@ class EnhancedK33PManager {
 
     console.log(`🔄 Recording signup for ${userId} with verification method: ${verificationMethod}...`);
 
-    // Verify transaction by wallet address instead of txHash
-    const verificationResult = await this.verifier.verifyTransactionByWalletAddress(
-      senderWalletAddress, 
-      CONFIG.requiredDeposit
-    );
+    // Initialize verification result
+    let verificationResult: VerificationResult = {
+      isValid: false,
+      error: 'No wallet address provided for verification'
+    };
+
+    // Only verify transaction if senderWalletAddress is provided
+    if (senderWalletAddress) {
+      verificationResult = await this.verifier.verifyTransactionByWalletAddress(
+        senderWalletAddress, 
+        CONFIG.requiredDeposit
+      );
+    }
 
     const phoneHash = this.generatePhoneHash(phoneNumber);
     let pinHash: string | undefined;
@@ -475,6 +490,17 @@ class EnhancedK33PManager {
       };
     } else {
       console.log(`⚠️  Signup recorded but verification failed: ${verificationResult.error}`);
+      
+      // If no wallet address was provided, return the deposit address
+      if (!senderWalletAddress) {
+        return {
+          success: true,
+          message: `Please send ${CONFIG.requiredDeposit} ADA to the deposit address to complete signup.`,
+          verified: false,
+          depositAddress: await this.getDepositAddress()
+        };
+      }
+      
       return {
         success: true,
         message: `Signup recorded but verification failed: ${verificationResult.error}. You can retry verification later.`,
