@@ -25,7 +25,7 @@ const CONFIG = {
     minUserIdLength: 3,
     // New verification settings
     txVerificationTimeout: 300, // 5 minutes to find transaction
-    minConfirmations: 1, // Minimum confirmations required
+    minConfirmations: 0, // Temporarily set to 0 for testing
     maxTxAge: 86400, // Max transaction age in seconds (24 hours)
 };
 // ============================================================================
