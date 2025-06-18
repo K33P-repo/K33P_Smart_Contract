@@ -54,6 +54,8 @@ interface UserDeposit {
   biometricHash?: string;   // Optional: hash of the biometric data
   biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'; // Type of biometric used
   verificationMethod?: 'phone' | 'pin' | 'biometric'; // Method chosen for verification
+  refundTxHash?: string;    // Transaction hash of the refund transaction
+  refundTimestamp?: string; // Timestamp when the refund was processed
 }
 
 interface TransactionDetails {
@@ -678,6 +680,78 @@ class EnhancedK33PManager {
     // (keeping the smart contract interaction the same)
     
     return "transaction_hash_placeholder"; 
+  }
+
+  /**
+   * Process a refund for a user's deposit
+   * @param userAddress The user's wallet address
+   * @param refundAddress Optional address to send the refund to (defaults to userAddress)
+   * @returns Object with success status, message, and transaction hash if successful
+   */
+  async processRefund(userAddress: string, refundAddress?: string): Promise<{ success: boolean; message: string; txHash?: string }> {
+    try {
+      // Load deposits
+      const deposits = this.loadDeposits();
+      const deposit = deposits.find(d => d.userAddress === userAddress);
+      
+      if (!deposit) {
+        return { success: false, message: 'No deposit found for this address' };
+      }
+
+      if (deposit.refunded) {
+        return { success: false, message: 'Deposit already refunded' };
+      }
+
+      if (!deposit.verified) {
+        // If not verified, try to verify it immediately
+        console.log(`Deposit not verified, attempting immediate verification for ${userAddress}`);
+        
+        const verificationResult = await this.retryVerification(userAddress);
+        if (!verificationResult.success) {
+          return { success: false, message: `Cannot process refund: ${verificationResult.message}` };
+        }
+        
+        // Reload deposits after verification
+        const updatedDeposits = this.loadDeposits();
+        const updatedDeposit = updatedDeposits.find(d => d.userAddress === userAddress);
+        if (!updatedDeposit) {
+          return { success: false, message: 'Deposit not found after verification' };
+        }
+        Object.assign(deposit, updatedDeposit);
+      }
+      
+      // Import the refundTx function from lucid.js
+      const { refundTx } = require('./utils/lucid');
+      
+      // Create a UTXO object from deposit data
+      const scriptUtxo = {
+        txHash: deposit.txHash,
+        outputIndex: 0, // Assuming output index is 0
+        assets: {
+          lovelace: deposit.amount
+        }
+      };
+      
+      // Use userAddress as the refund address if refundAddress is not provided
+      const targetAddress = refundAddress || userAddress;
+      
+      // Issue the refund
+      const txHash = await refundTx(targetAddress, scriptUtxo);
+      
+      // Update deposit status
+      deposit.refunded = true;
+      deposit.refundTxHash = txHash;
+      deposit.refundTimestamp = new Date().toISOString();
+      this.saveDeposits(deposits);
+      
+      return { success: true, message: 'Refund processed successfully', txHash };
+    } catch (error) {
+      console.error('Error processing refund:', error);
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : 'Failed to process refund' 
+      };
+    }
   }
 
   /**

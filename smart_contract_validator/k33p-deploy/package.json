@@ -9,6 +9,9 @@
     "build": "tsc",
     "start": "node dist/deploy.js",
     "test": "tsx test-connection.ts",
+    "test:deposit-refund": "tsx test-deposit-refund.ts",
+    "test:deposit": "tsx test-deposit-refund.ts --deposit",
+    "test:refund": "tsx test-deposit-refund.ts --refund",
     "mobile-signup": "tsx signup.ts",
     "type-check": "tsc --noEmit",
     "lint": "tsc --noEmit --strict",
@@ -48,7 +51,5 @@
     "k33p",
     "identity",
     "blockchain"
-  ],
-  "author": "",
-  "license": "MIT"
+  ]
 }

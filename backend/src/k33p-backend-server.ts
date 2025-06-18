@@ -364,60 +364,14 @@ app.post('/api/refund', [
     
     logger.info('Processing immediate refund request', { userAddress, walletAddress });
     
-    // Load deposits
-    const deposits = (k33pManager as any).loadDeposits();
-    const deposit = deposits.find((d: any) => d.userAddress === userAddress);
+    // Process the refund using the K33P manager
+    const result = await k33pManager.processRefund(userAddress, walletAddress);
     
-    if (!deposit) {
-      return res.status(404).json(createResponse(false, undefined, undefined, 'No deposit found for this address'));
-    }
-
-    if (!deposit.verified) {
-      // If not verified, try to verify it immediately
-      logger.info('Deposit not verified, attempting immediate verification', { userAddress });
-      
-      const verificationResult = await k33pManager.retryVerification(userAddress);
-      if (!verificationResult.success) {
-        return res.status(400).json(createResponse(false, undefined, undefined, 
-          `Cannot process refund: ${verificationResult.message}`));
-      }
-      
-      // Reload deposits after verification
-      const updatedDeposits = (k33pManager as any).loadDeposits();
-      const updatedDeposit = updatedDeposits.find((d: any) => d.userAddress === userAddress);
-      if (!updatedDeposit) {
-        return res.status(404).json(createResponse(false, undefined, undefined, 'Deposit not found after verification'));
-      }
-      Object.assign(deposit, updatedDeposit);
+    if (!result.success) {
+      return res.status(400).json(createResponse(false, undefined, undefined, result.message));
     }
     
-    if (deposit.refunded) {
-      return res.status(400).json(createResponse(false, undefined, undefined, 'Deposit already refunded'));
-    }
-    
-    // Process the refund using the Lucid utility
-    const { refundTx } = require('./utils/lucid');
-    
-    // Create a UTXO object from deposit data
-    const scriptUtxo = {
-      txHash: deposit.txHash,
-      outputIndex: 0, // Assuming output index is 0
-      assets: {
-        lovelace: deposit.amount
-      }
-    };
-    
-    // Use userAddress as the refund address if walletAddress is not provided
-    const refundAddress = walletAddress || userAddress;
-    
-    // Issue the refund
-    const txHash = await refundTx(refundAddress, scriptUtxo);
-    
-    // Update deposit status
-    deposit.refunded = true;
-    deposit.refundTxHash = txHash;
-    deposit.refundTimestamp = new Date().toISOString();
-    (k33pManager as any).saveDeposits(deposits);
+    const txHash = result.txHash;
     
     res.json(createResponse(true, { txHash }, 'Refund processed successfully'));
   } catch (error) {
