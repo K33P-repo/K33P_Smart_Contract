@@ -7,6 +7,9 @@ const { hashPhone, hashBiometric, hashPasskey } = require('../utils/hash');
 const { generateZkCommitment, generateZkProof, verifyZkProof } = require('../utils/zk');
 const { signupTxBuilder } = require('../utils/lucid');
 const iagon = require('../utils/iagon');
+const rateLimit = require('express-rate-limit');
+const NodeCache = require('node-cache');
+const { Blockfrost } = require('@blockfrost/nodejs');
 
 /**
  * @route POST /api/auth/signup
@@ -124,4 +127,131 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/auth/verify-wallet
+ * @desc Verify wallet address and 2ADA transaction
+ * @access Private
+ */
+// New wallet verification endpoint
+router.post('/verify-wallet', authenticate, async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const userId = req.user.userId;
+
+    // Query blockchain for recent transactions
+    const isValidTx = await verify2AdaTransaction(walletAddress);
+    if (!isValidTx) {
+      return res.status(400).json({ message: 'No valid 2 ADA transaction found' });
+    }
+
+    // Update user with wallet address
+    await User.findByIdAndUpdate(userId, { walletAddress });
+
+    res.json({ message: 'Wallet verified successfully' });
+  } catch (error) {
+    console.error('Wallet verification error:', error);
+    res.status(500).json({ message: 'Wallet verification failed', error: error.message });
+  }
+});
+
+async function verify2AdaTransaction(walletAddress) {
+  // Check cache first
+  const cachedResult = walletCache.get(walletAddress);
+  if (cachedResult !== undefined) {
+    return cachedResult;
+  }
+
+  try {
+    // Query recent transactions for this address
+    const transactions = await blockfrost.addressesTransactions(walletAddress, {
+      count: 10, // Check last 10 transactions
+      order: 'desc'
+    });
+
+    // Check each transaction for 2 ADA pattern
+    for (const tx of transactions) {
+      const txDetails = await blockfrost.txs(tx.tx_hash);
+      
+      // Verify inputs contain at least 2 ADA from this wallet
+      const hasSufficientInput = txDetails.inputs.some(
+        input => input.address === walletAddress && 
+                BigInt(input.amount[0].quantity) >= 2000000n // 2 ADA in lovelace
+      );
+      
+      // Verify outputs contain exactly 2 ADA back to this wallet
+      const hasExactOutput = txDetails.outputs.some(
+        output => output.address === walletAddress && 
+                 BigInt(output.amount[0].quantity) === 2000000n
+      );
+
+      if (hasSufficientInput && hasExactOutput) {
+        // Cache positive result
+        walletCache.set(walletAddress, true);
+        return true;
+      }
+    }
+    
+    // Cache negative result
+    walletCache.set(walletAddress, false);
+    return false;
+  } catch (error) {
+    console.error('Blockchain query error:', error);
+    return false;
+  }
+}
+
+// Wallet connect functionality
+router.get('/wallet-connect', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const user = await User.findById(userId);
+    
+    if (!user.walletAddress) {
+      return res.status(400).json({ message: 'No wallet address found' });
+    }
+    
+    res.json({ walletAddress: user.walletAddress });
+  } catch (error) {
+    console.error('Wallet connect error:', error);
+    res.status(500).json({ message: 'Wallet connect failed', error: error.message });
+  }
+});
+
 module.exports = router;
+
+// Initialize Blockfrost API
+const blockfrost = new Blockfrost({
+  projectId: process.env.BLOCKFROST_API_KEY
+});
+
+// Initialize cache with 5 minute TTL
+const walletCache = new NodeCache({ stdTTL: 300 });
+
+// Rate limiter for wallet verification (5 requests per minute)
+const walletVerifyLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  message: 'Too many wallet verification requests, please try again later'
+});
+
+// Apply rate limiter to verify-wallet endpoint
+router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res) => {
+  try {
+    const { walletAddress } = req.body;
+    const userId = req.user.userId;
+
+    // Query blockchain for recent transactions
+    const isValidTx = await verify2AdaTransaction(walletAddress);
+    if (!isValidTx) {
+      return res.status(400).json({ message: 'No valid 2 ADA transaction found' });
+    }
+
+    // Update user with wallet address
+    await User.findByIdAndUpdate(userId, { walletAddress });
+
+    res.json({ message: 'Wallet verified successfully' });
+  } catch (error) {
+    console.error('Wallet verification error:', error);
+    res.status(500).json({ message: 'Wallet verification failed', error: error.message });
+  }
+});

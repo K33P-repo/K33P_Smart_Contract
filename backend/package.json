@@ -27,6 +27,7 @@
   "author": "K33P Team",
   "license": "MIT",
   "dependencies": {
+    "@blockfrost/nodejs": "^1.0.0",
     "@types/node": "^20.17.55",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -36,6 +37,7 @@
     "firebase-admin": "^11.11.0",
     "helmet": "^8.1.0",
     "lucid-cardano": "^0.10.11",
+    "node-cache": "^5.1.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {
