@@ -5,7 +5,7 @@ services:
     nodeVersion: 18.x # Specify Node.js version for compatibility
     region: oregon # Choose the region closest to your users
     plan: free # Upgrade to a paid plan for production
-    buildCommand: cd backend && npm ci --include=dev --legacy-peer-deps && npx tsc && node fix-imports.js
+    buildCommand: cd backend && npm ci --legacy-peer-deps --include=dev && npx tsc && node fix-imports.js
     startCommand: cd backend && npm start
     healthCheckPath: /api/health
     envVars:
