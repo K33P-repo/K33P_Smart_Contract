@@ -9,7 +9,7 @@ const { signupTxBuilder } = require('../utils/lucid');
 const iagon = require('../utils/iagon');
 const rateLimit = require('express-rate-limit');
 const NodeCache = require('node-cache');
-const { Blockfrost } = require('@blockfrost/nodejs');
+const { BlockFrostAPI } = require('@blockfrost/blockfrost-js');
 
 /**
  * @route POST /api/auth/signup
@@ -220,8 +220,9 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
 module.exports = router;
 
 // Initialize Blockfrost API
-const blockfrost = new Blockfrost({
-  projectId: process.env.BLOCKFROST_API_KEY
+const blockfrost = new BlockFrostAPI({
+  projectId: process.env.BLOCKFROST_API_KEY,
+  network: 'preprod'
 });
 
 // Initialize cache with 5 minute TTL
