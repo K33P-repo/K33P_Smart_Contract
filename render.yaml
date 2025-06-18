@@ -2,7 +2,7 @@ services:
   - type: web
     name: k33p-backend
     env: node
-    nodeVersion: 18.x # Specify Node.js version for compatibility
+    nodeVersion: 18.x # Deployment will use Node.js 18.x while local development uses 22.14.0
     region: oregon # Choose the region closest to your users
     plan: free # Upgrade to a paid plan for production
     buildCommand: cd backend && npm ci --legacy-peer-deps --include=dev && npx tsc && node fix-imports.js
