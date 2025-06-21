@@ -27,11 +27,19 @@ function fixImportsInFile(filePath) {
       return `from '${prefix}${importPath}.js';`;
     });
     
+    // Fix any duplicate .js extensions that might have been added
+    const duplicateJsRegex = /\.js\.js/g;
+    content = content.replace(duplicateJsRegex, '.js');
+    
     // Also fix dynamic imports
     const dynamicImportRegex = /import\(\s*['"](\.\.\/|\.\/)([^'"]+)(?!\.js)['"]\s*\)/g;
     content = content.replace(dynamicImportRegex, (match, prefix, importPath) => {
       return `import('${prefix}${importPath}.js')`;
     });
+    
+    // Fix any duplicate .js extensions in dynamic imports
+    const duplicateDynamicJsRegex = /\.js'\.js/g;
+    content = content.replace(duplicateDynamicJsRegex, '.js');
     
     fs.writeFileSync(filePath, content, 'utf8');
     console.log(`✅ Fixed imports in ${filePath}`);
