@@ -16,6 +16,34 @@ Some endpoints require an admin API key which should be included in the request 
 X-API-KEY: k33p_admin_api_key_12345
 ```
 
+## Error Handling
+
+All API endpoints follow a consistent error handling pattern. When an error occurs, the response will have the following structure:
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human-readable error message"
+  },
+  "timestamp": "2023-06-01T12:34:56.789Z"
+}
+```
+
+Common error codes include:
+
+| Error Code | HTTP Status | Description |
+|------------|-------------|-------------|
+| INVALID_INPUT | 400 | The request contains invalid or missing parameters |
+| UNAUTHORIZED | 401 | Authentication is required or the provided credentials are invalid |
+| FORBIDDEN | 403 | The authenticated user does not have permission to access the resource |
+| NOT_FOUND | 404 | The requested resource was not found |
+| CONFLICT | 409 | The request conflicts with the current state of the resource |
+| INTERNAL_ERROR | 500 | An unexpected error occurred on the server |
+| SERVICE_UNAVAILABLE | 503 | The service is temporarily unavailable (e.g., Iagon API is down) |
+| ZK_VERIFICATION_FAILED | 401 | Zero-Knowledge proof verification failed |
+
 ## Public Endpoints
 
 ### Health Check
@@ -199,203 +227,17 @@ Returns a list of all users in the system.
     ],
     "total": 1
   },
-  "message": "Users retrieved",
+  "message": "Users retrieved successfully",
   "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
 
-### Auto-Verify All Unverified Deposits
-
-```
-POST /admin/auto-verify
-```
-
-Triggers automatic verification of all unverified deposits.
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Auto-verification completed",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-### Monitor Incoming Transactions
-
-```
-GET /admin/monitor
-```
-
-Triggers monitoring of incoming transactions to the deposit address.
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Transaction monitoring completed",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-### Process Signup Completion
-
-```
-POST /admin/process-signup
-```
-
-Processes the completion of a user's signup.
-
-**Request Body:**
-```json
-{
-  "userAddress": "addr_test1..."
-}
-```
-
-### Immediate Refund
-
-```
-POST /refund
-```
-
-Processes an immediate refund for a user's deposit.
-
-**Request Body:**
-```json
-{
-  "userAddress": "addr_test1...",
-  "walletAddress": "addr_test1..." // Optional
-}
-```
-
-**Request Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| userAddress | string | Yes | User's wallet address that made the deposit |
-| walletAddress | string | No | Wallet address where the refund should be sent. If not provided, the refund will be sent to the userAddress |
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "txHash": "e23affa659545e80ae1924d5c1c4781b54a744d91fbd29838dccd7b59d45ee65"
-  },
-  "message": "Refund processed successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-**Error Responses:**
-- `400`: Bad Request - Deposit already refunded or verification failed
-- `404`: Not Found - No deposit found for the provided address
-- `500`: Internal Server Error - Failed to process refund
-
-## Error Responses
-
-All endpoints return a standardized error format:
-
-```json
-{
-  "success": false,
-  "error": "Error message describing what went wrong",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-Common HTTP status codes:
-- `400`: Bad Request - Invalid input parameters
-- `401`: Unauthorized - Missing or invalid API key
-- `404`: Not Found - Resource not found
-- `500`: Internal Server Error - Server-side error
-
-## OTP Authentication Endpoints
-
-### Send OTP
-
-```
-POST /api/otp/send
-```
-
-Sends a one-time password to the provided phone number.
-
-**Request Body:**
-```json
-{
-  "phoneNumber": "1234567890"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "requestId": "verification_request_id"
-  },
-  "message": "Verification code sent",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-### Verify OTP
-
-```
-POST /api/otp/verify
-```
-
-Verifies the OTP code sent to a phone number.
-
-**Request Body:**
-```json
-{
-  "requestId": "verification_request_id",
-  "code": "123456"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "verified": true
-  },
-  "message": "Phone number verified successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-### Cancel Verification
-
-```
-POST /api/otp/cancel
-```
-
-Cancels an ongoing verification process.
-
-**Request Body:**
-```json
-{
-  "requestId": "verification_request_id"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Verification cancelled successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
+## Firebase Authentication
 
 ### Verify Firebase Token
 
 ```
-POST /api/otp/verify-token
+POST /api/auth/verify-firebase-token
 ```
 
 Verifies a Firebase ID token from a mobile app.
@@ -440,17 +282,35 @@ Generates a Zero-Knowledge commitment from hashed values.
 }
 ```
 
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| phone | string | Yes | User's phone number |
+| biometric | string | Yes | User's biometric data (base64 encoded) |
+| passkey | string | Yes | User's passkey or password |
+
 **Response:**
 ```json
 {
-  "commitment": "zk_commitment_hash",
-  "hashes": {
-    "phoneHash": "hashed_phone",
-    "biometricHash": "hashed_biometric",
-    "passkeyHash": "hashed_passkey"
-  }
+  "success": true,
+  "data": {
+    "commitment": "zk_commitment_hash",
+    "hashes": {
+      "phoneHash": "hashed_phone",
+      "biometricHash": "hashed_biometric",
+      "passkeyHash": "hashed_passkey"
+    }
+  },
+  "message": "ZK commitment generated successfully",
+  "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
+
+**Error Responses:**
+
+- `400 Bad Request`: If any required parameters are missing or invalid
+- `500 Internal Server Error`: If there's an error generating the commitment
 
 ### Generate ZK Proof
 
@@ -470,13 +330,36 @@ Generates a Zero-Knowledge proof.
 }
 ```
 
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| phone | string | Yes | User's phone number |
+| biometric | string | Yes | User's biometric data (base64 encoded) |
+| passkey | string | Yes | User's passkey or password |
+| commitment | string | Yes | The ZK commitment to prove against |
+
 **Response:**
 ```json
 {
-  "proof": "zk_proof_data",
-  "isValid": true
+  "success": true,
+  "data": {
+    "proof": "zk_proof_data",
+    "publicInputs": {
+      "commitment": "zk_commitment_hash"
+    },
+    "isValid": true
+  },
+  "message": "ZK proof generated successfully",
+  "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
+
+**Error Responses:**
+
+- `400 Bad Request`: If any required parameters are missing or invalid
+- `401 Unauthorized`: If the generated proof is invalid
+- `500 Internal Server Error`: If there's an error generating the proof
 
 ### Verify ZK Proof
 
@@ -489,17 +372,45 @@ Verifies a Zero-Knowledge proof.
 **Request Body:**
 ```json
 {
-  "proof": "zk_proof_data",
+  "proof": {
+    "proof": "zk_proof_data",
+    "publicInputs": {
+      "commitment": "zk_commitment_hash"
+    },
+    "isValid": true
+  },
   "commitment": "zk_commitment_hash"
 }
 ```
 
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| proof | object | Yes | The ZK proof object |
+| proof.proof | string | Yes | The proof data |
+| proof.publicInputs | object | Yes | Public inputs for the proof |
+| proof.publicInputs.commitment | string | Yes | The commitment in the proof |
+| proof.isValid | boolean | Yes | Whether the proof is valid |
+| commitment | string | Yes | The ZK commitment to verify against |
+
 **Response:**
 ```json
 {
-  "isValid": true
+  "success": true,
+  "data": {
+    "isValid": true
+  },
+  "message": "ZK proof verified successfully",
+  "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
+
+**Error Responses:**
+
+- `400 Bad Request`: If any required parameters are missing or invalid
+- `401 Unauthorized`: If the proof verification fails
+- `500 Internal Server Error`: If there's an error verifying the proof
 
 ### ZK Login
 
@@ -514,18 +425,49 @@ Logs in a user using Zero-Knowledge proof.
 {
   "walletAddress": "addr_test1...",
   "phone": "1234567890",
-  "proof": "zk_proof_data",
+  "proof": {
+    "proof": "zk_proof_data",
+    "publicInputs": {
+      "commitment": "zk_commitment_hash"
+    },
+    "isValid": true
+  },
   "commitment": "zk_commitment_hash"
 }
 ```
 
+**Request Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| walletAddress | string | No | User's wallet address (required if phone is not provided) |
+| phone | string | No | User's phone number (required if walletAddress is not provided) |
+| proof | object | Yes | The ZK proof object |
+| proof.proof | string | Yes | The proof data |
+| proof.publicInputs | object | Yes | Public inputs for the proof |
+| proof.publicInputs.commitment | string | Yes | The commitment in the proof |
+| proof.isValid | boolean | Yes | Whether the proof is valid |
+| commitment | string | Yes | The ZK commitment to verify against |
+
 **Response:**
 ```json
 {
-  "message": "ZK login successful",
-  "userId": "user_id"
+  "success": true,
+  "data": {
+    "message": "ZK login successful",
+    "userId": "user_id",
+    "token": "jwt_token"
+  },
+  "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
+
+**Error Responses:**
+
+- `400 Bad Request`: If any required parameters are missing or invalid
+- `401 Unauthorized`: If the proof verification fails
+- `404 Not Found`: If the user is not found
+- `500 Internal Server Error`: If there's an error during login or if the Iagon API is unavailable
 
 ## UTXO Management Endpoints
 
@@ -542,15 +484,26 @@ Fetches UTXOs at the script address by phone hash.
 
 **Response:**
 ```json
-[
-  {
-    "txHash": "transaction_hash",
-    "outputIndex": 0,
-    "amount": "2000000",
-    "datum": { ... }
-  }
-]
+{
+  "success": true,
+  "data": [
+    {
+      "txHash": "transaction_hash",
+      "outputIndex": 0,
+      "amount": "2000000",
+      "datum": { ... }
+    }
+  ],
+  "message": "UTXOs retrieved successfully",
+  "timestamp": "2023-06-01T12:34:56.789Z"
+}
 ```
+
+**Error Responses:**
+
+- `400 Bad Request`: If the phone hash is invalid
+- `404 Not Found`: If no UTXOs are found
+- `500 Internal Server Error`: If there's an error fetching UTXOs or if the Iagon API is unavailable
 
 ### Issue Refund
 
@@ -570,6 +523,9 @@ Issues a refund for a UTXO.
   "ownerAddress": "addr_test1...",
   "zkProof": {
     "proof": "zk_proof_data",
+    "publicInputs": {
+      "commitment": "zk_commitment_hash"
+    },
     "isValid": true
   }
 }
@@ -578,222 +534,32 @@ Issues a refund for a UTXO.
 **Response:**
 ```json
 {
-  "message": "Refund issued successfully",
-  "txHash": "refund_transaction_hash"
+  "success": true,
+  "data": {
+    "message": "Refund issued successfully",
+    "txHash": "refund_transaction_hash"
+  },
+  "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
 
-### Track UTXO
+## Iagon API Integration
 
-```
-POST /api/utxo/track
-```
+The K33P backend integrates with the Iagon API for user management, session management, and UTxO tracking. The integration is designed to be fault-tolerant with the following features:
 
-Tracks a new UTXO in the database.
+1. **Automatic Fallback to Mock Implementation**: If the Iagon API is unavailable or not configured, the system automatically falls back to a local mock implementation to ensure the application continues to function.
 
-**Request Body:**
-```json
-{
-  "txHash": "transaction_hash",
-  "outputIndex": 0,
-  "datum": { ... }
-}
-```
+2. **Robust Error Handling**: All API calls include comprehensive error handling to prevent API failures from breaking the application.
 
-**Response:**
-```json
-{
-  "message": "UTXO tracked successfully",
-  "scriptUtxo": { ... }
-}
-```
+3. **Input Validation**: All inputs are validated before being sent to the Iagon API to prevent invalid requests.
 
-### Get User UTXOs
+4. **Timeout Management**: API calls have configurable timeouts to prevent hanging requests.
 
-```
-GET /api/utxo/user
-```
+5. **Logging**: Detailed logging of API interactions for debugging and monitoring.
 
-Gets all UTXOs for the current user.
+The Iagon API integration is configured using the following environment variables:
 
-**Response:**
-```json
-[
-  {
-    "txHash": "transaction_hash",
-    "outputIndex": 0,
-    "datum": { ... },
-    "userId": "user_id",
-    "refunded": false
-  }
-]
-```
+- `IAGON_API_URL`: The base URL of the Iagon API (e.g., `https://api.iagon.com`)
+- `IAGON_API_KEY`: The API key for authenticating with the Iagon API
 
-## Authentication Endpoints
-
-### User Signup
-
-```
-POST /api/auth/signup
-```
-
-Registers a new user with the system.
-
-**Request Body:**
-```json
-{
-  "userId": "user_id",
-  "walletAddress": "addr_test1...",
-  "phoneNumber": "1234567890",
-  "commitment": "zk_commitment_hash"
-}
-```
-
-**Response:**
-```json
-{
-  "message": "User registered successfully",
-  "token": "jwt_token",
-  "user": {
-    "userId": "user_id",
-    "walletAddress": "addr_test1...",
-    "phoneHash": "hashed_phone"
-  }
-}
-```
-
-### User Login
-
-```
-POST /api/auth/login
-```
-
-Logs in a user with a ZK proof.
-
-**Request Body:**
-```json
-{
-  "walletAddress": "addr_test1...",
-  "phone": "1234567890",
-  "proof": "zk_proof_data",
-  "commitment": "zk_commitment_hash"
-}
-```
-
-**Response:**
-```json
-{
-  "message": "Login successful",
-  "token": "jwt_token",
-  "user": {
-    "userId": "user_id",
-    "walletAddress": "addr_test1...",
-    "phoneHash": "hashed_phone"
-  }
-}
-```
-
-### User Logout
-
-```
-POST /api/auth/logout
-```
-
-Logs out the current user.
-
-**Response:**
-```json
-{
-  "message": "Logout successful"
-}
-```
-
-### Get Current User
-
-```
-GET /api/auth/me
-```
-
-Returns information about the currently authenticated user.
-
-**Response:**
-```json
-{
-  "userId": "user_id",
-  "walletAddress": "addr_test1...",
-  "phoneHash": "hashed_phone",
-  "commitment": "zk_commitment_hash"
-}
-```
-
-### Verify Wallet
-
-```
-POST /api/auth/verify-wallet
-```
-
-Verifies a wallet address and 2 ADA transaction.
-
-**Request Body:**
-```json
-{
-  "walletAddress": "addr_test1..."
-}
-```
-
-**Response:**
-```json
-{
-  "message": "Wallet verified successfully"
-}
-```
-
-### Wallet Connect
-
-```
-GET /api/auth/wallet-connect
-```
-
-Returns the wallet address for the authenticated user.
-
-**Response:**
-```json
-{
-  "walletAddress": "addr_test1..."
-}
-```
-
-## Authentication Requirements
-
-Many endpoints require authentication. To authenticate requests, include the JWT token in the Authorization header:
-
-```
-Authorization: Bearer <jwt_token>
-```
-
-The following endpoints require authentication:
-- All `/api/utxo/*` endpoints
-- `/api/auth/me`
-- `/api/auth/logout`
-- `/api/auth/wallet-connect`
-- `/api/zk/user/:userId`
-
-## Rate Limiting
-
-Some endpoints implement rate limiting to prevent abuse:
-
-- `/api/auth/verify-wallet`: Limited to 5 requests per 15 minutes per IP address
-- `/api/otp/send`: Limited to 3 requests per hour per phone number
-
-## Integration Notes
-
-1. Users must send exactly 2 ADA to the deposit address to complete signup
-2. Transaction verification may take a few minutes depending on blockchain confirmation times
-3. The `userId` must be 3-50 characters, alphanumeric and underscores only
-4. The `txHash` must be exactly 64 characters
-5. The `phoneNumber` must be 10-15 characters, numeric only
-6. Phone numbers should be in E.164 format (e.g., +12345678900)
-7. ZK proofs are required for secure authentication and UTXO refunds
-8. Wallet verification checks for a 2 ADA transaction within the last 10 transactions
-9. OTP verification is required for the first login of a new user
-10. Firebase authentication can be used as an alternative to OTP verification
+If these environment variables are not set or if the URL is invalid, the system will automatically use the mock implementation.
