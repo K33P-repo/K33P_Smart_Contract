@@ -76,6 +76,17 @@ declare class EnhancedK33PManager {
      */
     processSignup(userAddress: string): Promise<string>;
     /**
+     * Process a refund for a user's deposit
+     * @param userAddress The user's wallet address
+     * @param refundAddress Optional address to send the refund to (defaults to userAddress)
+     * @returns Object with success status, message, and transaction hash if successful
+     */
+    processRefund(userAddress: string, refundAddress?: string): Promise<{
+        success: boolean;
+        message: string;
+        txHash?: string;
+    }>;
+    /**
      * List deposits with verification status
      */
     listDepositsWithStatus(): void;

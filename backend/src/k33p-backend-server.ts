@@ -5,6 +5,10 @@ import dotenv from 'dotenv';
 import { EnhancedK33PManager } from './k33p-signup-interactions';
 import winston from 'winston';
 
+// Import routes
+// @ts-ignore
+import zkRoutes from './routes/zk';
+
 // Load environment variables
 dotenv.config();
 
@@ -60,6 +64,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   });
   next();
 });
+
+// Register routes
+app.use('/api/zk', zkRoutes);
 
 // Validation error handler
 const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {

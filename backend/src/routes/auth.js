@@ -1,15 +1,16 @@
 // Authentication routes for K33P Identity System
-const express = require('express');
+import express from 'express';
+import jwt from 'jsonwebtoken';
+import { verifyToken, verifyZkProof } from '../middleware/auth.js';
+import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
+import { generateZkCommitment, generateZkProof, verifyZkProof as verifyZkProofUtil } from '../utils/zk.js';
+import { signupTxBuilder } from '../utils/lucid.js';
+import * as iagon from '../utils/iagon.js';
+import rateLimit from 'express-rate-limit';
+import NodeCache from 'node-cache';
+import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+
 const router = express.Router();
-const jwt = require('jsonwebtoken');
-const { verifyToken, verifyZkProof } = require('../middleware/auth');
-const { hashPhone, hashBiometric, hashPasskey } = require('../utils/hash');
-const { generateZkCommitment, generateZkProof, verifyZkProof } = require('../utils/zk');
-const { signupTxBuilder } = require('../utils/lucid');
-const iagon = require('../utils/iagon');
-const rateLimit = require('express-rate-limit');
-const NodeCache = require('node-cache');
-const { BlockFrostAPI } = require('@blockfrost/blockfrost-js');
 
 /**
  * @route POST /api/auth/signup
@@ -217,7 +218,7 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
 
 // Initialize Blockfrost API
 const blockfrost = new BlockFrostAPI({
