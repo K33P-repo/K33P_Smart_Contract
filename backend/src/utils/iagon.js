@@ -15,11 +15,28 @@ if (!IAGON_API_KEY) {
 }
 
 // Create a mock database for development/testing when API is not available
-const mockDb = {
+import fs from 'fs';
+import path from 'path';
+
+let mockDb = {
   users: [],
   sessions: [],
   scriptUtxos: []
 };
+
+// Try to load mock database from file
+try {
+  const mockDbPath = 'c:\\Users\\USER\\Desktop\\K33P_Smart_Contract\\backend\\src\\utils\\mock-db.json';
+  if (fs.existsSync(mockDbPath)) {
+    console.log('Loading mock database from', mockDbPath);
+    mockDb = JSON.parse(fs.readFileSync(mockDbPath, 'utf8'));
+    console.log(`Loaded ${mockDb.users.length} users from mock database`);
+  } else {
+    console.log('Mock database file not found, using empty database');
+  }
+} catch (error) {
+  console.error('Error loading mock database:', error.message);
+}
 
 // Helper to validate URL
 function isValidUrl(urlString) {

@@ -497,7 +497,7 @@ class EnhancedK33PManager {
       if (!senderWalletAddress) {
         return {
           success: true,
-          message: `Please send ${CONFIG.requiredDeposit} ADA to the deposit address to complete signup.`,
+          message: `Please send ${Number(CONFIG.requiredDeposit) / 1_000_000} ADA to the deposit address to complete signup.`,
           verified: false,
           depositAddress: await this.getDepositAddress()
         };

@@ -1,0 +1,78 @@
+=== TESTING ZK IDENTITY FLOW WITH FULLY MOCKED RESPONSES ===
+Using Cardano address: addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py
+
+=== STEP 1: GENERATE COMMITMENT ===
+Hashed inputs:
+Phone Hash: ea151b05e5cdd0f0734e927628cf86eca3792372b8c2370607e5e734d951c6ee
+Biometric Hash: 9c58b3c044072c181b74bc9d8fd77012ff4a9c11328e90c85458247ff1e0d8b5
+Passkey Hash: 2cd44987f0bee00f903da5468ac74c631fef47a771ed0a2decb3e6ee46085355
+
+Mocking request to /api/zk/commitment with data: {
+  phone: '1234567890',
+  biometric: 'test_biometric',
+  passkey: 'test_passkey'
+}
+
+Commitment generated successfully:
+Commitment: 65c4a9eff0f5ad356b28b9906554700b83cca231a09553fe50974d757a3592a4
+
+=== STEP 2: GENERATE PROOF ===
+
+Mocking request to /api/zk/proof with data: {
+  phone: '1234567890',
+  biometric: 'test_biometric',
+  passkey: 'test_passkey',
+  commitment: '65c4a9eff0f5ad356b28b9906554700b83cca231a09553fe50974d757a3592a4'
+}
+
+Proof generated successfully:
+Proof Response: {
+  proof: 'fd7f75e7d5d40e80cb3994a98948aa2ceebc59651cf0a689846b23f0fb0930e9',
+  publicSignals: [
+    '65c4a9eff0f5ad356b28b9906554700b83cca231a09553fe50974d757a3592a4'
+  ]
+}
+
+=== STEP 3: CREATE MOCK USER ===
+
+Mock user created successfully:
+User ID: 1436838a-bf99-4f49-9f45-567d8349f83c
+User Data: {
+  id: '1436838a-bf99-4f49-9f45-567d8349f83c',
+  walletAddress: 'addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py',
+  email: 'test@example.com',
+  name: 'Test User',
+  phoneHash: 'ea151b05e5cdd0f0734e927628cf86eca3792372b8c2370607e5e734d951c6ee',
+  zkCommitment: '65c4a9eff0f5ad356b28b9906554700b83cca231a09553fe50974d757a3592a4'
+}
+
+=== STEP 4: ATTEMPT ZK LOGIN WITH MOCK USER ===
+
+Mocking request to /api/zk/login with data: {
+  walletAddress: 'addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py',
+  phone: '1234567890',
+  proof: 'fd7f75e7d5d40e80cb3994a98948aa2ceebc59651cf0a689846b23f0fb0930e9',
+  commitment: '65c4a9eff0f5ad356b28b9906554700b83cca231a09553fe50974d757a3592a4'
+}
+
+Verifying with mock user:
+Mock User Wallet: addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py
+Request Wallet: addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py
+Mock User Commitment: 65c4a9eff0f5ad356b28b9906554700b83cca231a09553fe50974d757a3592a4
+Request Commitment: 65c4a9eff0f5ad356b28b9906554700b83cca231a09553fe50974d757a3592a4
+Mock Verification Results: {
+  walletAddressMatch: true,
+  commitmentMatch: true,
+  phoneHashMatch: true
+}
+
+Mock login successful:
+User ID: 1436838a-bf99-4f49-9f45-567d8349f83c
+
+=== TEST RESULTS ===
+Commitment Generated: true
+Proof Generated: true
+Mock User Created: true
+Mock Login Success: true
+
+Test completed successfully!

@@ -1,0 +1,12 @@
+{
+  "proof": {
+    "publicInputs": {
+      "commitment": "0000000000000000000000000000000000000000000000000000000-73760cc1"
+    },
+    "isValid": true,
+    "proof": "0000000000000000000000000000000000000000000000000000000-1f0dd63a"
+  },
+  "walletAddress": "addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py",
+  "phone": "1234567890",
+  "commitment": "0000000000000000000000000000000000000000000000000000000-73760cc1"
+}
