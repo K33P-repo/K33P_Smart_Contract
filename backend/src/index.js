@@ -24,7 +24,17 @@ app.use('/api/auth', authRoutes);
 app.use('/api/utxo', utxoRoutes);
 app.use('/api/zk', zkRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.status(200).json({ message: 'K33P Backend API is running. See /api/health for status.' });
+});
+
 // Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
+// Also keep the original endpoint for backward compatibility
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
