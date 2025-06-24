@@ -1,6 +1,8 @@
 // Test script for ZK identity route with mocked Iagon API
 import crypto from 'crypto';
 import http from 'http';
+import url from 'url';
+import { getApiUrl } from './src/utils/api-url.js';
 
 // Hash functions from hash.js
 const hashPhone = (phone) => {
@@ -89,10 +91,15 @@ const generateCommitment = async () => {
   console.log('Passkey Hash:', passkeyHash);
 
   // Make a request to the ZK commitment endpoint
+  const commitmentUrl = getApiUrl('/api/zk/commitment');
+  console.log(`Sending request to ${commitmentUrl}`);
+  
+  // Parse the URL to get hostname, port, and path
+  const parsedUrl = new url.URL(commitmentUrl);
   const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/zk/commitment',
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -105,7 +112,7 @@ const generateCommitment = async () => {
     passkey: testData.passkey
   });
 
-  console.log('\nSending request to /api/zk/commitment with data:', data);
+  console.log('\nSending request with data:', data);
 
   const response = await makeRequest(options, data);
   
@@ -121,10 +128,15 @@ const generateCommitment = async () => {
 // Step 2: Generate a ZK proof
 const generateProof = async (commitment) => {
   // Make a request to the ZK proof endpoint
+  const proofUrl = getApiUrl('/api/zk/proof');
+  console.log(`Sending request to ${proofUrl}`);
+  
+  // Parse the URL to get hostname, port, and path
+  const parsedUrl = new url.URL(proofUrl);
   const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/zk/proof',
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -138,7 +150,7 @@ const generateProof = async (commitment) => {
     commitment
   });
 
-  console.log('\nSending request to /api/zk/proof with data:', data);
+  console.log('\nSending request with data:', data);
 
   const response = await makeRequest(options, data);
   
@@ -186,10 +198,15 @@ const patchZkLoginRoute = async () => {
 // Step 5: Attempt ZK login with our mock user
 const attemptZkLogin = async (proofObj, commitment) => {
   // Make a request to the ZK login endpoint
+  const loginUrl = getApiUrl('/api/zk/login');
+  console.log(`Sending request to ${loginUrl}`);
+  
+  // Parse the URL to get hostname, port, and path
+  const parsedUrl = new url.URL(loginUrl);
   const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/zk/login',
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -203,7 +220,7 @@ const attemptZkLogin = async (proofObj, commitment) => {
     commitment
   });
 
-  console.log('\nSending request to /api/zk/login with data:', data);
+  console.log('\nSending request with data:', data);
 
   // Before making the actual request, let's check if our mock user matches
   console.log('\nVerifying with mock user:');

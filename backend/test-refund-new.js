@@ -1,5 +1,6 @@
 // test-refund-new.js
 import fetch from 'node-fetch';
+import { getApiUrl } from './src/utils/api-url.js';
 
 // The address that sent the 2 ADA
 const userAddress = 'addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq';
@@ -13,7 +14,9 @@ async function testRefund() {
     console.log(`User address: ${userAddress}`);
     console.log(`Transaction hash: ${txHash}`);
     
-    const response = await fetch('http://localhost:3001/api/refund', {
+    const refundUrl = getApiUrl('/api/refund');
+  console.log(`Sending request to ${refundUrl}`);
+  const response = await fetch(refundUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

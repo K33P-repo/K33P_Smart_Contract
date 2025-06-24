@@ -1,4 +1,5 @@
 // Script to update the backend wallet configuration to use the user's wallet
+// @ts-nocheck
 import { Lucid, Blockfrost } from 'lucid-cardano';
 import fs from 'fs';
 import dotenv from 'dotenv';
@@ -38,45 +39,52 @@ async function main() {
     
     // Create a test script to verify the wallet address works with the refund process
     const testScriptPath = path.resolve('./backend/test-user-wallet-refund.js');
-    const testScriptContent = `// Test script to verify refund with user wallet address
-import fetch from 'node-fetch';
-import fs from 'fs';
-import path from 'path';
-
-async function main() {
-  try {
-    // User wallet address from .env
-    const userAddress = '${USER_WALLET_ADDRESS}';
-    console.log('Testing refund with user address:', userAddress);
+    // Create the test script content as separate lines to avoid template literal issues with TypeScript
+    const testScriptLines = [
+      '// Test script to verify refund with user wallet address',
+      'import fetch from \'node-fetch\';',
+      'import { getApiUrl } from \'./src/utils/api-url.js\';',
+      'import fs from \'fs\';',
+      'import path from \'path\';',
+      '',
+      'async function main() {',
+      '  try {',
+      `    // User wallet address from .env`,
+      `    const userAddress = '${USER_WALLET_ADDRESS}';`,
+      `    console.log('Testing refund with user address:', userAddress);`,
+      '    ',
+      '    // Make the refund request',
+      `    const refundUrl = getApiUrl('/api/refund');`,
+      `    console.log('Sending request to ' + refundUrl);`,
+      '    const response = await fetch(refundUrl, {',
+      '      method: \'POST\',',
+      '      headers: {',
+      '        \'Content-Type\': \'application/json\'',
+      '      },',
+      '      body: JSON.stringify({',
+      '        userAddress: userAddress,',
+      '        walletAddress: userAddress',
+      '      })',
+      '    });',
+      '    ',
+      '    const data = await response.json();',
+      '    console.log(\'Response:\', data);',
+      '    ',
+      '    if (data.success) {',
+      '      console.log(\'✅ Refund successful!\');',
+      '      console.log(\'Transaction hash:\', data.txHash);',
+      '    } else {',
+      '      console.log(\'❌ Refund failed:\', data.message);',
+      '    }',
+      '  } catch (error) {',
+      '    console.error(\'Error:\', error);',
+      '  }',
+      '}',
+      '',
+      'main();'
+    ];
     
-    // Make the refund request
-    const response = await fetch('http://localhost:3001/api/refund', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        userAddress: userAddress,
-        walletAddress: userAddress
-      })
-    });
-    
-    const data = await response.json();
-    console.log('Response:', data);
-    
-    if (data.success) {
-      console.log('✅ Refund successful!');
-      console.log('Transaction hash:', data.txHash);
-    } else {
-      console.log('❌ Refund failed:', data.message);
-    }
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-main();
-`;
+    const testScriptContent = testScriptLines.join('\n');
     
     fs.writeFileSync(testScriptPath, testScriptContent);
     console.log('Created test script at:', testScriptPath);

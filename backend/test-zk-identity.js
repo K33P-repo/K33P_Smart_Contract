@@ -1,6 +1,8 @@
 // Test script for ZK identity route (create user and login)
 import crypto from 'crypto';
 import http from 'http';
+import url from 'url';
+import { getApiUrl } from './src/utils/api-url.js';
 
 // Hash functions from hash.js
 const hashPhone = (phone) => {
@@ -86,10 +88,16 @@ const generateCommitment = async () => {
   console.log('Passkey Hash:', passkeyHash);
 
   // Make a request to the ZK commitment endpoint
+  const commitmentUrl = getApiUrl('/api/zk/commitment');
+  console.log(`Sending request to ${commitmentUrl}`);
+  
+  // Parse the URL to get hostname, port, and path
+  const parsedUrl = new url.URL(commitmentUrl);
+  
   const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/zk/commitment',
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -118,10 +126,16 @@ const generateCommitment = async () => {
 // Step 2: Generate a ZK proof
 const generateProof = async (commitment) => {
   // Make a request to the ZK proof endpoint
+  const proofUrl = getApiUrl('/api/zk/proof');
+  console.log(`Sending request to ${proofUrl}`);
+  
+  // Parse the URL to get hostname, port, and path
+  const parsedUrl = new url.URL(proofUrl);
+  
   const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/zk/proof',
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -151,10 +165,16 @@ const generateProof = async (commitment) => {
 // Step 3: Create a user with the ZK commitment
 const createUser = async (commitment) => {
   // Make a request to the signup endpoint
+  const signupUrl = getApiUrl('/api/auth/signup');
+  console.log(`Sending request to ${signupUrl}`);
+  
+  // Parse the URL to get hostname, port, and path
+  const parsedUrl = new url.URL(signupUrl);
+  
   const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/auth/signup',
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -186,10 +206,16 @@ const createUser = async (commitment) => {
 // Step 4: Attempt ZK login
 const attemptZkLogin = async (proofObj, commitment) => {
   // Make a request to the ZK login endpoint
+  const loginUrl = getApiUrl('/api/auth/login/zk');
+  console.log(`Sending request to ${loginUrl}`);
+  
+  // Parse the URL to get hostname, port, and path
+  const parsedUrl = new url.URL(loginUrl);
+  
   const options = {
-    hostname: 'localhost',
-    port: 3000,
-    path: '/api/zk/login',
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+    path: parsedUrl.pathname,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

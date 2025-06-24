@@ -1,5 +1,6 @@
 // Test script to refund an existing deposit
 import fetch from 'node-fetch';
+import { getApiUrl } from './src/utils/api-url.js';
 
 async function testRefund() {
   try {
@@ -8,7 +9,9 @@ async function testRefund() {
     
     console.log('Testing refund with existing deposit address:', userAddress);
     
-    const response = await fetch('http://localhost:3001/api/refund', {
+    const refundUrl = getApiUrl('/api/refund');
+  console.log(`Sending request to ${refundUrl}`);
+  const response = await fetch(refundUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

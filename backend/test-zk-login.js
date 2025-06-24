@@ -1,6 +1,8 @@
 // Test script for ZK login route
 import crypto from 'crypto';
 import http from 'http';
+import url from 'url';
+import { getApiUrl } from './src/utils/api-url.js';
 
 // Hash functions from hash.js
 const hashPhone = (phone) => {
@@ -43,10 +45,16 @@ const generateCommitment = () => {
     console.log('Passkey Hash:', passkeyHash);
 
     // Make a request to the ZK commitment endpoint
+    const commitmentUrl = getApiUrl('/api/zk/commitment');
+    console.log(`Sending request to ${commitmentUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(commitmentUrl);
+    
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/zk/commitment',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -103,10 +111,16 @@ const generateCommitment = () => {
 const generateProof = (commitment) => {
   return new Promise((resolve, reject) => {
     // Make a request to the ZK proof endpoint
+    const proofUrl = getApiUrl('/api/zk/proof');
+    console.log(`Sending request to ${proofUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(proofUrl);
+    
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/zk/proof',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -160,10 +174,16 @@ const generateProof = (commitment) => {
 const attemptZkLogin = (proofObj, commitment) => {
   return new Promise((resolve, reject) => {
     // Make a request to the ZK login endpoint
+    const loginUrl = getApiUrl('/api/zk/login');
+    console.log(`Sending request to ${loginUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(loginUrl);
+    
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/zk/login',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

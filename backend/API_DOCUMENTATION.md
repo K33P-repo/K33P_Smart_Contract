@@ -4,9 +4,12 @@ This document provides information about the available API endpoints for the K33
 
 ## Base URL
 
+In development environment:
 ```
 http://localhost:3000/api
 ```
+
+In production environment, the base URL will be different. The application uses the `getApiUrl` utility function to dynamically determine the appropriate URL based on the environment.
 
 ## Authentication
 

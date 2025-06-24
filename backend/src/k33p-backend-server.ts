@@ -417,7 +417,13 @@ async function startServer() {
     
     app.listen(PORT, () => {
       logger.info(`K33P Backend Server running on port ${PORT}`);
-      logger.info(`Health check: http://localhost:${PORT}/api/health`);
+      
+      // Use environment-aware URL for health check
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_URL || `https://${process.env.RENDER_EXTERNAL_URL || 'your-app.onrender.com'}` 
+        : `http://localhost:${PORT}`;
+      
+      logger.info(`Health check: ${baseUrl}/api/health`);
     });
     
     // Graceful shutdown

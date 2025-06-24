@@ -1,6 +1,9 @@
 // Create a test user with ZK commitment for local server
 import crypto from 'crypto';
 import http from 'http';
+import https from 'https';
+import url from 'url';
+import { getApiUrl } from './src/utils/api-url.js';
 
 // Test data
 const testData = {
@@ -23,15 +26,23 @@ const hashPhone = (phone) => {
 const generateCommitment = () => {
   return new Promise((resolve, reject) => {
     // Make a request to the ZK commitment endpoint
+    const commitmentUrl = getApiUrl('/api/zk/commitment');
+    console.log(`Sending request to ${commitmentUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(commitmentUrl);
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/zk/commitment',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
     };
+    
+    // Choose the appropriate request module based on protocol
+    const requestModule = parsedUrl.protocol === 'https:' ? https : http;
 
     const data = JSON.stringify({
       phone: testData.phone,
@@ -39,9 +50,9 @@ const generateCommitment = () => {
       passkey: testData.passkey
     });
 
-    console.log('\nSending request to /api/zk/commitment with data:', data);
+    console.log('\nSending request with data:', data);
 
-    const req = http.request(options, (res) => {
+    const req = requestModule.request(options, (res) => {
       console.log('Status Code:', res.statusCode);
       
       let responseData = '';
@@ -91,15 +102,23 @@ const generateCommitment = () => {
 const createUser = (commitment) => {
   return new Promise((resolve, reject) => {
     // Make a request to create a user
+    const signupUrl = getApiUrl('/api/signup');
+    console.log(`Sending request to ${signupUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(signupUrl);
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/signup',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
     };
+    
+    // Choose the appropriate request module based on protocol
+    const requestModule = parsedUrl.protocol === 'https:' ? https : http;
 
     const phoneHash = hashPhone(testData.phone);
 
@@ -112,9 +131,9 @@ const createUser = (commitment) => {
       zkCommitment: commitment
     });
 
-    console.log('\nSending request to /api/signup with data:', data);
+    console.log('\nSending request with data:', data);
 
-    const req = http.request(options, (res) => {
+    const req = requestModule.request(options, (res) => {
       console.log('Status Code:', res.statusCode);
       
       let responseData = '';

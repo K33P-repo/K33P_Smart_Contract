@@ -10,6 +10,10 @@ services:
         value: production
       - key: PORT
         value: 10000
+      - key: FRONTEND_URL
+        value: https://k33p-backend.onrender.com
+      - key: RENDER_EXTERNAL_URL
+        value: k33p-backend.onrender.com
       - key: BLOCKFROST_API_KEY
         sync: false
       - key: ADMIN_API_KEY

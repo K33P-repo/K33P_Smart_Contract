@@ -1,6 +1,8 @@
 // Test script for ZK proof generation and verification routes
 import crypto from 'crypto';
 import http from 'http';
+import url from 'url';
+import { getApiUrl } from './src/utils/api-url.js';
 
 // Hash functions from hash.js
 const hashPhone = (phone) => {
@@ -42,10 +44,16 @@ const generateCommitment = () => {
     console.log('Passkey Hash:', passkeyHash);
 
     // Make a request to the ZK commitment endpoint
+    const commitmentUrl = getApiUrl('/api/zk/commitment');
+    console.log(`Sending request to ${commitmentUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(commitmentUrl);
+    
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/zk/commitment',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -98,10 +106,16 @@ const generateCommitment = () => {
 const generateProof = (commitment) => {
   return new Promise((resolve, reject) => {
     // Make a request to the ZK proof endpoint
+    const proofUrl = getApiUrl('/api/zk/proof');
+    console.log(`Sending request to ${proofUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(proofUrl);
+    
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/zk/proof',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -162,10 +176,16 @@ const verifyProof = (proofObj, commitment) => {
     };
 
     // Make a request to the ZK verify endpoint
+    const verifyUrl = getApiUrl('/api/zk/verify');
+    console.log(`Sending request to ${verifyUrl}`);
+    
+    // Parse the URL to get hostname, port, and path
+    const parsedUrl = new url.URL(verifyUrl);
+    
     const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/zk/verify',
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+      path: parsedUrl.pathname,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

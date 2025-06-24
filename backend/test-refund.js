@@ -1,11 +1,16 @@
 // Test script for refund endpoint
 import fetch from 'node-fetch';
+import { getApiUrl } from './src/utils/api-url.js';
 
 async function testRefund() {
   try {
     console.log('Testing refund endpoint...');
     
-    const response = await fetch('http://localhost:3001/api/refund', {
+    // Use the API URL utility to get the correct URL based on environment
+    const refundUrl = getApiUrl('/api/refund');
+    console.log(`Sending request to ${refundUrl}`);
+    
+    const response = await fetch(refundUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

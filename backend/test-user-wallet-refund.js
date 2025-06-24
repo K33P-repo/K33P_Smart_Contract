@@ -10,7 +10,9 @@ async function main() {
     console.log('Testing refund with user address:', userAddress);
     
     // Make the refund request
-    const response = await fetch('http://localhost:3001/api/refund', {
+    const refundUrl = getApiUrl('/api/refund');
+    console.log(`Sending request to ${refundUrl}`);
+    const response = await fetch(refundUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

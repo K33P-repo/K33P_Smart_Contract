@@ -11,13 +11,13 @@ The backend provides a RESTful API for frontend integration. Detailed API docume
 
 ### Base URL
 
-The base URL for all API endpoints is:
+The base URL for all API endpoints in development environment is:
 
 ```
 http://localhost:3000/api
 ```
 
-In production, this will be replaced with the actual server URL.
+In production environment, the base URL will be different. The application uses the `getApiUrl` utility function to dynamically determine the appropriate URL based on the environment.
 
 ## User Flow
 
@@ -39,11 +39,13 @@ Create an API client service in your React Native project:
 ```javascript
 // src/services/api.js
 import { Alert } from 'react-native';
+import { getApiUrl } from '../utils/api-url';
 
-const API_URL = 'http://localhost:3000/api';
+// Use the getApiUrl utility to dynamically determine the API URL based on environment
+const API_URL = getApiUrl('/api').slice(0, -1); // Remove trailing slash from path
 
-// For development on physical device, use your computer's local IP instead of localhost
-// const API_URL = 'http://192.168.1.100:3000/api';
+// For development on physical device, you might need to use your computer's local IP
+// This can be configured in your environment settings
 
 export const apiClient = {
   async get(endpoint) {

@@ -1,6 +1,8 @@
 // Test script for ZK commitment route
 import crypto from 'crypto';
 import http from 'http';
+import url from 'url';
+import { getApiUrl } from './src/utils/api-url.js';
 
 // Hash functions from hash.js
 const hashPhone = (phone) => {
@@ -39,10 +41,15 @@ console.log('Biometric Hash:', biometricHash);
 console.log('Passkey Hash:', passkeyHash);
 
 // Make a request to the ZK commitment endpoint
+const commitmentUrl = getApiUrl('/api/zk/commitment');
+console.log(`Sending request to ${commitmentUrl}`);
+
+// Parse the URL to get hostname, port, and path
+const parsedUrl = new url.URL(commitmentUrl);
 const options = {
-  hostname: 'localhost',
-  port: 3000,
-  path: '/api/zk/commitment',
+  hostname: parsedUrl.hostname,
+  port: parsedUrl.port || (parsedUrl.protocol === 'https:' ? 443 : 80),
+  path: parsedUrl.pathname,
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
@@ -51,7 +58,7 @@ const options = {
 
 const data = JSON.stringify(testData);
 
-console.log('\nSending request to /api/zk/commitment with data:', data);
+console.log('\nSending request with data:', data);
 
 const req = http.request(options, (res) => {
   console.log('Status Code:', res.statusCode);
