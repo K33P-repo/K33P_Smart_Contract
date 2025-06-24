@@ -8,6 +8,7 @@ import * as fs from 'fs';
 import * as crypto from 'crypto';
 import { Lucid, Blockfrost, SpendingValidator, Data, fromText, toHex, Address } from "lucid-cardano";
 import { config } from 'dotenv';
+import { refundTx } from './utils/lucid.js';
 
 // Load environment variables
 config();
@@ -720,8 +721,7 @@ class EnhancedK33PManager {
         Object.assign(deposit, updatedDeposit);
       }
       
-      // Import the refundTx function from lucid.js
-      const { refundTx } = require('./utils/lucid');
+      // Use the imported refundTx function
       
       // Create a UTXO object from deposit data
       const scriptUtxo = {

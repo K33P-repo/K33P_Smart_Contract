@@ -20,6 +20,8 @@
     "noEmit": false,
     "isolatedModules": true,
     "verbatimModuleSyntax": false,
+    "allowJs": true,
+    "checkJs": false,
     "types": ["node"],
     "lib": ["ES2022", "DOM"],
     "baseUrl": "./",

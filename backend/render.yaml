@@ -1,0 +1,17 @@
+# Render configuration file
+services:
+  - type: web
+    name: k33p-backend
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: BLOCKFROST_API_KEY
+        sync: false
+      - key: ADMIN_API_KEY
+        sync: false
+    healthCheckPath: /api/health

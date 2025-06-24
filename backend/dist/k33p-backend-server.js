@@ -7,6 +7,10 @@ import winston from 'winston';
 // Import routes
 // @ts-ignore
 import zkRoutes from './routes/zk.js';
+// @ts-ignore
+import utxoRoutes from './routes/utxo.js';
+// @ts-ignore
+import authRoutes from './routes/auth.js';
 // Load environment variables
 dotenv.config();
 // Constants
@@ -51,6 +55,8 @@ app.use((req, res, next) => {
     next();
 });
 // Register routes
+app.use('/api/auth', authRoutes);
+app.use('/api/utxo', utxoRoutes);
 app.use('/api/zk', zkRoutes);
 // Validation error handler
 const handleValidationErrors = (req, res, next) => {

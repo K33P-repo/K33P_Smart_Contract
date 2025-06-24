@@ -165,3 +165,191 @@
 {"body":"{\\","expose":true,"level":"error","message":"Unhandled error: Expected property name or '}' in JSON at position 1 (line 1 column 2)","service":"k33p-backend","stack":"SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)\n    at JSON.parse (<anonymous>)\n    at parse (C:\\Users\\USER\\Desktop\\K33P_Smart_Contract\\backend\\node_modules\\body-parser\\lib\\types\\json.js:92:19)\n    at C:\\Users\\USER\\Desktop\\K33P_Smart_Contract\\backend\\node_modules\\body-parser\\lib\\read.js:128:18\n    at AsyncResource.runInAsyncScope (node:async_hooks:211:14)\n    at invokeCallback (C:\\Users\\USER\\Desktop\\K33P_Smart_Contract\\backend\\node_modules\\raw-body\\index.js:238:16)\n    at done (C:\\Users\\USER\\Desktop\\K33P_Smart_Contract\\backend\\node_modules\\raw-body\\index.js:227:7)\n    at IncomingMessage.onEnd (C:\\Users\\USER\\Desktop\\K33P_Smart_Contract\\backend\\node_modules\\raw-body\\index.js:287:7)\n    at IncomingMessage.emit (node:events:518:28)\n    at endReadableNT (node:internal/streams/readable:1698:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)","status":400,"statusCode":400,"timestamp":"2025-06-23T15:02:12.672Z","type":"entity.parse.failed"}
 {"ip":"::1","level":"info","message":"POST /api/signup","service":"k33p-backend","timestamp":"2025-06-23T15:03:20.853Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.22621; en-US) PowerShell/7.5.1"}
 {"ip":"::1","level":"info","message":"POST /api/signup","service":"k33p-backend","timestamp":"2025-06-23T15:03:41.680Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Microsoft Windows 10.0.22621; en-US) PowerShell/7.5.1"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T09:54:51.610Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T09:54:51.626Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T09:54:51.627Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T09:57:56.034Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:00:00.033Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:00:00.106Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:00:00.135Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:00:11.868Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:00:36.589Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:00:36.605Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:00:36.613Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:00:47.613Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:01:13.519Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:01:13.533Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:01:13.534Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:01:37.054Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:03:18.708Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:03:18.728Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:03:18.746Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-06-24T10:03:30.782Z","userAgent":"curl/8.9.1"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-06-24T10:03:46.350Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T10:04:24.782Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T10:04:24.850Z","userAddress":"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T10:04:53.622Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T10:04:53.626Z","userAddress":"addr_test1qzt68ehhy87n0ryhy4ql0ter983a3rw8e5h67rq0q9g0lkcwg7kr5az980qltvwdmfurwaml3wsn0uj4jwkslrc3zkq02naqr"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:06:32.874Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:08:24.345Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:08:24.422Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:08:24.440Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T10:08:38.774Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T10:08:38.784Z","userAddress":"addr_test1qzt68ehhy87n0ryhy4ql0ter983a3rw8e5h67rq0q9g0lkcwg7kr5az980qltvwdmfurwaml3wsn0uj4jwkslrc3zkq02naqr"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:09:40.253Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:10:06.841Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:10:06.927Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:10:06.954Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T10:10:27.107Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T10:10:27.118Z","userAddress":"addr_test1qzt68ehhy87n0ryhy4ql0ter983a3rw8e5h67rq0q9g0lkcwg7kr5az980qltvwdmfurwaml3wsn0uj4jwkslrc3zkq02naqr"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:13:57.108Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:14:36.944Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:20:05.780Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:20:05.791Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:20:05.793Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:20:17.030Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:21:59.020Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:21:59.154Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:21:59.210Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:22:14.751Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:23:43.964Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-06-24T10:23:43.977Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:23:43.979Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:23:54.561Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:24:36.581Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:24:36.640Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:24:36.730Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:24:45.917Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:25:09.836Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:25:09.925Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:25:09.962Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:25:25.953Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:26:19.388Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:26:19.401Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:26:19.402Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:26:48.668Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:27:20.253Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:27:20.266Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:27:20.268Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:27:45.601Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:28:04.692Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:28:04.815Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:28:04.933Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:28:17.415Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:30:02.211Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:30:02.232Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:30:02.244Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:30:25.216Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:30:29.538Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:30:29.556Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:30:29.558Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-06-24T10:41:51.859Z","userAgent":"curl/8.9.1"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:43:10.521Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:43:41.479Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:43:41.496Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:43:41.507Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:45:00.783Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:45:15.145Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:45:15.162Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:45:15.171Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:45:32.094Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:45:51.272Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:45:51.316Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:45:51.356Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:47:13.993Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:47:50.969Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:48:28.588Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:48:28.600Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:48:28.603Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T10:48:49.224Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T10:48:49.234Z","userAddress":"addr_test1qzt68ehhy87n0ryhy4ql0ter983a3rw8e5h67rq0q9g0lkcwg7kr5az980qltvwdmfurwaml3wsn0uj4jwkslrc3zkq02naqr"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:49:49.711Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:50:51.453Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:50:51.486Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:50:51.490Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:51:07.295Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:51:43.002Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:51:43.018Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:51:43.020Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T10:52:04.958Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T10:52:04.969Z","userAddress":"addr_test1qzt68ehhy87n0ryhy4ql0ter983a3rw8e5h67rq0q9g0lkcwg7kr5az980qltvwdmfurwaml3wsn0uj4jwkslrc3zkq02naqr"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T10:56:39.820Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T10:57:16.161Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T10:57:16.376Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T10:57:16.453Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T11:01:58.347Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T11:05:20.182Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T11:05:20.199Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T11:05:20.203Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T11:07:15.490Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T11:08:22.426Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T11:08:22.467Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T11:08:22.473Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T11:08:51.612Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T11:08:51.626Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T11:15:45.650Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T11:15:45.656Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T11:18:23.056Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T11:18:23.061Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T11:28:19.410Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T11:28:19.419Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T11:33:18.596Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T11:33:18.599Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T11:38:32.339Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T11:38:32.357Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T11:38:32.360Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T11:38:48.795Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T11:38:48.811Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T11:50:53.633Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T11:50:53.654Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T11:50:53.730Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T12:24:55.518Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T12:24:55.533Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T12:25:07.413Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T12:25:07.428Z","userAddress":"addr_test1qquds2rqarqkk40lncfu88cwhptxekt7j0eccucpd2a43a35pel7jwkfmsf8zrjwsklm4czm5wqsgxwst5mrw86kt84qs7m4na","walletAddress":"addr_test1qquds2rqarqkk40lncfu88cwhptxekt7j0eccucpd2a43a35pel7jwkfmsf8zrjwsklm4czm5wqsgxwst5mrw86kt84qs7m4na"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T12:25:43.222Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T12:25:43.225Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T12:34:16.883Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T12:34:16.887Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T12:34:47.098Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T12:35:03.739Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T12:35:03.774Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T12:35:03.798Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T12:35:17.911Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T12:36:55.358Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T12:36:55.494Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T12:36:55.546Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T12:37:04.210Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T12:37:04.225Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1vr8efgraqchktzel42mhy5qdzlr4fzpahtqqt43luzklkaq25ft6h"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T12:37:11.653Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T12:37:34.484Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T12:37:34.506Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T12:37:34.517Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T12:38:17.181Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T12:38:43.801Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T12:38:43.815Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T12:38:43.817Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T13:03:41.470Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T13:05:03.465Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T13:05:03.492Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T13:05:03.534Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T13:05:15.499Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T13:05:15.510Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qp0al5v8mvwv9mzn77ls0tev3v0g9hggmhk3crpnjr7z4xq3c6pdpd6xpv8zsdumeu2wt0vvnwmq08t3n6300tmc5pjqwp5x0u"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T13:05:17.557Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T13:06:03.357Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T13:06:03.438Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T13:06:03.509Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-06-24T13:07:46.144Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-06-24T13:08:01.978Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-06-24T13:08:02.081Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-06-24T13:08:02.132Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T13:11:39.961Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T13:11:39.998Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qp0al5v8mvwv9mzn77ls0tev3v0g9hggmhk3crpnjr7z4xq3c6pdpd6xpv8zsdumeu2wt0vvnwmq08t3n6300tmc5pjqwp5x0u"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T13:18:30.034Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T13:18:30.037Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qp0al5v8mvwv9mzn77ls0tev3v0g9hggmhk3crpnjr7z4xq3c6pdpd6xpv8zsdumeu2wt0vvnwmq08t3n6300tmc5pjqwp5x0u"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T13:20:16.459Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T13:20:16.464Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qp0al5v8mvwv9mzn77ls0tev3v0g9hggmhk3crpnjr7z4xq3c6pdpd6xpv8zsdumeu2wt0vvnwmq08t3n6300tmc5pjqwp5x0u"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T13:21:02.100Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T13:21:02.180Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qp0al5v8mvwv9mzn77ls0tev3v0g9hggmhk3crpnjr7z4xq3c6pdpd6xpv8zsdumeu2wt0vvnwmq08t3n6300tmc5pjqwp5x0u"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-06-24T13:22:47.159Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-06-24T13:22:47.210Z","userAddress":"addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq","walletAddress":"addr_test1qp0al5v8mvwv9mzn77ls0tev3v0g9hggmhk3crpnjr7z4xq3c6pdpd6xpv8zsdumeu2wt0vvnwmq08t3n6300tmc5pjqwp5x0u"}

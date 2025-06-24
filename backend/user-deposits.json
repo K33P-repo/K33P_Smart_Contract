@@ -15,12 +15,12 @@
     "verificationMethod": "phone"
   },
   {
-    "userAddress": "addr_test1qzt68ehhy87n0ryhy4ql0ter983a3rw8e5h67rq0q9g0lkcwg7kr5az980qltvwdmfurwaml3wsn0uj4jwkslrc3zkq02naqr",
+    "userAddress": "addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq",
     "userId": "testuser_1750685235820",
     "phoneHash": "33cbfd8bb9c903403698336b19db52af79231282562141989ec998a8a837fd73",
     "zkProof": "4d4c9a599d738034e1c09ce1df3e6599d5a894bb0e424d6cc8c32f120594987f0000000000000000000000000000000000000000000000000000000000000000",
     "zkCommitment": "0000000000000000000000000000000000000000000000000000000-68c0687",
-    "txHash": "",
+    "txHash": "7bb333c682b6404d6132dd37b64c95155ed4dfe8468ea234de398514b45de26f",
     "amount": "2000000",
     "timestamp": "2025-06-23T13:27:18.003Z",
     "refunded": false,

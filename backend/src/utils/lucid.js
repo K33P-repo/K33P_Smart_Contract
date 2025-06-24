@@ -4,9 +4,35 @@ import fs from 'fs';
 
 // load backend private key from file
 function getBackendPrivateKey() {
+  // First try to use the direct key from environment
+  if (process.env.BACKEND_PRIVATE_KEY) {
+    return process.env.BACKEND_PRIVATE_KEY.trim();
+  }
+  
+  // If not available, try to load from file
   const keyPath = process.env.BACKEND_PRIVATE_KEY_PATH;
-  if (!keyPath) throw new Error('BACKEND_PRIVATE_KEY_PATH not set in environment');
-  return fs.readFileSync(keyPath, 'utf8').trim();
+  if (!keyPath) throw new Error('Neither BACKEND_PRIVATE_KEY nor BACKEND_PRIVATE_KEY_PATH set in environment');
+  
+  try {
+    // Read the file content
+    const fileContent = fs.readFileSync(keyPath, 'utf8');
+    
+    // Try to parse as JSON (for .skey format)
+    try {
+      const keyJson = JSON.parse(fileContent);
+      if (keyJson.cborHex) {
+        return keyJson.cborHex;
+      }
+    } catch (e) {
+      // Not JSON, assume it's a raw key
+    }
+    
+    // Return as raw content
+    return fileContent.trim();
+  } catch (error) {
+    console.error('Error loading backend private key:', error);
+    throw new Error('Failed to load backend private key');
+  }
 }
 
 // Initialize Lucid with Blockfrost provider
