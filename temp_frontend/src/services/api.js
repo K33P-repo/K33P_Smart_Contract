@@ -3,7 +3,7 @@ import mockApiService from './mockApi';
 
 // Define API URLs based on environment
 const API_URL = process.env.NODE_ENV === 'production'
-  ? process.env.REACT_APP_API_URL_PROD || 'https://k33p-backend.onrender.com/api'
+  ? process.env.REACT_APP_API_URL_PROD || 'https://k33p-backend-0kyx.onrender.com/api'
   : process.env.REACT_APP_API_URL_DEV || 'http://localhost:3001/api';
 
 // Enable mock mode for development if specified
@@ -71,7 +71,7 @@ const realApiService = {
   
   // Health check
   healthCheck: async () => {
-    return apiClient.get('/api/health');
+    return apiClient.get('/health');
   }
 };
 

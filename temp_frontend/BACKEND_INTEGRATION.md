@@ -50,13 +50,17 @@ The frontend connects to the following backend endpoints:
 1. Updated API endpoints to match the backend routes:
    - Changed signup endpoint from `/signup` to `/auth/signup`
    - Changed signin endpoint from `/zk/login` to `/auth/login`
-   - Updated health check endpoint to `/api/health`
+   - Updated health check endpoint to `/health`
 
 2. Updated request payload formats to match what the backend expects
 
-3. Verified that both backend and frontend servers are running correctly:
-   - Backend server is accessible at http://localhost:3001/api/health
-   - Frontend server is accessible at http://localhost:3000
+3. Updated API URLs to match the deployed backend:
+   - Local development: http://localhost:3001/api
+   - Production: https://k33p-backend-0kyx.onrender.com/api
+
+4. Verified that both backend and frontend servers are running correctly:
+   - Backend server is accessible at http://localhost:3001/api/health (local) or https://k33p-backend-0kyx.onrender.com/health (production)
+   - Frontend server is accessible at http://localhost:3000 (local)
 
 ## Response Handling
 

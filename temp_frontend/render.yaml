@@ -8,7 +8,7 @@ services:
     pullRequestPreviewsEnabled: true # Enable preview deployments for pull requests
     envVars:
       - key: REACT_APP_API_URL_PROD
-        value: https://k33p-backend.onrender.com/api
+        value: https://k33p-backend-0kyx.onrender.com/api
       - key: REACT_APP_ENABLE_MOCK_MODE
         value: false
     routes:
