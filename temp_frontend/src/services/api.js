@@ -35,10 +35,27 @@ apiClient.interceptors.request.use(
 const realApiService = {
   // Auth endpoints
   signup: async (userData) => {
-    return apiClient.post('/auth/signup', userData);
+    // Map frontend form data to backend expected format
+    const signupData = {
+      userAddress: userData.walletAddress,
+      userId: `user_${Date.now()}`, // Generate a unique user ID
+      phoneNumber: userData.phone,
+      senderWalletAddress: userData.walletAddress,
+      verificationMethod: 'phone',
+      biometricData: userData.biometric,
+      passkey: userData.passkey
+    };
+    return apiClient.post('/signup', signupData);
   },
   signin: async (credentials) => {
-    return apiClient.post('/zk/login', credentials);
+    // Map frontend credentials to backend expected format
+    const loginData = {
+      walletAddress: credentials.walletAddress,
+      phone: credentials.phone,
+      proof: credentials.proof || 'simulated-zk-proof', // Simplified for demo
+      commitment: credentials.commitment || 'simulated-zk-commitment' // Simplified for demo
+    };
+    return apiClient.post('/zk/login', loginData);
   },
   verifyToken: async () => {
     return apiClient.get('/auth/me');

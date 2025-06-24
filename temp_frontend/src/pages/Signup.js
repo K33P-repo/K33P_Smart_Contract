@@ -41,18 +41,27 @@ const Signup = () => {
       const response = await apiService.signup(formData);
       
       // Handle successful signup
+      const responseData = response.data.data || response.data;
+      const message = responseData.verified 
+        ? `Signup successful! Verification complete.` 
+        : `Signup recorded! ${responseData.message || 'Please follow verification instructions.'}`;
+      
       setAlert({ 
         type: 'success', 
-        message: `Signup successful! Transaction hash: ${response.data.txHash}` 
+        message: message
       });
       
-      // Login the user
-      login({ walletAddress: formData.walletAddress }, response.data.token);
+      // If we have a token, login the user
+      if (responseData.token) {
+        login({ walletAddress: formData.walletAddress }, responseData.token);
+      }
       
-      // Redirect after a delay
-      setTimeout(() => {
-        navigate('/refund');
-      }, 2000);
+      // Redirect after a delay only if we have a token
+      if (responseData.token) {
+        setTimeout(() => {
+          navigate('/refund');
+        }, 2000);
+      }
       
     } catch (error) {
       console.error('Signup error:', error);

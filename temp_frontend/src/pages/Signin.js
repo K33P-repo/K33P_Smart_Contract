@@ -43,16 +43,18 @@ const Signin = () => {
       const response = await apiService.signin(formData);
       
       // Handle successful signin
+      const responseData = response.data.data || response.data;
+      
       setAlert({ 
         type: 'success', 
-        message: 'Sign in successful!' 
+        message: responseData.message || 'Sign in successful!' 
       });
       
       // Login the user
       login({ 
-        walletAddress: formData.walletAddress || response.data.walletAddress,
-        phone: formData.phone || response.data.phone
-      }, response.data.token);
+        walletAddress: formData.walletAddress || responseData.walletAddress,
+        phone: formData.phone || responseData.phone
+      }, responseData.token);
       
       // Redirect after a delay
       setTimeout(() => {
