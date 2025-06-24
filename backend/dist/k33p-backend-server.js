@@ -2,11 +2,11 @@ import express from 'express';
 import { body, param, validationResult } from 'express-validator';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { EnhancedK33PManager } from './k33p-signup-interactions';
+import { EnhancedK33PManager } from './k33p-signup-interactions.js';
 import winston from 'winston';
 // Import routes
 // @ts-ignore
-import zkRoutes from './routes/zk';
+import zkRoutes from './routes/zk.js';
 // @ts-ignore
 import utxoRoutes from './routes/utxo.js';
 // @ts-ignore
