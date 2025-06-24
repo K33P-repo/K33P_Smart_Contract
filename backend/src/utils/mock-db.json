@@ -1,0 +1,45 @@
+{
+  "users": [
+    {
+      "id": "testuser",
+      "email": "testuser@example.com",
+      "name": "Test User",
+      "walletAddress": "addr_test123",
+      "phoneHash": "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646",
+      "zkCommitment": "0000000000000000000000000000000000000000000000000000000-68c0687",
+      "createdAt": "2025-05-31T00:59:16.356Z",
+      "updatedAt": "2025-05-31T00:59:16.356Z"
+    },
+    {
+      "id": "testuser_1750685235820",
+      "email": "testuser2@example.com",
+      "name": "Test User 2",
+      "walletAddress": "addr_test1qrvneqcvn04wudnuyvfyevvlds9calsnf0kuj2wq5vmlu75mxmtl5ak4yyqwvxp4wh2mdlmvqe9z84ukv3s82ykmplps4243xq",
+      "phoneHash": "33cbfd8bb9c903403698336b19db52af79231282562141989ec998a8a837fd73",
+      "zkCommitment": "0000000000000000000000000000000000000000000000000000000-68c0687",
+      "createdAt": "2025-06-23T13:27:18.003Z",
+      "updatedAt": "2025-06-23T13:27:18.003Z"
+    }
+  ],
+  "sessions": [
+    {
+      "id": "session1",
+      "userId": "testuser",
+      "token": "mock-token-1",
+      "expiresAt": "2025-12-31T23:59:59.999Z",
+      "createdAt": "2025-05-31T00:59:16.356Z"
+    }
+  ],
+  "scriptUtxos": [
+    {
+      "id": "utxo1",
+      "txHash": "mock-tx-hash-1",
+      "outputIndex": 0,
+      "amount": "10000000",
+      "userId": "testuser",
+      "status": "active",
+      "createdAt": "2025-05-31T00:59:16.356Z",
+      "updatedAt": "2025-05-31T00:59:16.356Z"
+    }
+  ]
+}

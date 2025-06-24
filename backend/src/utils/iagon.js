@@ -1,9 +1,30 @@
 // Iagon API wrapper for user, session, and UTxO management
 import axios from 'axios';
 import { URL } from 'url';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import { dirname } from 'path';
+
+// Ensure environment variables are loaded
+dotenv.config();
+
+// Get the directory path of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const rootDir = path.resolve(__dirname, '../..');
+
+// Load environment variables from .env file
+dotenv.config({ path: path.join(rootDir, '.env') });
 
 const IAGON_API_URL = process.env.IAGON_API_URL;
 const IAGON_API_KEY = process.env.IAGON_API_KEY;
+
+// Debug environment variables
+console.log('Environment variables:');
+console.log('IAGON_API_URL:', process.env.IAGON_API_URL);
+console.log('IAGON_API_KEY:', process.env.IAGON_API_KEY ? '[REDACTED]' : undefined);
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
 // Validate API URL and key
 if (!IAGON_API_URL) {
@@ -16,7 +37,6 @@ if (!IAGON_API_KEY) {
 
 // Create a mock database for development/testing when API is not available
 import fs from 'fs';
-import path from 'path';
 
 let mockDb = {
   users: [],
@@ -26,7 +46,7 @@ let mockDb = {
 
 // Try to load mock database from file
 try {
-  const mockDbPath = 'c:\\Users\\USER\\Desktop\\K33P_Smart_Contract\\backend\\src\\utils\\mock-db.json';
+  const mockDbPath = path.join(__dirname, 'mock-db.json');
   if (fs.existsSync(mockDbPath)) {
     console.log('Loading mock database from', mockDbPath);
     mockDb = JSON.parse(fs.readFileSync(mockDbPath, 'utf8'));
