@@ -63,7 +63,17 @@ const verifyZkProof = (req, res, next) => {
   }
 };
 
+/**
+ * Middleware to authenticate users
+ * This is an alias for verifyToken to maintain backward compatibility
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next function
+ */
+const authenticate = verifyToken;
+
 export {
   verifyToken,
-  verifyZkProof
+  verifyZkProof,
+  authenticate
 };

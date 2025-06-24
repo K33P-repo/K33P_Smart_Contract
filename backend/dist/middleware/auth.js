@@ -55,5 +55,13 @@ const verifyZkProof = (req, res, next) => {
         res.status(500).json({ error: 'ZK verification failed' });
     }
 };
-export { verifyToken, verifyZkProof };
+/**
+ * Middleware to authenticate users
+ * This is an alias for verifyToken to maintain backward compatibility
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next function
+ */
+const authenticate = verifyToken;
+export { verifyToken, verifyZkProof, authenticate };
 //# sourceMappingURL=auth.js.map

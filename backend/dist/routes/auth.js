@@ -1,7 +1,7 @@
 // Authentication routes for K33P Identity System
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import { verifyToken, verifyZkProof } from '../middleware/auth.js';
+import { verifyToken, verifyZkProof, authenticate } from '../middleware/auth.js';
 import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
 import { generateZkCommitment, generateZkProof, verifyZkProof as verifyZkProofUtil } from '../utils/zk.js';
 import { signupTxBuilder } from '../utils/lucid.js';
@@ -197,7 +197,7 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
 export default router;
 // Initialize Blockfrost API
 const blockfrost = new BlockFrostAPI({
-    projectId: process.env.BLOCKFROST_API_KEY,
+    projectId: process.env.BLOCKFROST_API_KEY || 'preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG', // Fallback to the value in .env
     network: 'preprod'
 });
 // Initialize cache with 5 minute TTL
