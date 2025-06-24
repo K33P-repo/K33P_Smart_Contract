@@ -2,7 +2,6 @@
 import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
-import { getApiUrl } from './src/utils/api-url.js';
 
 async function testRefundToSpecificWallet() {
   try {
@@ -85,9 +84,8 @@ async function testRefundToSpecificWallet() {
       console.error('Error checking script UTXOs:', error);
     }
     
-    const refundUrl = getApiUrl('/api/refund');
-  console.log(`Sending request to ${refundUrl}`);
-  const response = await fetch(refundUrl, {
+    console.log('Sending request to http://localhost:3001/api/refund');
+    const response = await fetch('http://localhost:3001/api/refund', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

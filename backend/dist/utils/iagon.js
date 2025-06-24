@@ -29,41 +29,70 @@ if (!IAGON_API_KEY) {
 }
 // Create a mock database for development/testing when API is not available
 import fs from 'fs';
+import crypto from 'crypto';
 let mockDb = {
     users: [],
     sessions: [],
     scriptUtxos: []
 };
-// Try to load mock database from file
-try {
-    const mockDbPath = path.join(__dirname, 'mock-db.json');
-    if (fs.existsSync(mockDbPath)) {
-        console.log('Loading mock database from', mockDbPath);
-        mockDb = JSON.parse(fs.readFileSync(mockDbPath, 'utf8'));
-        console.log(`Loaded ${mockDb.users.length} users from mock database`);
-    }
-    else {
-        console.log('Mock database file not found, using empty database');
-    }
-}
-catch (error) {
-    console.error('Error loading mock database:', error.message);
-}
-// Helper to validate URL
-function isValidUrl(urlString) {
+// Only load mock database in development environment
+if (process.env.NODE_ENV !== 'production') {
     try {
-        new URL(urlString);
+        const mockDbPath = path.join(__dirname, 'mock-db.json');
+        if (fs.existsSync(mockDbPath)) {
+            console.log('Loading mock database from', mockDbPath);
+            mockDb = JSON.parse(fs.readFileSync(mockDbPath, 'utf8'));
+            console.log(`Loaded ${mockDb.users.length} users from mock database`);
+        }
+        else {
+            console.log('Mock database file not found, using empty database');
+        }
+    }
+    catch (error) {
+        console.error('Error loading mock database:', error.message);
+    }
+}
+else {
+    console.log('Running in production mode - not loading mock database');
+}
+// Helper to validate URL with improved error handling
+function isValidUrl(urlString) {
+    if (!urlString || typeof urlString !== 'string') {
+        console.warn('Invalid URL: URL is empty or not a string');
+        return false;
+    }
+    // Trim whitespace that might cause validation issues
+    const trimmedUrl = urlString.trim();
+    try {
+        const url = new URL(trimmedUrl);
+        // Additional validation: must have http or https protocol
+        if (!url.protocol || !['http:', 'https:'].includes(url.protocol)) {
+            console.warn(`Invalid URL protocol: ${url.protocol}`);
+            return false;
+        }
         return true;
     }
     catch (err) {
+        console.warn(`URL validation error: ${err.message}`);
         return false;
     }
 }
 // Create API client with proper validation
 const createApiClient = () => {
+    console.log('Creating API client with:', {
+        url: IAGON_API_URL,
+        hasKey: !!IAGON_API_KEY,
+        isValidUrl: IAGON_API_URL ? isValidUrl(IAGON_API_URL) : false
+    });
     if (!IAGON_API_URL || !IAGON_API_KEY || !isValidUrl(IAGON_API_URL)) {
+        console.warn('Using mock implementation because:', {
+            missingUrl: !IAGON_API_URL,
+            missingKey: !IAGON_API_KEY,
+            invalidUrl: IAGON_API_URL ? !isValidUrl(IAGON_API_URL) : false
+        });
         return null; // Will use mock implementation
     }
+    console.log('Successfully created API client for production use');
     return axios.create({
         baseURL: IAGON_API_URL,
         headers: { 'Authorization': `Bearer ${IAGON_API_KEY}` },
@@ -121,6 +150,8 @@ async function createUser(data) {
                 createdAt: new Date().toISOString()
             };
             mockDb.users.push(newUser);
+            // Save updated mock database to file
+            saveMockDatabase();
             return newUser;
         }
     }
@@ -170,6 +201,8 @@ async function createSession(data) {
                 createdAt: new Date().toISOString()
             };
             mockDb.sessions.push(newSession);
+            // Save updated mock database to file
+            saveMockDatabase();
             return newSession;
         }
     }
@@ -194,6 +227,8 @@ async function deleteSessions(query) {
             const key = Object.keys(query)[0];
             const value = query[key];
             mockDb.sessions = mockDb.sessions.filter(session => session[key] !== value);
+            // Save updated mock database to file
+            saveMockDatabase();
             return true;
         }
     }
@@ -245,6 +280,8 @@ async function createScriptUtxo(data) {
                 createdAt: new Date().toISOString()
             };
             mockDb.scriptUtxos.push(newUtxo);
+            // Save updated mock database to file
+            saveMockDatabase();
             return newUtxo;
         }
     }
@@ -271,6 +308,8 @@ async function updateScriptUtxo(id, data) {
                 throw new Error('UTxO not found');
             }
             mockDb.scriptUtxos[index] = { ...mockDb.scriptUtxos[index], ...data };
+            // Save updated mock database to file
+            saveMockDatabase();
             return mockDb.scriptUtxos[index];
         }
     }
@@ -303,6 +342,22 @@ async function findScriptUtxos(query) {
     catch (error) {
         console.error('Error finding script UTxOs:', error.message);
         return [];
+    }
+}
+// Helper function to save mock database to file (only in development)
+function saveMockDatabase() {
+    // Only save in development mode
+    if (process.env.NODE_ENV === 'production') {
+        console.log('Running in production mode - not saving mock database');
+        return;
+    }
+    try {
+        const mockDbPath = path.join(__dirname, 'mock-db.json');
+        fs.writeFileSync(mockDbPath, JSON.stringify(mockDb, null, 2), 'utf8');
+        console.log(`Saved mock database with ${mockDb.users.length} users`);
+    }
+    catch (error) {
+        console.error('Error saving mock database:', error.message);
     }
 }
 export { findUser, createUser, findUserById, createSession, deleteSessions, findScriptUtxo, createScriptUtxo, updateScriptUtxo, findScriptUtxos };
