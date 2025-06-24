@@ -1,0 +1,17 @@
+# Render configuration file for K33P Frontend
+services:
+  - type: web
+    name: k33p-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./build
+    pullRequestPreviewsEnabled: true # Enable preview deployments for pull requests
+    envVars:
+      - key: REACT_APP_API_URL_PROD
+        value: https://k33p-backend.onrender.com/api
+      - key: REACT_APP_ENABLE_MOCK_MODE
+        value: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

@@ -1,4 +1,5 @@
 services:
+  # Backend Service
   - type: web
     name: k33p-backend
     env: node
@@ -15,6 +16,35 @@ services:
         sync: false # This will be set manually in the Render dashboard
       - key: SEED_PHRASE
         sync: false # This will be set manually in the Render dashboard
+      - key: ADMIN_API_KEY
+        sync: false # This will be set manually in the Render dashboard
       - key: PORT
         value: 3000
+      - key: FRONTEND_URL
+        fromService:
+          name: k33p-frontend
+          type: web
+          property: url
     autoDeploy: true
+
+  # Frontend Service
+  - type: web
+    name: k33p-frontend
+    env: static
+    buildCommand: cd temp_frontend && npm install && npm run build
+    staticPublishPath: ./temp_frontend/build
+    pullRequestPreviewsEnabled: true # Enable preview deployments for pull requests
+    envVars:
+      - key: REACT_APP_API_URL_PROD
+        fromService:
+          name: k33p-backend
+          type: web
+          property: url
+          envVarKey: REACT_APP_API_URL_PROD
+          suffix: /api
+      - key: REACT_APP_ENABLE_MOCK_MODE
+        value: "false"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

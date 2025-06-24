@@ -1,9 +1,11 @@
 {
   "dependencies": {
     "blakejs": "^1.2.1",
+    "debug": "^2.6.9",
+    "dotenv-expand": "^5.1.0",
     "firebase-admin": "^13.4.0"
   },
-  "engines": { 
-    "node": ">=18.0.0 <=22.14.0" 
+  "engines": {
+    "node": ">=18.0.0 <=22.14.0"
   }
 }
