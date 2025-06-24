@@ -7,6 +7,8 @@ This document explains how the frontend application connects to the backend API.
 1. **Mock Mode**: Uses simulated API responses for development and testing
 2. **Real API Mode**: Connects to the actual backend API endpoints
 
+**Note**: The frontend has been updated to use the real backend API.
+
 ## Configuration
 
 The API mode is controlled by the environment variable in the `.env` file:
@@ -24,13 +26,14 @@ The frontend connects to the following backend endpoints:
 
 ### Authentication
 
-- **Signup**: `POST /api/signup`
+- **Signup**: `POST /api/auth/signup`
   - Maps frontend form data to the backend expected format
-  - Includes user address, user ID, phone number, and other required fields
+  - Includes wallet address, phone, biometric, and passkey
+  - Response includes message, txHash, and token
 
-- **Signin**: `POST /api/zk/login`
+- **Signin**: `POST /api/auth/login`
   - Requires wallet address or phone number, along with proof and commitment
-  - Simplified for demo with simulated ZK proof and commitment
+  - Response includes message and token
 
 ### UTXO Operations
 
@@ -41,6 +44,19 @@ The frontend connects to the following backend endpoints:
 ### Health Check
 
 - **Health Check**: `GET /api/health`
+
+## Recent Updates
+
+1. Updated API endpoints to match the backend routes:
+   - Changed signup endpoint from `/signup` to `/auth/signup`
+   - Changed signin endpoint from `/zk/login` to `/auth/login`
+   - Updated health check endpoint to `/api/health`
+
+2. Updated request payload formats to match what the backend expects
+
+3. Verified that both backend and frontend servers are running correctly:
+   - Backend server is accessible at http://localhost:3001/api/health
+   - Frontend server is accessible at http://localhost:3000
 
 ## Response Handling
 

@@ -43,18 +43,31 @@ const Signin = () => {
       const response = await apiService.signin(formData);
       
       // Handle successful signin
-      const responseData = response.data.data || response.data;
+      // Safely extract data from the response
+      const responseData = response.data?.data || response.data || {};
+      const message = typeof responseData.message === 'string' ? responseData.message : 'Sign in successful!';
       
       setAlert({ 
         type: 'success', 
-        message: responseData.message || 'Sign in successful!' 
+        message: message 
       });
       
-      // Login the user
-      login({ 
-        walletAddress: formData.walletAddress || responseData.walletAddress,
-        phone: formData.phone || responseData.phone
-      }, responseData.token);
+      // Ensure token exists before login
+      if (responseData.token) {
+        // Login the user
+        login({ 
+          walletAddress: formData.walletAddress || responseData.walletAddress,
+          phone: formData.phone || responseData.phone
+        }, responseData.token);
+        
+        // Redirect is handled in the token check above
+      } else {
+        console.error('No token received from signin response');
+        setAlert({
+          type: 'warning',
+          message: 'Authentication successful but no token received. Please try again.'
+        });
+      }
       
       // Redirect after a delay
       setTimeout(() => {
@@ -63,9 +76,25 @@ const Signin = () => {
       
     } catch (error) {
       console.error('Signin error:', error);
+      let errorMessage = 'Failed to sign in. Please check your credentials.';
+      
+      // Handle different error formats
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (typeof error.message === 'string') {
+        try {
+          // Try to parse error message if it's a stringified JSON
+          const parsedError = JSON.parse(error.message);
+          errorMessage = parsedError.response?.data?.error || errorMessage;
+        } catch (e) {
+          // If parsing fails, use the error message directly
+          errorMessage = error.message || errorMessage;
+        }
+      }
+      
       setAlert({ 
         type: 'danger', 
-        message: error.response?.data?.error || 'Failed to sign in. Please check your credentials.' 
+        message: errorMessage 
       });
     } finally {
       setLoading(false);

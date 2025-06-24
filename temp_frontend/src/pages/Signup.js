@@ -41,33 +41,57 @@ const Signup = () => {
       const response = await apiService.signup(formData);
       
       // Handle successful signup
-      const responseData = response.data.data || response.data;
-      const message = responseData.verified 
-        ? `Signup successful! Verification complete.` 
-        : `Signup recorded! ${responseData.message || 'Please follow verification instructions.'}`;
+      // Safely extract data from the response
+      const responseData = response.data?.data || response.data || {};
+      
+      // Determine appropriate success message
+      let message = 'Signup successful!';
+      if (typeof responseData.message === 'string') {
+        message = responseData.message;
+      } else if (responseData.verified === true) {
+        message = 'Signup successful! Verification complete.';
+      } else if (responseData.verified === false) {
+        message = 'Signup recorded! Please follow verification instructions.';
+      }
       
       setAlert({ 
         type: 'success', 
         message: message
       });
       
-      // If we have a token, login the user
+      // If we have a token, login the user and redirect
       if (responseData.token) {
         login({ walletAddress: formData.walletAddress }, responseData.token);
-      }
-      
-      // Redirect after a delay only if we have a token
-      if (responseData.token) {
+        
+        // Redirect after a delay
         setTimeout(() => {
           navigate('/refund');
         }, 2000);
+      } else {
+        console.log('No token received from signup response - user may need to verify first');
       }
       
     } catch (error) {
       console.error('Signup error:', error);
+      let errorMessage = 'Failed to sign up. Please try again.';
+      
+      // Handle different error formats
+      if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (typeof error.message === 'string') {
+        try {
+          // Try to parse error message if it's a stringified JSON
+          const parsedError = JSON.parse(error.message);
+          errorMessage = parsedError.response?.data?.error || errorMessage;
+        } catch (e) {
+          // If parsing fails, use the error message directly
+          errorMessage = error.message || errorMessage;
+        }
+      }
+      
       setAlert({ 
         type: 'danger', 
-        message: error.response?.data?.error || 'Failed to sign up. Please try again.' 
+        message: errorMessage 
       });
     } finally {
       setLoading(false);

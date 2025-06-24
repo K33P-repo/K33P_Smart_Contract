@@ -37,15 +37,12 @@ const realApiService = {
   signup: async (userData) => {
     // Map frontend form data to backend expected format
     const signupData = {
-      userAddress: userData.walletAddress,
-      userId: `user_${Date.now()}`, // Generate a unique user ID
-      phoneNumber: userData.phone,
-      senderWalletAddress: userData.walletAddress,
-      verificationMethod: 'phone',
-      biometricData: userData.biometric,
+      walletAddress: userData.walletAddress,
+      phone: userData.phone,
+      biometric: userData.biometric,
       passkey: userData.passkey
     };
-    return apiClient.post('/signup', signupData);
+    return apiClient.post('/auth/signup', signupData);
   },
   signin: async (credentials) => {
     // Map frontend credentials to backend expected format
@@ -55,7 +52,7 @@ const realApiService = {
       proof: credentials.proof || 'simulated-zk-proof', // Simplified for demo
       commitment: credentials.commitment || 'simulated-zk-commitment' // Simplified for demo
     };
-    return apiClient.post('/zk/login', loginData);
+    return apiClient.post('/auth/login', loginData);
   },
   verifyToken: async () => {
     return apiClient.get('/auth/me');
@@ -74,7 +71,7 @@ const realApiService = {
   
   // Health check
   healthCheck: async () => {
-    return apiClient.get('/health');
+    return apiClient.get('/api/health');
   }
 };
 
