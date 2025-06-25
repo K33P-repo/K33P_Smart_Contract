@@ -37,12 +37,16 @@ const realApiService = {
   signup: async (userData) => {
     // Map frontend form data to backend expected format
     const signupData = {
-      walletAddress: userData.walletAddress,
-      phone: userData.phone,
-      biometric: userData.biometric,
-      passkey: userData.passkey
+      userAddress: userData.walletAddress,
+      userId: userData.userId,
+      phoneNumber: userData.phone,
+      senderWalletAddress: userData.walletAddress,
+      pin: userData.verificationMethod === 'pin' ? userData.pin : undefined,
+      biometricData: userData.verificationMethod === 'biometric' ? userData.biometricData : undefined,
+      verificationMethod: userData.verificationMethod,
+      biometricType: userData.verificationMethod === 'biometric' ? userData.biometricType : undefined
     };
-    return apiClient.post('/auth/signup', signupData);
+    return apiClient.post('/api/signup', signupData);
   },
   signin: async (credentials) => {
     // Map frontend credentials to backend expected format
