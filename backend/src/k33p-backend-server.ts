@@ -2,7 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { EnhancedK33PManager } from './k33p-signup-interactions';
+import { EnhancedK33PManagerDB } from './enhanced-k33p-manager-db.js';
+import { dbService } from './database/service.js';
 import winston from 'winston';
 
 // Import routes
@@ -39,16 +40,16 @@ const logger = winston.createLogger({
   ]
 });
 
-// Initialize K33P Manager
-let k33pManager: EnhancedK33PManager;
+// Initialize K33P Manager with Database
+let k33pManager: EnhancedK33PManagerDB;
 
 async function initializeK33P() {
   try {
-    k33pManager = new EnhancedK33PManager();
+    k33pManager = new EnhancedK33PManagerDB();
     await k33pManager.initialize();
-    logger.info('K33P Manager initialized successfully');
+    logger.info('K33P Manager with Database initialized successfully');
   } catch (error) {
-    logger.error('Failed to initialize K33P Manager:', error);
+    logger.error('Failed to initialize K33P Manager with Database:', error);
     throw error;
   }
 }
@@ -246,24 +247,22 @@ app.get('/api/user/:address/status', [
   try {
     const userAddress = req.params.address;
     
-    // This would need to be implemented in the K33P manager
-    const deposits = (k33pManager as any).loadDeposits(); // Access private method for demo
-    const userDeposit = deposits.find((d: any) => d.userAddress === userAddress);
+    const userDeposit = await dbService.getDepositByUserAddress(userAddress);
     
     if (!userDeposit) {
       return res.status(404).json(createResponse(false, undefined, undefined, 'User not found'));
     }
     
     const status: UserStatus = {
-      userAddress: userDeposit.userAddress,
-      userId: userDeposit.userId,
+      userAddress: userDeposit.user_address,
+      userId: userDeposit.user_id,
       verified: userDeposit.verified,
-      signupCompleted: userDeposit.signupCompleted,
+      signupCompleted: userDeposit.signup_completed,
       refunded: userDeposit.refunded,
-      txHash: userDeposit.txHash,
+      txHash: userDeposit.tx_hash || '',
       amount: (Number(userDeposit.amount) / 1_000_000).toString(),
-      timestamp: userDeposit.timestamp,
-      verificationAttempts: userDeposit.verificationAttempts
+      timestamp: userDeposit.timestamp?.toISOString() || new Date().toISOString(),
+      verificationAttempts: userDeposit.verification_attempts
     };
     
     res.json(createResponse(true, status, 'User status retrieved'));
@@ -282,17 +281,17 @@ app.get('/api/admin/users', async (req: Request, res: Response) => {
       return res.status(401).json(createResponse(false, undefined, undefined, 'Unauthorized'));
     }
     
-    const deposits = (k33pManager as any).loadDeposits();
+    const deposits = await dbService.getAllDeposits();
     const users = deposits.map((d: any) => ({
-      userAddress: d.userAddress,
-      userId: d.userId,
+      userAddress: d.user_address,
+      userId: d.user_id,
       verified: d.verified,
-      signupCompleted: d.signupCompleted,
+      signupCompleted: d.signup_completed,
       refunded: d.refunded,
-      txHash: d.txHash,
+      txHash: d.tx_hash || '',
       amount: (Number(d.amount) / 1_000_000).toString(),
-      timestamp: d.timestamp,
-      verificationAttempts: d.verificationAttempts
+      timestamp: d.timestamp?.toISOString() || new Date().toISOString(),
+      verificationAttempts: d.verification_attempts
     }));
     
     res.json(createResponse(true, { users, total: users.length }, 'Users retrieved'));
