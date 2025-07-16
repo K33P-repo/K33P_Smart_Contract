@@ -10,6 +10,8 @@ dotenv.config();
 import authRoutes from './routes/auth.js';
 import utxoRoutes from './routes/utxo.js';
 import zkRoutes from './routes/zk.js';
+import phoneRoutes from './routes/phone-management.js';
+import recoveryRoutes from './routes/account-recovery.js';
 
 // Create Express app
 const app = express();
@@ -23,6 +25,8 @@ app.use(morgan('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/utxo', utxoRoutes);
 app.use('/api/zk', zkRoutes);
+app.use('/api/phone', phoneRoutes);
+app.use('/api/recovery', recoveryRoutes);
 
 // Root route
 app.get('/', (req, res) => {

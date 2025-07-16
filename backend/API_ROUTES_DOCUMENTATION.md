@@ -768,7 +768,243 @@ Mark all notifications as read
 
 ---
 
-## 6. System Routes
+## 6. Phone Number Management Routes
+
+### POST `/phone/change/initiate`
+Initiate phone number change request
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "currentPhoneNumber": "+1234567890",
+  "newPhoneNumber": "+1987654321",
+  "verificationMethod": "sms"
+}
+```
+
+**Verification Methods:**
+- `sms`: SMS verification to current phone
+- `email`: Email verification
+- `onchain`: Blockchain transaction verification
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Phone change request initiated",
+  "data": {
+    "requestId": "req_12345",
+    "verificationMethod": "sms",
+    "expiresAt": "2024-01-01T12:30:00Z"
+  }
+}
+```
+
+### POST `/phone/change/verify`
+Verify phone number change request
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "requestId": "req_12345",
+  "verificationCode": "123456"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Phone number changed successfully",
+  "data": {
+    "newPhoneHash": "hashed_phone_number",
+    "timestamp": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+### GET `/phone/change/status/{requestId}`
+Get phone change request status
+
+**Headers:**
+```
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "requestId": "req_12345",
+    "status": "pending",
+    "verificationMethod": "sms",
+    "attemptsRemaining": 2,
+    "expiresAt": "2024-01-01T12:30:00Z"
+  }
+}
+```
+
+**Status Values:**
+- `pending`: Awaiting verification
+- `verified`: Verification successful
+- `completed`: Phone number updated
+- `failed`: Verification failed
+- `expired`: Request expired
+
+---
+
+## 7. Account Recovery Routes
+
+### POST `/recovery/initiate`
+Initiate account recovery process
+
+**Request Body:**
+```json
+{
+  "identifier": "+1234567890",
+  "recoveryMethod": "backup_phrase",
+  "newPhoneNumber": "+1987654321"
+}
+```
+
+**Recovery Methods:**
+- `backup_phrase`: 12-word backup phrase verification
+- `emergency_contact`: Emergency contact verification
+- `onchain_proof`: Blockchain transaction verification
+- `multi_factor`: Multiple verification methods
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Recovery process initiated",
+  "data": {
+    "recoveryId": "rec_12345",
+    "recoveryMethod": "backup_phrase",
+    "expiresAt": "2024-01-01T12:30:00Z"
+  }
+}
+```
+
+### POST `/recovery/verify-backup-phrase`
+Verify backup phrase for account recovery
+
+**Request Body:**
+```json
+{
+  "recoveryId": "rec_12345",
+  "backupPhrase": "word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Backup phrase verified successfully",
+  "data": {
+    "recoveryId": "rec_12345",
+    "newPhoneHash": "hashed_phone_number",
+    "timestamp": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+### POST `/recovery/verify-emergency-contact`
+Verify emergency contact for account recovery
+
+**Request Body:**
+```json
+{
+  "recoveryId": "rec_12345",
+  "emergencyToken": "token_from_email"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Emergency contact verified successfully",
+  "data": {
+    "recoveryId": "rec_12345",
+    "newPhoneHash": "hashed_phone_number",
+    "timestamp": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+### POST `/recovery/verify-onchain`
+Verify blockchain proof for account recovery
+
+**Request Body:**
+```json
+{
+  "recoveryId": "rec_12345",
+  "walletAddress": "addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3jcu5d8ps7zex2k2xt3uqxgjqnnj0vs2qd4a6gtmk4l3zcjdkz0xn",
+  "txHash": "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Blockchain verification successful",
+  "data": {
+    "recoveryId": "rec_12345",
+    "newPhoneHash": "hashed_phone_number",
+    "txHash": "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890",
+    "timestamp": "2024-01-01T12:00:00Z"
+  }
+}
+```
+
+### GET `/recovery/status/{recoveryId}`
+Get account recovery status
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "recoveryId": "rec_12345",
+    "status": "pending",
+    "recoveryMethod": "backup_phrase",
+    "timestamp": "2024-01-01T12:00:00Z",
+    "expiresAt": "2024-01-01T12:30:00Z",
+    "verificationData": {
+      "backupPhraseVerified": false,
+      "emergencyContactVerified": false,
+      "onchainProofVerified": false
+    }
+  }
+}
+```
+
+**Recovery Status Values:**
+- `pending`: Awaiting verification
+- `verified`: Verification successful
+- `completed`: Recovery completed
+- `failed`: Recovery failed
+- `expired`: Recovery request expired
+
+---
+
+## 8. System Routes
 
 ### GET `/health`
 Health check endpoint
@@ -842,6 +1078,18 @@ All endpoints return errors in the following format:
 - `ACCESS_DENIED`: Insufficient permissions
 - `RATE_LIMIT_EXCEEDED`: Too many requests
 - `SERVER_ERROR`: Internal server error
+- `PHONE_CHANGE_REQUEST_NOT_FOUND`: Phone change request not found
+- `PHONE_CHANGE_REQUEST_EXPIRED`: Phone change request has expired
+- `PHONE_CHANGE_VERIFICATION_FAILED`: Phone change verification failed
+- `PHONE_CHANGE_MAX_ATTEMPTS_EXCEEDED`: Maximum verification attempts exceeded
+- `RECOVERY_REQUEST_NOT_FOUND`: Recovery request not found
+- `RECOVERY_REQUEST_EXPIRED`: Recovery request has expired
+- `BACKUP_PHRASE_INVALID`: Invalid backup phrase
+- `EMERGENCY_CONTACT_NOT_FOUND`: Emergency contact not found
+- `EMERGENCY_TOKEN_INVALID`: Invalid emergency contact token
+- `ONCHAIN_VERIFICATION_FAILED`: Blockchain verification failed
+- `RECOVERY_METHOD_NOT_SUPPORTED`: Recovery method not supported
+- `RECOVERY_MAX_ATTEMPTS_EXCEEDED`: Maximum recovery attempts exceeded
 
 ---
 
@@ -849,6 +1097,8 @@ All endpoints return errors in the following format:
 
 - Authentication endpoints: 5 requests per minute
 - Seed phrase operations: 10 requests per minute
+- Phone change operations: 3 requests per 15 minutes
+- Account recovery operations: 5 requests per 30 minutes
 - General endpoints: 100 requests per minute
 
 ---

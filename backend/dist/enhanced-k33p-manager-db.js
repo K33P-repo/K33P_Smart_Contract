@@ -187,6 +187,13 @@ export class EnhancedK33PManagerDB {
         this.ensureInitialized();
         return this.depositAddress;
     }
+    /**
+     * Verify transaction by wallet address
+     */
+    async verifyTransactionByWalletAddress(senderWalletAddress, expectedAmount) {
+        this.ensureInitialized();
+        return await this.verifier.verifyTransactionByWalletAddress(senderWalletAddress, expectedAmount);
+    }
     // ============================================================================
     // SIGNUP WITH VERIFICATION (Database Version)
     // ============================================================================

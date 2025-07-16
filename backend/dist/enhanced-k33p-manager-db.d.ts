@@ -24,6 +24,10 @@ export declare class EnhancedK33PManagerDB {
     private readFile;
     private ensureInitialized;
     getDepositAddress(): Promise<string>;
+    /**
+     * Verify transaction by wallet address
+     */
+    verifyTransactionByWalletAddress(senderWalletAddress: string, expectedAmount: bigint): Promise<any>;
     recordSignupWithVerification(userAddress: string, userId: string, phoneNumber: string, senderWalletAddress?: string, pin?: string, biometricData?: string, verificationMethod?: 'phone' | 'pin' | 'biometric', biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'): Promise<SignupResult>;
     retryVerification(userAddress: string): Promise<SignupResult>;
     autoVerifyDeposits(): Promise<void>;

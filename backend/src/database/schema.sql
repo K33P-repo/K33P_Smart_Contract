@@ -99,6 +99,84 @@ CREATE TABLE IF NOT EXISTS system_logs (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
+-- Emergency contacts table - for account recovery
+CREATE TABLE IF NOT EXISTS emergency_contacts (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(50) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    relationship VARCHAR(100),
+    verified BOOLEAN DEFAULT FALSE,
+    verification_token VARCHAR(128),
+    token_expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Backup phrases table - for account recovery
+CREATE TABLE IF NOT EXISTS backup_phrases (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(50) NOT NULL,
+    phrase_hash VARCHAR(128) NOT NULL,
+    salt VARCHAR(64) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    last_used TIMESTAMP WITH TIME ZONE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE(user_id)
+);
+
+-- Phone change requests table - for phone number changes
+CREATE TABLE IF NOT EXISTS phone_change_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    request_id VARCHAR(128) UNIQUE NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
+    current_phone_hash VARCHAR(128) NOT NULL,
+    new_phone_hash VARCHAR(128) NOT NULL,
+    verification_method VARCHAR(20) CHECK (verification_method IN ('sms', 'email', 'onchain')),
+    verification_code VARCHAR(10),
+    verification_data JSONB,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'completed', 'failed', 'expired')),
+    attempts INTEGER DEFAULT 0,
+    max_attempts INTEGER DEFAULT 3,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Recovery requests table - for account recovery
+CREATE TABLE IF NOT EXISTS recovery_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    recovery_id VARCHAR(128) UNIQUE NOT NULL,
+    user_id VARCHAR(50),
+    identifier_hash VARCHAR(128) NOT NULL, -- phone or email hash
+    new_phone_hash VARCHAR(128) NOT NULL,
+    recovery_method VARCHAR(20) CHECK (recovery_method IN ('emergency_contact', 'backup_phrase', 'onchain_proof', 'multi_factor')),
+    verification_data JSONB DEFAULT '{}',
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'verified', 'completed', 'failed', 'expired')),
+    attempts INTEGER DEFAULT 0,
+    max_attempts INTEGER DEFAULT 5,
+    expires_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Account activity logs table - for security monitoring
+CREATE TABLE IF NOT EXISTS account_activity (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(50),
+    activity_type VARCHAR(50) NOT NULL,
+    description TEXT,
+    ip_address INET,
+    user_agent TEXT,
+    metadata JSONB,
+    success BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address);
@@ -116,6 +194,18 @@ CREATE INDEX IF NOT EXISTS idx_auth_data_user_id ON auth_data(user_id);
 CREATE INDEX IF NOT EXISTS idx_auth_data_type ON auth_data(auth_type);
 CREATE INDEX IF NOT EXISTS idx_system_logs_level ON system_logs(level);
 CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_emergency_contacts_user_id ON emergency_contacts(user_id);
+CREATE INDEX IF NOT EXISTS idx_emergency_contacts_verified ON emergency_contacts(verified);
+CREATE INDEX IF NOT EXISTS idx_backup_phrases_user_id ON backup_phrases(user_id);
+CREATE INDEX IF NOT EXISTS idx_phone_change_requests_user_id ON phone_change_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_phone_change_requests_request_id ON phone_change_requests(request_id);
+CREATE INDEX IF NOT EXISTS idx_phone_change_requests_status ON phone_change_requests(status);
+CREATE INDEX IF NOT EXISTS idx_recovery_requests_recovery_id ON recovery_requests(recovery_id);
+CREATE INDEX IF NOT EXISTS idx_recovery_requests_user_id ON recovery_requests(user_id);
+CREATE INDEX IF NOT EXISTS idx_recovery_requests_status ON recovery_requests(status);
+CREATE INDEX IF NOT EXISTS idx_account_activity_user_id ON account_activity(user_id);
+CREATE INDEX IF NOT EXISTS idx_account_activity_type ON account_activity(activity_type);
+CREATE INDEX IF NOT EXISTS idx_account_activity_created_at ON account_activity(created_at);
 
 -- Create a function to automatically update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -128,6 +218,9 @@ $$ language 'plpgsql';
 
 -- Create triggers to automatically update updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_emergency_contacts_updated_at BEFORE UPDATE ON emergency_contacts
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Create views for common queries
