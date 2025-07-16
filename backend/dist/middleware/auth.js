@@ -2,11 +2,8 @@
 import jwt from 'jsonwebtoken';
 /**
  * Middleware to verify JWT token
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
  */
-const verifyToken = (req, res, next) => {
+export const verifyToken = (req, res, next) => {
     try {
         // Get token from Authorization header
         const authHeader = req.headers.authorization;
@@ -15,7 +12,7 @@ const verifyToken = (req, res, next) => {
         }
         const token = authHeader.split(' ')[1];
         // Verify token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
         // Add user data to request
         req.user = decoded;
         next();
@@ -34,12 +31,8 @@ const verifyToken = (req, res, next) => {
 /**
  * Middleware to verify ZK proof
  * This is a placeholder for actual ZK proof verification
- * In a real implementation, this would verify the ZK proof
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
  */
-const verifyZkProof = (req, res, next) => {
+export const verifyZkProof = (req, res, next) => {
     try {
         const { proof, commitment } = req.body;
         if (!proof || !commitment) {
@@ -58,10 +51,16 @@ const verifyZkProof = (req, res, next) => {
 /**
  * Middleware to authenticate users
  * This is an alias for verifyToken to maintain backward compatibility
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @param {Function} next - Express next function
  */
-const authenticate = verifyToken;
-export { verifyToken, verifyZkProof, authenticate };
+export const authenticate = verifyToken;
+/**
+ * Middleware to authenticate token - main export for routes
+ */
+export const authenticateToken = verifyToken;
+export default {
+    verifyToken,
+    verifyZkProof,
+    authenticate,
+    authenticateToken
+};
 //# sourceMappingURL=auth.js.map

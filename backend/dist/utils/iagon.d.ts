@@ -1,10 +1,17 @@
-export function findUser(query: any): Promise<any>;
-export function createUser(data: any): Promise<any>;
-export function findUserById(id: any): Promise<any>;
-export function createSession(data: any): Promise<any>;
-export function deleteSessions(query: any): Promise<boolean>;
-export function findScriptUtxo(query: any): Promise<any>;
-export function createScriptUtxo(data: any): Promise<any>;
-export function updateScriptUtxo(id: any, data: any): Promise<any>;
-export function findScriptUtxos(query: any): Promise<any>;
+export declare class IagonAPI {
+    findUser(query: any): Promise<null>;
+    createUser(data: any): Promise<any>;
+    findUserById(id: string): Promise<null>;
+    createSession(data: any): Promise<any>;
+    deleteSessions(query: any): Promise<boolean>;
+    findScriptUtxo(query: any): Promise<null>;
+    createScriptUtxo(data: any): Promise<any>;
+    updateScriptUtxo(id: string, data: any): Promise<any>;
+    findScriptUtxos(query: any): Promise<never[]>;
+    storeData(key: string, data: string): Promise<string>;
+    retrieveData(storageId: string): Promise<string>;
+    updateData(storageId: string, data: string): Promise<void>;
+    deleteData(storageId: string): Promise<void>;
+}
+export default IagonAPI;
 //# sourceMappingURL=iagon.d.ts.map

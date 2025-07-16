@@ -14,6 +14,7 @@ import utxoRoutes from './routes/utxo.js';
 // @ts-ignore
 import authRoutes from './routes/auth.js';
 
+
 // Load environment variables
 dotenv.config();
 
@@ -74,6 +75,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/utxo', utxoRoutes);
 app.use('/api/zk', zkRoutes);
+
 
 // Validation error handler
 const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {
@@ -423,6 +425,8 @@ async function startServer() {
         : `http://localhost:${PORT}`;
       
       logger.info(`Health check: ${baseUrl}/api/health`);
+      
+
     });
     
     // Graceful shutdown

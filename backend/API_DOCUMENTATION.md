@@ -13,11 +13,55 @@ In production environment, the base URL will be different. The application uses 
 
 ## Authentication
 
-Some endpoints require an admin API key which should be included in the request headers:
+### Admin API Key
+
+Some admin endpoints require an admin API key which should be included in the request headers:
 
 ```
 X-API-KEY: k33p_admin_api_key_12345
 ```
+
+### JWT Token Authentication
+
+Most user-specific endpoints require JWT authentication. Include the access token in the Authorization header:
+
+```
+Authorization: Bearer your_jwt_access_token
+```
+
+### Authentication Flow
+
+The K33P system supports two authentication flows:
+
+#### 1. Phone-Based Authentication (Recommended)
+
+1. **Signup**: `POST /api/users/signup` - Register with phone, PIN, biometric data, and username
+2. **Login Process**:
+   - `POST /api/users/login/request-otp` - Request OTP via SMS
+   - `POST /api/users/login/verify-otp` - Verify OTP and get temporary token
+   - `POST /api/users/login/pin` - Complete login with PIN authentication
+   - `POST /api/users/login/face-id` - Alternative: Complete login with biometric verification (Face ID, fingerprint, etc.)
+
+#### 2. Legacy Email Authentication
+
+1. **Register**: `POST /api/users/register` - Register with email and password
+2. **Login**: `POST /api/users/login` - Login with email and password
+
+### Token Management
+
+- **Access Token**: Short-lived token (15 minutes) for API access
+- **Refresh Token**: Long-lived token (7 days) for obtaining new access tokens
+- **Token Refresh**: `POST /api/users/refresh-token` - Get new access token using refresh token
+- **Logout**: `POST /api/users/logout` - Invalidate refresh token
+
+### Security Features
+
+- **Multi-factor Authentication**: PIN + Biometric (Face ID, fingerprint, voice, iris)
+- **OTP Verification**: SMS-based one-time passwords
+- **Multiple Biometric Options**: Support for Face ID, fingerprint, voice recognition, and iris scanning
+- **Token Rotation**: Automatic refresh token rotation on use
+- **Rate Limiting**: Protection against brute force attacks
+- **Input Validation**: Comprehensive validation on all endpoints
 
 ## Error Handling
 
@@ -46,6 +90,20 @@ Common error codes include:
 | INTERNAL_ERROR | 500 | An unexpected error occurred on the server |
 | SERVICE_UNAVAILABLE | 503 | The service is temporarily unavailable (e.g., Iagon API is down) |
 | ZK_VERIFICATION_FAILED | 401 | Zero-Knowledge proof verification failed |
+| INVALID_CREDENTIALS | 401 | The provided login credentials are incorrect |
+| ACCESS_DENIED | 403 | User does not have permission to access this resource |
+| USER_NOT_FOUND | 404 | The specified user was not found |
+| PHONE_ALREADY_EXISTS | 409 | A user with this phone number already exists |
+| USERNAME_TAKEN | 409 | The requested username is already taken |
+| OTP_EXPIRED | 400 | The OTP has expired and needs to be regenerated |
+| OTP_INVALID | 400 | The provided OTP is incorrect |
+| BIOMETRIC_VERIFICATION_FAILED | 401 | Biometric authentication failed |
+| PIN_INVALID | 401 | The provided PIN is incorrect |
+| FILE_TOO_LARGE | 400 | The uploaded file exceeds the maximum size limit |
+| INVALID_FILE_TYPE | 400 | The uploaded file type is not supported |
+| PAYMENT_FAILED | 402 | Payment processing failed |
+| ACCOUNT_SUSPENDED | 403 | The user account has been suspended |
+| FEATURE_NOT_AVAILABLE | 403 | This feature is not available for the current account type |
 
 ## Public Endpoints
 
@@ -67,6 +125,686 @@ Returns the health status of the service.
   },
   "message": "Service is running",
   "timestamp": "2023-06-01T12:34:56.789Z"
+}
+```
+
+## User Authentication Endpoints
+
+### Phone-Based User Signup
+
+```
+POST /api/users/signup
+```
+
+Registers a new user with phone number, PIN, biometric data, and username.
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "pin": "1234",
+  "biometricData": {
+    "type": "face_id",
+    "data": "base64encodedbiometricdata"
+  },
+  "username": "john_doe"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "userId": "user_12345",
+    "userNumber": "K33P001234",
+    "phoneNumber": "+1234567890",
+    "username": "john_doe",
+    "accessToken": "jwt_access_token",
+    "refreshToken": "jwt_refresh_token"
+  }
+}
+```
+
+### Request Login OTP
+
+```
+POST /api/users/login/request-otp
+```
+
+Sends an OTP to the user's phone number for login.
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "OTP sent successfully",
+  "data": {
+    "otpSent": true,
+    "expiresIn": 300
+  }
+}
+```
+
+### Verify Login OTP
+
+```
+POST /api/users/login/verify-otp
+```
+
+Verifies the OTP sent to the user's phone.
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "otp": "123456"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully",
+  "data": {
+    "otpVerified": true,
+    "userId": "user_12345",
+    "tempToken": "temporary_jwt_token"
+  }
+}
+```
+
+### PIN-Based Login
+
+```
+POST /api/users/login/pin
+```
+
+Completes login using PIN authentication.
+
+**Request Body:**
+```json
+{
+  "userId": "user_12345",
+  "pin": "1234"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "userId": "user_12345",
+    "username": "john_doe",
+    "accessToken": "jwt_access_token",
+    "refreshToken": "jwt_refresh_token"
+  }
+}
+```
+
+### Biometric Login
+
+```
+POST /api/users/login/face-id
+```
+
+Completes login using biometric authentication (Face ID, fingerprint, etc.).
+
+**Request Body:**
+```json
+{
+  "userId": "user_12345",
+  "biometricData": {
+    "type": "face_id",
+    "data": "base64encodedbiometricdata"
+  }
+}
+```
+
+**Supported Biometric Types:**
+- `face_id` - Face ID authentication
+- `fingerprint` - Fingerprint authentication
+- `voice` - Voice recognition
+- `iris` - Iris scanning
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Biometric login successful",
+  "data": {
+    "userId": "user_12345",
+    "username": "john_doe",
+    "accessToken": "jwt_access_token",
+    "refreshToken": "jwt_refresh_token"
+  }
+}
+```
+
+## User Profile Management Endpoints
+
+### Get User Data
+
+```
+GET /api/users/data/:userId
+```
+
+Retrieves comprehensive user data including profile and settings.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User data retrieved successfully",
+  "data": {
+    "userId": "user_12345",
+    "userNumber": "K33P001234",
+    "phoneNumber": "+1234567890",
+    "username": "john_doe",
+    "avatar": "https://example.com/avatar.jpg",
+    "accountStatus": "free",
+    "authMethods": ["pin", "face_id"],
+    "createdAt": "2023-06-01T12:34:56.789Z"
+  }
+}
+```
+
+### Update Username
+
+```
+PUT /api/users/username/:userId
+```
+
+Updates the user's username.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "username": "new_username"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Username updated successfully",
+  "data": {
+    "userId": "user_12345",
+    "username": "new_username"
+  }
+}
+```
+
+### Upload Avatar
+
+```
+POST /api/users/avatar/:userId
+```
+
+Uploads a new avatar image for the user.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+Content-Type: multipart/form-data
+```
+
+**Request Body:**
+- `avatar`: Image file (JPG, PNG, GIF, max 5MB)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Avatar uploaded successfully",
+  "data": {
+    "userId": "user_12345",
+    "avatarUrl": "https://example.com/uploads/avatar_12345.jpg"
+  }
+}
+```
+
+## Wallet Management Endpoints
+
+### Add Wallet
+
+```
+POST /api/users/wallets/:userId
+```
+
+Adds a new wallet to the user's account.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "walletName": "My Bitcoin Wallet",
+  "walletType": "bitcoin",
+  "fileId": "file_abc123",
+  "seedPhraseAvailable": true
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Wallet added successfully",
+  "data": {
+    "walletId": "wallet_789",
+    "walletName": "My Bitcoin Wallet",
+    "walletType": "bitcoin",
+    "fileId": "file_abc123",
+    "createdAt": "2023-06-01T12:34:56.789Z"
+  }
+}
+```
+
+### Get User Wallets
+
+```
+GET /api/users/wallets/:userId
+```
+
+Retrieves all wallets associated with the user.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Wallets retrieved successfully",
+  "data": {
+    "wallets": [
+      {
+        "walletId": "wallet_789",
+        "walletName": "My Bitcoin Wallet",
+        "walletType": "bitcoin",
+        "fileId": "file_abc123",
+        "createdAt": "2023-06-01T12:34:56.789Z"
+      }
+    ],
+    "totalWallets": 1
+  }
+}
+```
+
+## Account Management Endpoints
+
+### Delete Account
+
+```
+DELETE /api/users/delete/:userId
+```
+
+Deletes the user's account permanently.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "confirmPin": "1234"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Account deleted successfully"
+}
+```
+
+### Get Account Status
+
+```
+GET /api/users/account-status/:userId
+```
+
+Retrieves the user's account status and available features.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Account status retrieved successfully",
+  "data": {
+    "userId": "user_12345",
+    "accountStatus": "free",
+    "features": [
+      "basic_wallet_management",
+      "standard_security"
+    ]
+  }
+}
+```
+
+### Update Account Status
+
+```
+PUT /api/users/account-status/:userId
+```
+
+Updates the user's account status.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "accountStatus": "premium"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Account status updated successfully",
+  "data": {
+    "userId": "user_12345",
+    "accountStatus": "premium"
+  }
+}
+```
+
+### Upgrade to Premium
+
+```
+POST /api/users/upgrade-pro/:userId
+```
+
+Upgrades the user's account to premium status.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "paymentMethod": "credit_card",
+  "paymentToken": "payment_token_123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Successfully upgraded to premium",
+  "data": {
+    "userId": "user_12345",
+    "accountStatus": "premium",
+    "features": [
+      "unlimited_wallets",
+      "advanced_security",
+      "priority_support",
+      "backup_recovery"
+    ]
+  }
+}
+```
+
+### Update Authentication Methods
+
+```
+PUT /api/users/auth-methods/:userId
+```
+
+Updates the user's authentication methods and preferences.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "authMethods": ["pin", "face_id"],
+  "newPin": "5678",
+  "biometricData": {
+    "type": "face_id",
+    "data": "base64encodedbiometricdata"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Authentication methods updated successfully",
+  "data": {
+    "userId": "user_12345",
+    "authMethods": ["pin", "face_id"],
+    "hasBiometricData": true
+  }
+}
+```
+
+### Logout
+
+```
+POST /api/users/logout
+```
+
+Logs out the user and invalidates the refresh token.
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "refreshToken": "jwt_refresh_token"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+### Refresh Token
+
+```
+POST /api/users/refresh-token
+```
+
+Refreshes the access token using a valid refresh token.
+
+**Request Body:**
+```json
+{
+  "refreshToken": "jwt_refresh_token"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Token refreshed successfully",
+  "data": {
+    "accessToken": "new_jwt_access_token",
+    "refreshToken": "new_jwt_refresh_token"
+  }
+}
+```
+
+## Legacy Authentication Endpoints
+
+*Note: These endpoints are maintained for backward compatibility but are deprecated in favor of the new phone-based authentication system.*
+
+### Legacy User Registration
+
+```
+POST /api/users/register
+```
+
+Registers a new user with email and password (Legacy).
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "securepassword123",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "User registered successfully",
+  "data": {
+    "userId": "user_12345",
+    "email": "user@example.com",
+    "accessToken": "jwt_access_token",
+    "refreshToken": "jwt_refresh_token"
+  }
+}
+```
+
+### Legacy Email Login
+
+```
+POST /api/users/login
+```
+
+Logs in a user with email and password (Legacy).
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "securepassword123"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "userId": "user_12345",
+    "email": "user@example.com",
+    "accessToken": "jwt_access_token",
+    "refreshToken": "jwt_refresh_token"
+  }
+}
+```
+
+### Legacy Profile Management
+
+```
+GET /api/users/profile/:userId
+```
+
+Retrieves user profile information (Legacy).
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Profile retrieved successfully",
+  "data": {
+    "userId": "user_12345",
+    "email": "user@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "createdAt": "2023-06-01T12:34:56.789Z"
+  }
+}
+```
+
+```
+PUT /api/users/profile/:userId
+```
+
+Updates user profile information (Legacy).
+
+**Headers:**
+```
+Authorization: Bearer jwt_access_token
+```
+
+**Request Body:**
+```json
+{
+  "firstName": "John",
+  "lastName": "Smith"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": {
+    "userId": "user_12345",
+    "firstName": "John",
+    "lastName": "Smith"
+  }
 }
 ```
 

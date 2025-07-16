@@ -68,6 +68,7 @@ The frontend uses Lucid SDK to interact with the Cardano blockchain:
 
 The backend provides the following endpoints:
 
+### Core Identity Endpoints
 - `/fetch-utxo` - Fetch UTXOs at script address
 - `/refund` - Issue refund (must be backend-signed)
 - `/verify-zk-login` - Verify ZK proof for login
@@ -82,11 +83,14 @@ The system uses zero-knowledge proofs to verify user identity without revealing 
 
 ## Database Schema
 
+### Core Tables
 **Users Table:**
 - id | wallet_address | phone_hash | biometric_hash | passkey_hash | zk_commitment
 
 **Sessions Table:**
 - id | wallet_address | firebase_token | expires_at
+
+
 
 ## Security Considerations
 

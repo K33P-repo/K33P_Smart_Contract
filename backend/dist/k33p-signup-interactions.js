@@ -694,10 +694,15 @@ class EnhancedK33PManager {
     saveDeposits(deposits) {
         try {
             // Convert BigInt values to strings before serialization
-            const serializableDeposits = deposits.map(deposit => ({
-                ...deposit,
-                amount: deposit.amount.toString() // Convert BigInt to string
-            }));
+            const serializableDeposits = deposits.map(deposit => {
+                // Create a new object with all properties from deposit but with amount as any type
+                const newDeposit = { ...deposit };
+                // Ensure amount is converted to string if it's a BigInt
+                if (typeof newDeposit.amount === 'bigint') {
+                    newDeposit.amount = newDeposit.amount.toString();
+                }
+                return newDeposit;
+            });
             fs.writeFileSync(this.depositsFile, JSON.stringify(serializableDeposits, null, 2));
         }
         catch (error) {
