@@ -429,3 +429,9 @@
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T11:09:07.168Z"}
 {"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-07-23T11:09:59.425Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
 {"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-07-23T11:09:59.439Z","userAddress":"addr_test1qz0fsl3fw5esrdpg4522k8w0z86h23pnnruux0yxxgz2kxht64h5wp0ct5wtlszngutru55cpczcpp6793qknrptlqpqsu88yt","walletAddress":"addr_test1qz0fsl3fw5esrdpg4522k8w0z86h23pnnruux0yxxgz2kxht64h5wp0ct5wtlszngutru55cpczcpp6793qknrptlqpqsu88yt"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T11:15:03.504Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-23T11:15:08.090Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T11:15:08.100Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T11:15:08.101Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-07-23T11:15:24.459Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"Processing immediate refund request","service":"k33p-backend","timestamp":"2025-07-23T11:15:24.468Z","userAddress":"addr_test1qz0fsl3fw5esrdpg4522k8w0z86h23pnnruux0yxxgz2kxht64h5wp0ct5wtlszngutru55cpczcpp6793qknrptlqpqsu88yt","walletAddress":"addr_test1qz0fsl3fw5esrdpg4522k8w0z86h23pnnruux0yxxgz2kxht64h5wp0ct5wtlszngutru55cpczcpp6793qknrptlqpqsu88yt"}
