@@ -392,10 +392,41 @@ function saveMockDatabase() {
   }
 }
 
+async function updateUser(id, data) {
+  try {
+    // Validate ID and data
+    if (!id || !data) {
+      throw new Error('Invalid user ID or data');
+    }
+    
+    // Use API if available, otherwise use mock
+    if (api) {
+      const res = await api.patch(`/users/${id}`, data);
+      return res.data;
+    } else {
+      // Mock implementation
+      const index = mockDb.users.findIndex(user => user.id === id);
+      if (index === -1) {
+        throw new Error('User not found');
+      }
+      mockDb.users[index] = { ...mockDb.users[index], ...data, updatedAt: new Date().toISOString() };
+      
+      // Save updated mock database to file
+      saveMockDatabase();
+      
+      return mockDb.users[index];
+    }
+  } catch (error) {
+    console.error('Error updating user:', error.message);
+    throw error; // Rethrow as this is a critical operation
+  }
+}
+
 export {
   findUser,
   createUser,
   findUserById,
+  updateUser,
   createSession,
   deleteSessions,
   findScriptUtxo,
