@@ -4,13 +4,13 @@
  */
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { SeedPhraseStorageService } from '../services/seed-phrase-storage';
+import { SeedPhraseStorageService } from '../services/seed-phrase-storage.js';
 // NOK service imports removed
-import { authenticateToken } from '../middleware/auth';
-import { createRateLimiter } from '../middleware/rate-limiter';
-import { auditLogger } from '../middleware/audit-logger';
+import { authenticateToken } from '../middleware/auth.js';
+import { createRateLimiter } from '../middleware/rate-limiter.js';
+import { auditLogger } from '../middleware/audit-logger.js';
 import { Pool } from 'pg';
-import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db';
+import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db.js';
 const router = express.Router();
 const pool = new Pool();
 const k33pManager = new EnhancedK33PManagerDB();

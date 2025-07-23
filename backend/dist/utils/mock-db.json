@@ -69,6 +69,16 @@
       "zkCommitment": "7596c41d27df294163ac51dbef71acd404a81eb6b6778ba690-bb3543f7",
       "txHash": null,
       "createdAt": "2025-07-23T21:09:50.970Z"
+    },
+    {
+      "id": "d954fbcc-9d19-4e8a-aeeb-02fa8a8da02f",
+      "walletAddress": "addr_test1qr8z9x2y3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5q",
+      "phoneHash": "ce81427add4e3bff123dcfa7751b67f6e4ddf91391ea2e2b1a4f5963c5990882",
+      "biometricHash": "b4abb8b999ba1fc9bf3a7558ce9ffe0479e7d2f6ee58b64164669af449bcb238",
+      "passkeyHash": "1a494ab9d815a6f5f4e9e5afbc7b33a4a0bd05f03508a71bb031b651d4dd6b28",
+      "zkCommitment": "befce67f08cebe9c81a1dd1c4487c81f118ab02233c225b309-996be644",
+      "txHash": "4459d99aa1e1a6656185e038229dc594a41fd2ec491036284456b326847d3e80",
+      "createdAt": "2025-07-23T21:39:49.886Z"
     }
   ],
   "sessions": [
@@ -106,6 +116,13 @@
       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ijg3YTVjNTdlLWNhY2UtNGVlYS04YjgxLWE0ZWU4YTFjYzUyNyIsIndhbGxldEFkZHJlc3MiOm51bGwsImlhdCI6MTc1MzMwNDk5MCwiZXhwIjoxNzUzMzA1MjQ5fQ.Y8X4QhqJ05ntZiWrcNFq3nq-r3YlpcsapP7VPekoRLw",
       "expiresAt": "2025-07-26T21:09:50.979Z",
       "createdAt": "2025-07-23T21:09:50.979Z"
+    },
+    {
+      "id": "8bd67e14-6b9f-4a4a-86eb-923f12380120",
+      "userId": "d954fbcc-9d19-4e8a-aeeb-02fa8a8da02f",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImQ5NTRmYmNjLTlkMTktNGU4YS1hZWViLTAyZmE4YThkYTAyZiIsIndhbGxldEFkZHJlc3MiOiJhZGRyX3Rlc3QxcXI4ejl4MnkzYTRiNWM2ZDdlOGY5ZzBoMWkyajNrNGw1bTZuN284cDlxMHIxczJ0M3U0djV3Nng3eTh6OWEwYjFjMmQzZTRmNWc2aDdpOGo5azBsMW0ybjNvNHA1cSIsImlhdCI6MTc1MzMwNjc4OSwiZXhwIjoxNzUzMzA3MDQ4fQ.6dPvhLQ2-0yC4L9pqtv6SgsIE0oae0usB_MsnrHbups",
+      "expiresAt": "2025-07-26T21:39:49.895Z",
+      "createdAt": "2025-07-23T21:39:49.895Z"
     }
   ],
   "scriptUtxos": [

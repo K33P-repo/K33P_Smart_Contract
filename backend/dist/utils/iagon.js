@@ -131,16 +131,11 @@ export async function createUser(data) {
         if (!data || typeof data !== 'object') {
             throw new Error('Invalid user data');
         }
-        const requiredFields = ['phoneHash'];
+        const requiredFields = ['walletAddress', 'phoneHash'];
         for (const field of requiredFields) {
             if (!data[field]) {
                 throw new Error(`Missing required field: ${field}`);
             }
-        }
-        
-        // walletAddress is optional and can be null
-        if (data.walletAddress === undefined) {
-            data.walletAddress = null;
         }
         // Use API if available, otherwise use mock
         if (api) {

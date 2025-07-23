@@ -4,8 +4,8 @@
  * with encryption, NOK access control, and comprehensive audit logging
  */
 import crypto from 'crypto';
-import { storeData, retrieveData, deleteData } from '../utils/iagon';
-import { logger } from '../utils/logger';
+import { storeData, retrieveData, deleteData } from '../utils/iagon.js';
+import { logger } from '../utils/logger.js';
 // ============================================================================
 // ENHANCED IAGON SERVICE CLASS
 // ============================================================================

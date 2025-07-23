@@ -1,7 +1,7 @@
 // Seed Phrase Storage Service for K33P
 // Handles secure storage and retrieval of wallet seed phrases on Iagon
 import crypto from 'crypto';
-import { findUser, createUser } from '../utils/iagon';
+import { findUser, createUser } from '../utils/iagon.js';
 import winston from 'winston';
 // Logger setup
 const logger = winston.createLogger({

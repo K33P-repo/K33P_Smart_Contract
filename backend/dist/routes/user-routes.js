@@ -6,11 +6,11 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken } from '../middleware/auth.js';
 // NOK service imports removed
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 import { Pool } from 'pg';
-import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db';
+import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db.js';
 import crypto from 'crypto';
 import multer from 'multer';
 import path from 'path';

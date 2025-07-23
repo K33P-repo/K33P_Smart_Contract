@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 // Simple in-memory rate limiter
 const requestCounts = new Map();
 export const createRateLimiter = (options) => {

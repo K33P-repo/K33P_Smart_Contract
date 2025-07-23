@@ -1,4 +1,4 @@
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 export const auditLogger = (action, resource) => {
     return (req, res, next) => {
         const startTime = Date.now();
