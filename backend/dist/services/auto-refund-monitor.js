@@ -14,9 +14,9 @@ const CONFIG = {
     maxRetries: 3,
     retryDelay: 5000, // 5 seconds
     requiredAmount: 2000000n, // 2 ADA in lovelace
-    blockfrostApiKey: process.env.BLOCKFROST_API_KEY || "preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG",
+    blockfrostApiKey: process.env.BLOCKFROST_API_KEY || "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM",
     blockfrostUrl: "https://cardano-preprod.blockfrost.io/api/v0",
-    autoRefundEnabled: process.env.AUTO_REFUND_ENABLED === 'true' || true,
+    autoRefundEnabled: process.env.AUTO_REFUND_ENABLED === 'true',
     maxTransactionAge: 300, // 5 minutes - only process recent transactions
 };
 // Logger setup
