@@ -7,6 +7,7 @@ import { Lucid, Blockfrost } from "lucid-cardano";
 import { config } from 'dotenv';
 import { dbService } from './database/service.js';
 import { testConnection } from './database/config.js';
+import { MockDatabaseService } from './database/mock-service.js';
 // Load environment variables
 config();
 // ============================================================================
@@ -141,6 +142,8 @@ export class EnhancedK33PManagerDB {
     depositAddress = '';
     verifier;
     initialized = false;
+    usingMockDatabase = false;
+    mockDbService = null;
     constructor() {
         this.verifier = new BlockchainVerifier(CONFIG.blockfrostApiKey, CONFIG.blockfrostUrl);
     }
@@ -150,7 +153,11 @@ export class EnhancedK33PManagerDB {
             // Test database connection
             const dbConnected = await testConnection();
             if (!dbConnected) {
-                throw new Error('Database connection failed. Please run "npm run db:init" first.');
+                console.warn('PostgreSQL connection failed, using mock database service...');
+                this.usingMockDatabase = true;
+                this.mockDbService = MockDatabaseService;
+                await this.mockDbService.initialize();
+                console.log('✅ Mock database service initialized');
             }
             // Initialize Lucid
             this.lucid = await Lucid.new(new Blockfrost(CONFIG.blockfrostUrl, CONFIG.blockfrostApiKey), CONFIG.network);
@@ -182,6 +189,9 @@ export class EnhancedK33PManagerDB {
         if (!this.initialized) {
             throw new Error('K33P Manager not initialized. Call initialize() first.');
         }
+    }
+    getDbService() {
+        return this.usingMockDatabase ? this.mockDbService : dbService;
     }
     async getDepositAddress() {
         this.ensureInitialized();
@@ -215,7 +225,8 @@ export class EnhancedK33PManagerDB {
                 };
             }
             // Check if user already exists
-            const existingDeposit = await dbService.getDepositByUserAddress(userAddress);
+            const currentDbService = this.getDbService();
+            const existingDeposit = await currentDbService.getDepositByUserAddress(userAddress);
             if (existingDeposit) {
                 return {
                     success: false,
@@ -228,16 +239,16 @@ export class EnhancedK33PManagerDB {
             const biometricHash = biometricData ? this.hashData(biometricData) : undefined;
             const zkProof = this.generateZKProof(phoneNumber, userAddress);
             // Create user if not exists
-            const existingUser = await dbService.getUserById(userId);
+            const existingUser = await currentDbService.getUserById(userId);
             if (!existingUser) {
-                await dbService.createUser({
+                await currentDbService.createUser({
                     userId,
                     walletAddress: userAddress,
                     phoneHash
                 });
             }
             // Create deposit record
-            const deposit = await dbService.createDeposit({
+            const deposit = await currentDbService.createDeposit({
                 userAddress,
                 userId,
                 phoneHash,
@@ -256,13 +267,13 @@ export class EnhancedK33PManagerDB {
                 const verificationResult = await this.verifier.verifyTransactionByWalletAddress(senderWalletAddress, CONFIG.requiredDeposit);
                 if (verificationResult.isValid && verificationResult.transaction) {
                     // Mark as verified and update with transaction details
-                    await dbService.updateDeposit(userAddress, {
+                    await currentDbService.updateDeposit(userAddress, {
                         verified: true,
                         tx_hash: verificationResult.transaction.txHash,
                         amount: verificationResult.transaction.amount
                     });
                     // Create transaction record
-                    await dbService.createTransaction({
+                    await currentDbService.createTransaction({
                         txHash: verificationResult.transaction.txHash,
                         fromAddress: verificationResult.transaction.fromAddress,
                         toAddress: verificationResult.transaction.toAddress,
@@ -282,7 +293,7 @@ export class EnhancedK33PManagerDB {
                 }
                 else {
                     // Increment verification attempts
-                    await dbService.incrementVerificationAttempts(userAddress);
+                    await currentDbService.incrementVerificationAttempts(userAddress);
                     return {
                         success: true,
                         message: `Signup recorded but transaction verification failed: ${verificationResult.error}`,
@@ -312,7 +323,8 @@ export class EnhancedK33PManagerDB {
     async retryVerification(userAddress) {
         this.ensureInitialized();
         try {
-            const deposit = await dbService.getDepositByUserAddress(userAddress);
+            const currentDbService = this.getDbService();
+            const deposit = await currentDbService.getDepositByUserAddress(userAddress);
             if (!deposit) {
                 return {
                     success: false,
@@ -334,7 +346,7 @@ export class EnhancedK33PManagerDB {
             }
             const verificationResult = await this.verifier.verifyTransactionByWalletAddress(deposit.sender_wallet_address, CONFIG.requiredDeposit);
             if (verificationResult.isValid && verificationResult.transaction) {
-                await dbService.markDepositAsVerified(userAddress, verificationResult.transaction.txHash);
+                await currentDbService.markDepositAsVerified(userAddress, verificationResult.transaction.txHash);
                 return {
                     success: true,
                     message: 'Verification successful',
@@ -342,7 +354,7 @@ export class EnhancedK33PManagerDB {
                 };
             }
             else {
-                await dbService.incrementVerificationAttempts(userAddress);
+                await currentDbService.incrementVerificationAttempts(userAddress);
                 return {
                     success: false,
                     message: `Verification failed: ${verificationResult.error}`
@@ -361,7 +373,8 @@ export class EnhancedK33PManagerDB {
         this.ensureInitialized();
         try {
             console.log('🔄 Starting auto-verification of unverified deposits...');
-            const unverifiedDeposits = await dbService.getUnverifiedDeposits();
+            const currentDbService = this.getDbService();
+            const unverifiedDeposits = await currentDbService.getUnverifiedDeposits();
             console.log(`📊 Found ${unverifiedDeposits.length} unverified deposits`);
             for (const deposit of unverifiedDeposits) {
                 if (deposit.sender_wallet_address) {
@@ -388,7 +401,8 @@ export class EnhancedK33PManagerDB {
     async processRefund(userAddress, walletAddress) {
         this.ensureInitialized();
         try {
-            const deposit = await dbService.getDepositByUserAddress(userAddress);
+            const currentDbService = this.getDbService();
+            const deposit = await currentDbService.getDepositByUserAddress(userAddress);
             if (!deposit) {
                 return {
                     success: false,
@@ -403,19 +417,27 @@ export class EnhancedK33PManagerDB {
             }
             const refundAddress = walletAddress || deposit.sender_wallet_address || userAddress;
             console.log(`💰 Processing refund to ${refundAddress}...`);
-            // Process the refund transaction
-            // Note: This is a simplified refund - in production, you'd need to find the actual UTXO
-            // For now, we'll create a direct payment transaction
-            const lucid = this.lucid;
-            const tx = await lucid.newTx()
-                .payToAddress(refundAddress, { lovelace: CONFIG.refundAmount })
-                .complete();
-            const signedTx = await tx.sign().complete();
-            const txHash = await signedTx.submit();
+            let txHash;
+            if (this.usingMockDatabase) {
+                // Simulate refund transaction for mock database
+                txHash = 'mock_refund_' + Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
+                console.log(`📝 Mock refund transaction simulated: ${txHash}`);
+            }
+            else {
+                // Process the actual refund transaction
+                // Note: This is a simplified refund - in production, you'd need to find the actual UTXO
+                // For now, we'll create a direct payment transaction
+                const lucid = this.lucid;
+                const tx = await lucid.newTx()
+                    .payToAddress(refundAddress, { lovelace: CONFIG.refundAmount })
+                    .complete();
+                const signedTx = await tx.sign().complete();
+                txHash = await signedTx.submit();
+            }
             // Mark as refunded in database
-            await dbService.markRefunded(userAddress, txHash);
+            await currentDbService.markRefunded(userAddress, txHash);
             // Create refund transaction record
-            await dbService.createTransaction({
+            await currentDbService.createTransaction({
                 txHash,
                 fromAddress: this.depositAddress,
                 toAddress: refundAddress,

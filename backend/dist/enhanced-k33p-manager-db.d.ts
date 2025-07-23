@@ -19,10 +19,13 @@ export declare class EnhancedK33PManagerDB {
     private depositAddress;
     private verifier;
     private initialized;
+    private usingMockDatabase;
+    private mockDbService;
     constructor();
     initialize(): Promise<void>;
     private readFile;
     private ensureInitialized;
+    private getDbService;
     getDepositAddress(): Promise<string>;
     /**
      * Verify transaction by wallet address

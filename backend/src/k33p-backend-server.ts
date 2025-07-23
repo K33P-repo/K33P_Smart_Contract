@@ -5,11 +5,13 @@ import dotenv from 'dotenv';
 import { EnhancedK33PManagerDB } from './enhanced-k33p-manager-db.js';
 import { dbService } from './database/service.js';
 import { autoRefundMonitor } from './services/auto-refund-monitor.js';
+import { MockDatabaseService } from './database/mock-service.js';
+import { testConnection } from './database/config.js';
 import winston from 'winston';
 
 // Import routes
 // @ts-ignore
-import zkRoutes from './routes/zk';
+import zkRoutes from './routes/zk.js';
 // @ts-ignore
 import utxoRoutes from './routes/utxo.js';
 // @ts-ignore
@@ -44,17 +46,36 @@ const logger = winston.createLogger({
 
 // Initialize K33P Manager with Database
 let k33pManager: EnhancedK33PManagerDB;
+let usingMockDatabase = false;
 
 async function initializeK33P() {
   try {
+    // Test PostgreSQL connection first
+    const dbConnected = await testConnection();
+    
+    if (!dbConnected) {
+      logger.warn('PostgreSQL connection failed, initializing mock database...');
+      await MockDatabaseService.initialize();
+      usingMockDatabase = true;
+      logger.info('✅ Mock database initialized successfully');
+    }
+    
     k33pManager = new EnhancedK33PManagerDB();
     await k33pManager.initialize();
     logger.info('K33P Manager with Database initialized successfully');
     
-    // Initialize and start auto-refund monitor
-    await autoRefundMonitor.initialize();
-    await autoRefundMonitor.start();
-    logger.info('🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded');
+    // Initialize and start auto-refund monitor (only if PostgreSQL is available)
+    if (!usingMockDatabase) {
+      try {
+        await autoRefundMonitor.initialize();
+        await autoRefundMonitor.start();
+        logger.info('🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded');
+      } catch (error) {
+        logger.warn('Auto-Refund Monitor failed to start (using mock database):', error);
+      }
+    } else {
+      logger.info('📝 Running in mock database mode - Auto-Refund Monitor disabled');
+    }
     
   } catch (error) {
     logger.error('Failed to initialize K33P Manager with Database:', error);

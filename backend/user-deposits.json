@@ -29,5 +29,21 @@
     "verificationAttempts": 1,
     "lastVerificationAttempt": "2025-06-23T13:27:18.003Z",
     "verificationMethod": "phone"
+  },
+  {
+    "userAddress": "addr_test1qz0fsl3fw5esrdpg4522k8w0z86h23pnnruux0yxxgz2kxht64h5wp0ct5wtlszngutru55cpczcpp6793qknrptlqpqsu88yt",
+    "userId": "testuser_new_deposit",
+    "phoneHash": "a1b2c3d4e5f6789012345678901234567890123456789012345678901234567890",
+    "zkProof": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef0000000000000000000000000000000000000000000000000000000000000000",
+    "zkCommitment": "0000000000000000000000000000000000000000000000000000000-12345",
+    "txHash": "new_deposit_tx_hash_2ada",
+    "amount": "2000000",
+    "timestamp": "2025-07-23T10:30:00.000Z",
+    "refunded": false,
+    "signupCompleted": true,
+    "verified": true,
+    "verificationAttempts": 1,
+    "lastVerificationAttempt": "2025-07-23T10:30:00.000Z",
+    "verificationMethod": "phone"
   }
 ]

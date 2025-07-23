@@ -31,6 +31,7 @@ export interface UserDeposit {
     refund_tx_hash?: string;
     refund_timestamp?: Date;
     sender_wallet_address?: string;
+    created_at?: Date;
 }
 export interface Transaction {
     id?: string;
