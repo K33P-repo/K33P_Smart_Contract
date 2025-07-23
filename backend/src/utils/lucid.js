@@ -106,7 +106,7 @@ const signupTxBuilder = async (userAddress, userHashes) => {
     // Build signup transaction
     const tx = await lucid.newTx()
       .payToContract(
-        process.env.SCRIPT_HASH,
+        process.env.SCRIPT_ADDRESS,
         { inline: datum },
         { lovelace: BigInt(2_000_000) } // 2 ADA
       )

@@ -1,0 +1,5 @@
+{
+  "phone": "+1234567890",
+  "biometric": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmaW5nZXJwcmludCI6InNhbXBsZV9maW5nZXJwcmludF9kYXRhIn0",
+  "passkey": "sample_passkey_data_12345"
+}
