@@ -83,7 +83,7 @@ const signupTxBuilder = async (userAddress, userHashes) => {
         }, IdentityDatumSchema);
         // Build signup transaction
         const tx = await lucid.newTx()
-            .payToContract(process.env.SCRIPT_HASH, { inline: datum }, { lovelace: BigInt(2_000_000) } // 2 ADA
+            .payToContract(process.env.SCRIPT_ADDRESS, { inline: datum }, { lovelace: BigInt(2_000_000) } // 2 ADA
         )
             .complete();
         const signedTx = await tx.sign().complete();
