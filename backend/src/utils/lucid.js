@@ -1,12 +1,34 @@
 // Lucid SDK utilities for K33P Identity System
 import { Lucid, Blockfrost, Data, fromText, toHex } from 'lucid-cardano';
+import { bech32 } from 'bech32';
 import fs from 'fs';
 
 // load backend private key from file
 function getBackendPrivateKey() {
   // First try to use the direct key from environment
   if (process.env.BACKEND_PRIVATE_KEY) {
-    return process.env.BACKEND_PRIVATE_KEY.trim();
+    const key = process.env.BACKEND_PRIVATE_KEY.trim();
+    console.log('Using BACKEND_PRIVATE_KEY from environment, length:', key.length);
+    console.log('Key starts with:', key.substring(0, 10));
+    
+    // If the key is in cborHex format (starts with 5820), convert to bech32 ed25519_sk format
+    if (key.startsWith('5820') && key.length === 68) {
+      // Remove the CBOR prefix (5820) to get the 64-character private key
+      const hexKey = key.substring(4);
+      console.log('Extracted hex private key from cborHex, length:', hexKey.length);
+      
+      // Convert hex to bytes
+      const keyBytes = Buffer.from(hexKey, 'hex');
+      
+      // Convert to bech32 with ed25519_sk prefix
+      const words = bech32.toWords(keyBytes);
+      const bech32Key = bech32.encode('ed25519_sk', words);
+      console.log('Converted to bech32 ed25519_sk format:', bech32Key.substring(0, 20) + '...');
+      
+      return bech32Key;
+    }
+    
+    return key;
   }
   
   // If not available, try to load from file

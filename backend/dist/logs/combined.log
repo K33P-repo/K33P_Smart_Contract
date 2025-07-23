@@ -7,3 +7,34 @@
 {"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T19:40:07.383Z"}
 {"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:40:07.394Z"}
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:40:07.395Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:41:40.445Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:41:57.382Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-23T19:43:01.027Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:43:01.036Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:43:01.987Z"}
+{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T19:43:01.988Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:43:01.996Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:43:01.997Z"}
+{"ip":"::1","level":"info","message":"GET /?ide_webview_request_time=1753299785226","service":"k33p-backend","timestamp":"2025-07-23T19:43:05.258Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-07-23T19:43:06.061Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:43:12.911Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-07-23T19:43:57.238Z"}
+{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-23T19:44:40.389Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:44:40.399Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:44:41.653Z"}
+{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T19:44:41.659Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:44:41.678Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:44:41.691Z"}
+{"ip":"::1","level":"info","message":"GET /?ide_webview_request_time=1753299885357","service":"k33p-backend","timestamp":"2025-07-23T19:44:45.379Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-07-23T19:44:45.791Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:45:03.533Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-07-23T19:47:00.202Z"}
+{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-23T19:47:37.599Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:47:37.618Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:47:39.111Z"}
+{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T19:47:39.114Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:47:39.130Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:47:39.182Z"}
+{"ip":"::1","level":"info","message":"GET /?ide_webview_request_time=1753300059444","service":"k33p-backend","timestamp":"2025-07-23T19:47:39.465Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-07-23T19:47:39.870Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:48:00.850Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}

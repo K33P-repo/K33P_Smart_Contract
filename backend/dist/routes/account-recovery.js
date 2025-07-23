@@ -5,11 +5,11 @@
  */
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
-import { logger } from '../utils/logger.js';
+import { logger } from '../utils/logger';
 import { Pool } from 'pg';
-import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db.js';
+import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db';
 import crypto from 'crypto';
-import { dbService } from '../database/service.js';
+import { dbService } from '../database/service';
 import nodemailer from 'nodemailer';
 const router = express.Router();
 const pool = new Pool();

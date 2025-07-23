@@ -19,6 +19,46 @@
       "zkCommitment": "0000000000000000000000000000000000000000000000000000000-68c0687",
       "createdAt": "2025-06-23T13:27:18.003Z",
       "updatedAt": "2025-06-23T13:27:18.003Z"
+    },
+    {
+      "id": "812854ba-a9a6-4b06-bd02-6f687e145b55",
+      "walletAddress": null,
+      "phoneHash": "14e692b5e95e403c33137793f882bc3b85a73daa186f8dedd25498721fe928dc",
+      "biometricHash": "446cd08509c6f66b53d16de7bb4fdbfcc6764be1fb87f2042421be432c73931d",
+      "passkeyHash": "dd5f489d8de3c9e9d1cc8c3affcf7bc1f3de70896f46630b5bc9be19caebc705",
+      "zkCommitment": "8dd7236f6e5350331a73bbf26cf8b2775416b01031943908f4-7ceac3dc",
+      "txHash": null,
+      "createdAt": "2025-07-23T19:57:11.802Z"
+    },
+    {
+      "id": "6ffc3dab-f35c-414b-9b75-da940465532b",
+      "walletAddress": null,
+      "phoneHash": "271d3f1b7629d6bd0a51fd099fce6f6b502dd3a2a0b1eb244f769e14e293e35f",
+      "biometricHash": "240c34fe376c497a7d26cc2a3b87ad146d448240aeef738f46ed183fb11639f4",
+      "passkeyHash": "c22bceb729f57a8f2f9bea0443e8839c0d003d8abd90dd43c82f6681660dd8f7",
+      "zkCommitment": "5ffb826ac42b9fbce8f1847ad57bd14a40fbdd5a283f427ccf-ddf78224",
+      "txHash": null,
+      "createdAt": "2025-07-23T19:57:43.233Z"
+    },
+    {
+      "id": "f7a8342a-52c4-4b05-978a-ce59a825f161",
+      "walletAddress": null,
+      "phoneHash": "75c60cb69b62144a6d9a020bec9b5f30f34f3aa162a4017fe7a90b345d59c02c",
+      "biometricHash": "9788445d8da8296c3957a8f7b795fe0e0a41f58f379d30d8929e356001f20d01",
+      "passkeyHash": "0c2fddd7f094c0c0f43a0e78b31048b5bcdc9eda9448b1d7956e9cecfe0e9e62",
+      "zkCommitment": "9f6c1d659537dc74fceff931016a8a88f03fff3d4a383a049e-823e678c",
+      "txHash": null,
+      "createdAt": "2025-07-23T20:00:47.916Z"
+    },
+    {
+      "id": "1c86739d-1087-4609-8a91-7ee3ee542ff1",
+      "walletAddress": null,
+      "phoneHash": "16d1279e3b063be554f65fc3097ecdb05e46543c3d12cf38f9a9184186e62d6e",
+      "biometricHash": "1a62d565937b7c9fd4b28c2888382c42bdbb55c5b46e2db4b66c9d4b437aa186",
+      "passkeyHash": "a9b0ab1e27c317eb87c33129f85f2577434210527d2bba0d20105bb20e071f93",
+      "zkCommitment": "fcc1fcec016945037679c7225a801963725ba13ef7fc0c881e-83288040",
+      "txHash": null,
+      "createdAt": "2025-07-23T20:01:41.298Z"
     }
   ],
   "sessions": [
@@ -28,6 +68,27 @@
       "token": "mock-token-1",
       "expiresAt": "2025-12-31T23:59:59.999Z",
       "createdAt": "2025-05-31T00:59:16.356Z"
+    },
+    {
+      "id": "ba9329d2-c8ca-49be-b275-5d9dee05327b",
+      "userId": "812854ba-a9a6-4b06-bd02-6f687e145b55",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjgxMjg1NGJhLWE5YTYtNGIwNi1iZDAyLTZmNjg3ZTE0NWI1NSIsIndhbGxldEFkZHJlc3MiOm51bGwsImlhdCI6MTc1MzMwMDYzMSwiZXhwIjoxNzUzMzAwODkwfQ.EpCUBdo8VhWLMlMy_qkc1cCKkg79LQQnA1Pqb_jN4Es",
+      "expiresAt": "2025-07-26T19:57:11.808Z",
+      "createdAt": "2025-07-23T19:57:11.808Z"
+    },
+    {
+      "id": "55d791a6-909e-4ad5-b2e9-71fde1926e7c",
+      "userId": "6ffc3dab-f35c-414b-9b75-da940465532b",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZmZmMzZGFiLWYzNWMtNDE0Yi05Yjc1LWRhOTQwNDY1NTMyYiIsIndhbGxldEFkZHJlc3MiOm51bGwsImlhdCI6MTc1MzMwMDY2MywiZXhwIjoxNzUzMzAwOTIyfQ.mr9deN1BZthRzyuLQ_pYkVEvnDoT24hZycrFEc1CzDs",
+      "expiresAt": "2025-07-26T19:57:43.261Z",
+      "createdAt": "2025-07-23T19:57:43.261Z"
+    },
+    {
+      "id": "4ad4f0d0-de47-40ad-b3a2-519dc6c7394c",
+      "userId": "1c86739d-1087-4609-8a91-7ee3ee542ff1",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjFjODY3MzlkLTEwODctNDYwOS04YTkxLTdlZTNlZTU0MmZmMSIsIndhbGxldEFkZHJlc3MiOm51bGwsImlhdCI6MTc1MzMwMDkwMSwiZXhwIjoxNzUzMzAxMTYwfQ.ZGoshO_XnQuLk8h14mm0o0qBxvDGU1VQRFYe31gqSSI",
+      "expiresAt": "2025-07-26T20:01:41.302Z",
+      "createdAt": "2025-07-23T20:01:41.302Z"
     }
   ],
   "scriptUtxos": [

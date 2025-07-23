@@ -34,6 +34,7 @@
     "@peculiar/webcrypto": "1.4.6",
     "@types/node": "^20.17.55",
     "axios": "1.10.0",
+    "bech32": "2.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",

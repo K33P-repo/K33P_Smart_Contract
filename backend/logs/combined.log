@@ -462,3 +462,50 @@
 {"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T16:49:25.904Z"}
 {"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T16:49:25.919Z"}
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T16:49:25.922Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:51:08.344Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-23T19:51:09.927Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:52:15.459Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-23T19:52:17.044Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:52:17.052Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:52:17.053Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:52:30.678Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:52:42.807Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-23T19:54:15.965Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:54:15.972Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:54:28.188Z"}
+{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T19:54:28.188Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:54:28.195Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:54:28.196Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:54:59.640Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:56:18.280Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-23T19:56:21.282Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:56:21.290Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:56:21.304Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-07-23T19:56:41.951Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T19:56:53.678Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-23T19:56:55.510Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T19:56:55.522Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T19:56:55.524Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:57:11.797Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T19:57:43.226Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-07-23T19:59:14.143Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-07-23T19:59:43.129Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-07-23T19:59:57.943Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-07-23T20:00:08.107Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-23T20:00:17.236Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/login","service":"k33p-backend","timestamp":"2025-07-23T20:00:27.791Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T20:00:37.304Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T20:00:47.911Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"GET /api/auth/me","service":"k33p-backend","timestamp":"2025-07-23T20:00:59.402Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"GET /api/auth/wallet-connect","service":"k33p-backend","timestamp":"2025-07-23T20:01:07.543Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/verify-wallet","service":"k33p-backend","timestamp":"2025-07-23T20:01:17.458Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/logout","service":"k33p-backend","timestamp":"2025-07-23T20:01:27.808Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T20:01:41.294Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"GET /api/zk/user/1c86739d-1087-4609-8a91-7ee3ee542ff1","service":"k33p-backend","timestamp":"2025-07-23T20:01:55.717Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"GET /api/auth/me","service":"k33p-backend","timestamp":"2025-07-23T20:02:09.536Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-23T20:02:28.619Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-07-23T20:02:39.362Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-07-23T20:02:50.453Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-07-23T20:03:10.212Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-23T20:03:20.092Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"GET /api/auth/me","service":"k33p-backend","timestamp":"2025-07-23T20:03:30.585Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}

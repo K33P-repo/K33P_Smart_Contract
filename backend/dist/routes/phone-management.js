@@ -5,12 +5,12 @@
  */
 import express from 'express';
 import { body, validationResult } from 'express-validator';
-import { authenticateToken } from '../middleware/auth.js';
-import { logger } from '../utils/logger.js';
+import { authenticateToken } from '../middleware/auth';
+import { logger } from '../utils/logger';
 import { Pool } from 'pg';
-import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db.js';
+import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db';
 import crypto from 'crypto';
-import { dbService } from '../database/service.js';
+import { dbService } from '../database/service';
 const router = express.Router();
 const pool = new Pool();
 const k33pManager = new EnhancedK33PManagerDB();
