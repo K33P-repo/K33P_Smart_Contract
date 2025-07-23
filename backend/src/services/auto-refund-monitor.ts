@@ -171,106 +171,157 @@ export class AutoRefundMonitor {
   }
 
   /**
-   * Get incoming transactions to the deposit address
+   * Get incoming transactions to the deposit address with retry logic
    */
   private async getIncomingTransactions(): Promise<IncomingTransaction[]> {
-    try {
-      const response = await fetch(
-        `${CONFIG.blockfrostUrl}/addresses/${this.depositAddress}/transactions?order=desc&count=20`,
-        {
-          headers: { 'project_id': CONFIG.blockfrostApiKey }
-        }
-      );
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+      try {
+        const response = await fetch(
+           `${CONFIG.blockfrostUrl}/addresses/${this.depositAddress}/transactions?order=desc&count=20`,
+           {
+             headers: { 'project_id': CONFIG.blockfrostApiKey }
+           }
+         );
 
-      if (!response.ok) {
-        throw new Error(`Blockfrost API error: ${response.statusText}`);
-      }
-
-      const transactions = await response.json();
-      const incomingTxs: IncomingTransaction[] = [];
-      const currentTime = Math.floor(Date.now() / 1000);
-
-      for (const tx of transactions) {
-        // Skip if already processed
-        if (this.processedTransactions.has(tx.tx_hash)) {
-          continue;
+        if (!response.ok) {
+          throw new Error(`Blockfrost API error: ${response.statusText}`);
         }
 
-        // Get transaction details
-        const txDetails = await this.getTransactionDetails(tx.tx_hash);
+        const transactions = await response.json();
+        const incomingTxs: IncomingTransaction[] = [];
+        const currentTime = Math.floor(Date.now() / 1000);
+
+        for (const tx of transactions) {
+          // Skip if already processed
+          if (this.processedTransactions.has(tx.tx_hash)) {
+            continue;
+          }
+
+          // Get transaction details
+          const txDetails = await this.getTransactionDetails(tx.tx_hash);
         if (!txDetails) continue;
 
-        // Check if transaction is recent enough
-        if (currentTime - txDetails.timestamp > CONFIG.maxTransactionAge) {
-          continue;
+          // Check if transaction is recent enough
+          if (currentTime - txDetails.timestamp > CONFIG.maxTransactionAge) {
+            continue;
+          }
+
+          // Check if transaction sends required amount to our deposit address
+          if (txDetails.amount >= CONFIG.requiredAmount && txDetails.toAddress === this.depositAddress) {
+            incomingTxs.push(txDetails);
+          }
         }
 
-        // Check if transaction sends required amount to our deposit address
-        if (txDetails.amount >= CONFIG.requiredAmount && txDetails.toAddress === this.depositAddress) {
-          incomingTxs.push(txDetails);
+        return incomingTxs;
+        
+      } catch (error) {
+        retryCount++;
+        const isLastRetry = retryCount >= maxRetries;
+        
+        if (isLastRetry) {
+          logger.error('❌ Error fetching incoming transactions after all retries:', error);
+          return [];
         }
+        
+        // Exponential backoff: 2^retryCount * 1000ms (1s, 2s, 4s)
+        const backoffDelay = Math.pow(2, retryCount) * 1000;
+        logger.warn(`⚠️ Fetch failed (attempt ${retryCount}/${maxRetries}), retrying in ${backoffDelay}ms...`);
+        
+        await this.delay(backoffDelay);
       }
-
-      return incomingTxs;
-      
-    } catch (error) {
-      logger.error('❌ Error fetching incoming transactions:', error);
-      return [];
     }
+    
+    return [];
   }
 
   /**
-   * Get detailed transaction information
+   * Utility method for delays
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Get detailed transaction information with retry logic
    */
   private async getTransactionDetails(txHash: string): Promise<IncomingTransaction | null> {
-    try {
-      // Get transaction info
-      const txResponse = await fetch(
-        `${CONFIG.blockfrostUrl}/txs/${txHash}`,
-        { headers: { 'project_id': CONFIG.blockfrostApiKey } }
-      );
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+      try {
+        // Get transaction info
+        const txResponse = await fetch(
+           `${CONFIG.blockfrostUrl}/txs/${txHash}`,
+           { 
+             headers: { 'project_id': CONFIG.blockfrostApiKey }
+           }
+         );
 
-      if (!txResponse.ok) return null;
-      const txData = await txResponse.json();
+        if (!txResponse.ok) {
+          throw new Error(`Transaction API error: ${txResponse.statusText}`);
+        }
+        const txData = await txResponse.json();
 
-      // Get UTXOs
-      const utxosResponse = await fetch(
-        `${CONFIG.blockfrostUrl}/txs/${txHash}/utxos`,
-        { headers: { 'project_id': CONFIG.blockfrostApiKey } }
-      );
+        // Get UTXOs
+        const utxosResponse = await fetch(
+           `${CONFIG.blockfrostUrl}/txs/${txHash}/utxos`,
+           { 
+             headers: { 'project_id': CONFIG.blockfrostApiKey }
+           }
+         );
 
-      if (!utxosResponse.ok) return null;
-      const utxosData = await utxosResponse.json();
+        if (!utxosResponse.ok) {
+          throw new Error(`UTXOs API error: ${utxosResponse.statusText}`);
+        }
+        const utxosData = await utxosResponse.json();
 
-      // Find output to our deposit address
-      const depositOutput = utxosData.outputs.find((output: any) => 
-        output.address === this.depositAddress
-      );
+        // Find output to our deposit address
+        const depositOutput = utxosData.outputs.find((output: any) => 
+          output.address === this.depositAddress
+        );
 
-      if (!depositOutput) return null;
+        if (!depositOutput) return null;
 
-      // Get sender address (first input)
-      const senderAddress = utxosData.inputs[0]?.address;
-      if (!senderAddress) return null;
+        // Get sender address (first input)
+        const senderAddress = utxosData.inputs[0]?.address;
+        if (!senderAddress) return null;
 
-      // Get amount in lovelace
-      const amount = BigInt(
-        depositOutput.amount.find((asset: any) => asset.unit === 'lovelace')?.quantity || '0'
-      );
+        // Get amount in lovelace
+        const amount = BigInt(
+          depositOutput.amount.find((asset: any) => asset.unit === 'lovelace')?.quantity || '0'
+        );
 
-      return {
-        txHash,
-        fromAddress: senderAddress,
-        toAddress: this.depositAddress,
-        amount,
-        timestamp: txData.block_time,
-        blockHeight: txData.block_height
-      };
-      
-    } catch (error) {
-      logger.error(`❌ Error getting transaction details for ${txHash}:`, error);
-      return null;
+        return {
+          txHash,
+          fromAddress: senderAddress,
+          toAddress: this.depositAddress,
+          amount,
+          timestamp: txData.block_time,
+          blockHeight: txData.block_height
+        };
+        
+      } catch (error) {
+        retryCount++;
+        const isLastRetry = retryCount >= maxRetries;
+        
+        if (isLastRetry) {
+          logger.error(`❌ Error getting transaction details for ${txHash} after all retries:`, error);
+          return null;
+        }
+        
+        // Exponential backoff: 2^retryCount * 1000ms
+        const backoffDelay = Math.pow(2, retryCount) * 1000;
+        logger.warn(`⚠️ Transaction details fetch failed for ${txHash} (attempt ${retryCount}/${maxRetries}), retrying in ${backoffDelay}ms...`);
+        
+        await this.delay(backoffDelay);
+      }
     }
+    
+    return null;
   }
 
   /**
@@ -412,12 +463,7 @@ export class AutoRefundMonitor {
     }
   }
 
-  /**
-   * Utility function to add delay
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
+
 
   /**
    * Get monitoring status

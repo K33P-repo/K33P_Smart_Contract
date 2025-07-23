@@ -124,82 +124,120 @@ export class AutoRefundMonitor {
         }
     }
     /**
-     * Get incoming transactions to the deposit address
+     * Get incoming transactions to the deposit address with retry logic
      */
     async getIncomingTransactions() {
-        try {
-            const response = await fetch(`${CONFIG.blockfrostUrl}/addresses/${this.depositAddress}/transactions?order=desc&count=20`, {
-                headers: { 'project_id': CONFIG.blockfrostApiKey }
-            });
-            if (!response.ok) {
-                throw new Error(`Blockfrost API error: ${response.statusText}`);
+        const maxRetries = 3;
+        let retryCount = 0;
+        while (retryCount < maxRetries) {
+            try {
+                const response = await fetch(`${CONFIG.blockfrostUrl}/addresses/${this.depositAddress}/transactions?order=desc&count=20`, {
+                    headers: { 'project_id': CONFIG.blockfrostApiKey }
+                });
+                if (!response.ok) {
+                    throw new Error(`Blockfrost API error: ${response.statusText}`);
+                }
+                const transactions = await response.json();
+                const incomingTxs = [];
+                const currentTime = Math.floor(Date.now() / 1000);
+                for (const tx of transactions) {
+                    // Skip if already processed
+                    if (this.processedTransactions.has(tx.tx_hash)) {
+                        continue;
+                    }
+                    // Get transaction details
+                    const txDetails = await this.getTransactionDetails(tx.tx_hash);
+                    if (!txDetails)
+                        continue;
+                    // Check if transaction is recent enough
+                    if (currentTime - txDetails.timestamp > CONFIG.maxTransactionAge) {
+                        continue;
+                    }
+                    // Check if transaction sends required amount to our deposit address
+                    if (txDetails.amount >= CONFIG.requiredAmount && txDetails.toAddress === this.depositAddress) {
+                        incomingTxs.push(txDetails);
+                    }
+                }
+                return incomingTxs;
             }
-            const transactions = await response.json();
-            const incomingTxs = [];
-            const currentTime = Math.floor(Date.now() / 1000);
-            for (const tx of transactions) {
-                // Skip if already processed
-                if (this.processedTransactions.has(tx.tx_hash)) {
-                    continue;
+            catch (error) {
+                retryCount++;
+                const isLastRetry = retryCount >= maxRetries;
+                if (isLastRetry) {
+                    logger.error('❌ Error fetching incoming transactions after all retries:', error);
+                    return [];
                 }
-                // Get transaction details
-                const txDetails = await this.getTransactionDetails(tx.tx_hash);
-                if (!txDetails)
-                    continue;
-                // Check if transaction is recent enough
-                if (currentTime - txDetails.timestamp > CONFIG.maxTransactionAge) {
-                    continue;
-                }
-                // Check if transaction sends required amount to our deposit address
-                if (txDetails.amount >= CONFIG.requiredAmount && txDetails.toAddress === this.depositAddress) {
-                    incomingTxs.push(txDetails);
-                }
+                // Exponential backoff: 2^retryCount * 1000ms (1s, 2s, 4s)
+                const backoffDelay = Math.pow(2, retryCount) * 1000;
+                logger.warn(`⚠️ Fetch failed (attempt ${retryCount}/${maxRetries}), retrying in ${backoffDelay}ms...`);
+                await this.delay(backoffDelay);
             }
-            return incomingTxs;
         }
-        catch (error) {
-            logger.error('❌ Error fetching incoming transactions:', error);
-            return [];
-        }
+        return [];
     }
     /**
-     * Get detailed transaction information
+     * Utility method for delays
+     */
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    /**
+     * Get detailed transaction information with retry logic
      */
     async getTransactionDetails(txHash) {
-        try {
-            // Get transaction info
-            const txResponse = await fetch(`${CONFIG.blockfrostUrl}/txs/${txHash}`, { headers: { 'project_id': CONFIG.blockfrostApiKey } });
-            if (!txResponse.ok)
-                return null;
-            const txData = await txResponse.json();
-            // Get UTXOs
-            const utxosResponse = await fetch(`${CONFIG.blockfrostUrl}/txs/${txHash}/utxos`, { headers: { 'project_id': CONFIG.blockfrostApiKey } });
-            if (!utxosResponse.ok)
-                return null;
-            const utxosData = await utxosResponse.json();
-            // Find output to our deposit address
-            const depositOutput = utxosData.outputs.find((output) => output.address === this.depositAddress);
-            if (!depositOutput)
-                return null;
-            // Get sender address (first input)
-            const senderAddress = utxosData.inputs[0]?.address;
-            if (!senderAddress)
-                return null;
-            // Get amount in lovelace
-            const amount = BigInt(depositOutput.amount.find((asset) => asset.unit === 'lovelace')?.quantity || '0');
-            return {
-                txHash,
-                fromAddress: senderAddress,
-                toAddress: this.depositAddress,
-                amount,
-                timestamp: txData.block_time,
-                blockHeight: txData.block_height
-            };
+        const maxRetries = 3;
+        let retryCount = 0;
+        while (retryCount < maxRetries) {
+            try {
+                // Get transaction info
+                const txResponse = await fetch(`${CONFIG.blockfrostUrl}/txs/${txHash}`, {
+                    headers: { 'project_id': CONFIG.blockfrostApiKey }
+                });
+                if (!txResponse.ok) {
+                    throw new Error(`Transaction API error: ${txResponse.statusText}`);
+                }
+                const txData = await txResponse.json();
+                // Get UTXOs
+                const utxosResponse = await fetch(`${CONFIG.blockfrostUrl}/txs/${txHash}/utxos`, {
+                    headers: { 'project_id': CONFIG.blockfrostApiKey }
+                });
+                if (!utxosResponse.ok) {
+                    throw new Error(`UTXOs API error: ${utxosResponse.statusText}`);
+                }
+                const utxosData = await utxosResponse.json();
+                // Find output to our deposit address
+                const depositOutput = utxosData.outputs.find((output) => output.address === this.depositAddress);
+                if (!depositOutput)
+                    return null;
+                // Get sender address (first input)
+                const senderAddress = utxosData.inputs[0]?.address;
+                if (!senderAddress)
+                    return null;
+                // Get amount in lovelace
+                const amount = BigInt(depositOutput.amount.find((asset) => asset.unit === 'lovelace')?.quantity || '0');
+                return {
+                    txHash,
+                    fromAddress: senderAddress,
+                    toAddress: this.depositAddress,
+                    amount,
+                    timestamp: txData.block_time,
+                    blockHeight: txData.block_height
+                };
+            }
+            catch (error) {
+                retryCount++;
+                const isLastRetry = retryCount >= maxRetries;
+                if (isLastRetry) {
+                    logger.error(`❌ Error getting transaction details for ${txHash} after all retries:`, error);
+                    return null;
+                }
+                // Exponential backoff: 2^retryCount * 1000ms
+                const backoffDelay = Math.pow(2, retryCount) * 1000;
+                logger.warn(`⚠️ Transaction details fetch failed for ${txHash} (attempt ${retryCount}/${maxRetries}), retrying in ${backoffDelay}ms...`);
+                await this.delay(backoffDelay);
+            }
         }
-        catch (error) {
-            logger.error(`❌ Error getting transaction details for ${txHash}:`, error);
-            return null;
-        }
+        return null;
     }
     /**
      * Process an incoming transaction and trigger automatic refund
@@ -324,12 +362,6 @@ export class AutoRefundMonitor {
         catch (error) {
             logger.debug('Note: Could not save processed transaction marker:', error);
         }
-    }
-    /**
-     * Utility function to add delay
-     */
-    delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
     /**
      * Get monitoring status

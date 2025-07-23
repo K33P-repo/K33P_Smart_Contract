@@ -27,11 +27,15 @@ export declare class AutoRefundMonitor {
      */
     private monitorAndProcessRefunds;
     /**
-     * Get incoming transactions to the deposit address
+     * Get incoming transactions to the deposit address with retry logic
      */
     private getIncomingTransactions;
     /**
-     * Get detailed transaction information
+     * Utility method for delays
+     */
+    private delay;
+    /**
+     * Get detailed transaction information with retry logic
      */
     private getTransactionDetails;
     /**
@@ -50,10 +54,6 @@ export declare class AutoRefundMonitor {
      * Save processed transaction to prevent duplicate processing
      */
     private saveProcessedTransaction;
-    /**
-     * Utility function to add delay
-     */
-    private delay;
     /**
      * Get monitoring status
      */
