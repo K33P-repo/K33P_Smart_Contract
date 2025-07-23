@@ -1004,6 +1004,139 @@ Get account recovery status
 
 ---
 
+## 🆕 **NEW API ENDPOINTS** 🆕
+
+### **🔧 Administrative Endpoints**
+
+These are newly added administrative endpoints for system management and monitoring.
+
+#### **📊 GET `/api/admin/users`**
+**🆕 NEW:** Get all users and their deposit status
+
+**Authentication:** Admin API Key required
+```
+X-API-KEY: <admin_api_key>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "users": [
+      {
+        "userAddress": "addr1qy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm",
+        "userId": "user_12345",
+        "verified": true,
+        "signupCompleted": false,
+        "refunded": false,
+        "txHash": "abc123def456...",
+        "amount": "2.0",
+        "timestamp": "2023-06-01T12:34:56.789Z",
+        "verificationAttempts": 1
+      }
+    ],
+    "total": 1
+  },
+  "message": "Users retrieved"
+}
+```
+
+#### **✅ POST `/api/admin/auto-verify`**
+**🆕 NEW:** Auto-verify all unverified deposits
+
+**Authentication:** Admin API Key required
+```
+X-API-KEY: <admin_api_key>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Auto-verification completed"
+}
+```
+
+#### **📡 GET `/api/admin/monitor`**
+**🆕 NEW:** Trigger manual transaction monitoring
+
+**Authentication:** Admin API Key required
+```
+X-API-KEY: <admin_api_key>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Transaction monitoring completed"
+}
+```
+
+#### **🚀 POST `/api/admin/process-signup`**
+**🆕 NEW:** Process signup completion for a user
+
+**Authentication:** Admin API Key required
+```
+X-API-KEY: <admin_api_key>
+```
+
+**Request Body:**
+```json
+{
+  "userAddress": "addr1qy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "txHash": "signup_transaction_hash_abc123..."
+  },
+  "message": "Signup processed successfully"
+}
+```
+
+### **💰 Refund Endpoint**
+
+#### **⚡ POST `/api/refund`**
+**🆕 NEW:** Process immediate refund
+
+**Description:** This endpoint allows immediate processing of refunds without waiting for the automatic refund monitor.
+
+**Request Body:**
+```json
+{
+  "userAddress": "addr1qy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm",
+  "walletAddress": "addr1qxyz..." // Optional: specific wallet to refund to
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "txHash": "refund_transaction_hash_abc123..."
+  },
+  "message": "Refund processed successfully"
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "error": "User not found or already refunded",
+  "timestamp": "2023-06-01T12:34:56.789Z"
+}
+```
+
+---
+
 ## 8. System Routes
 
 ### GET `/health`
@@ -1090,6 +1223,17 @@ All endpoints return errors in the following format:
 - `ONCHAIN_VERIFICATION_FAILED`: Blockchain verification failed
 - `RECOVERY_METHOD_NOT_SUPPORTED`: Recovery method not supported
 - `RECOVERY_MAX_ATTEMPTS_EXCEEDED`: Maximum recovery attempts exceeded
+
+#### **🆕 NEW Error Codes for Admin & Refund Endpoints:**
+- `**ADMIN_UNAUTHORIZED**`: Admin API key is missing or invalid
+- `**REFUND_ALREADY_PROCESSED**`: User has already been refunded
+- `**REFUND_USER_NOT_FOUND**`: No deposit found for the specified user address
+- `**REFUND_PROCESSING_FAILED**`: Failed to process refund transaction
+- `**ADMIN_AUTO_VERIFY_FAILED**`: Auto-verification process failed
+- `**ADMIN_MONITOR_FAILED**`: Transaction monitoring failed
+- `**ADMIN_SIGNUP_PROCESSING_FAILED**`: Signup processing failed
+- `**INVALID_USER_ADDRESS**`: User address format is invalid
+- `**INVALID_WALLET_ADDRESS**`: Wallet address format is invalid
 
 ---
 

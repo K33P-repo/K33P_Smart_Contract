@@ -1,7 +1,7 @@
 // Seed Phrase Storage Service for K33P
 // Handles secure storage and retrieval of wallet seed phrases on Iagon
 import crypto from 'crypto';
-import { IagonAPI } from '../utils/iagon.js';
+import { findUser, createUser } from '../utils/iagon.js';
 import winston from 'winston';
 // Logger setup
 const logger = winston.createLogger({
@@ -19,10 +19,8 @@ const DEFAULT_CONFIG = {
 };
 export class SeedPhraseStorageService {
     config;
-    iagonAPI;
     constructor(config) {
         this.config = { ...DEFAULT_CONFIG, ...config };
-        this.iagonAPI = new IagonAPI();
     }
     // ============================================================================
     // SEED PHRASE STORAGE OPERATIONS
@@ -66,7 +64,7 @@ export class SeedPhraseStorageService {
      */
     async getUserSeedPhrases(userId) {
         try {
-            const user = await this.iagonAPI.findUser({ userId });
+            const user = await findUser({ userId });
             if (!user || !user.seedPhrases) {
                 return [];
             }
@@ -158,9 +156,9 @@ export class SeedPhraseStorageService {
     async storeOnIagon(seedPhraseEntry) {
         try {
             // Find or create user record
-            let user = await this.iagonAPI.findUser({ userId: seedPhraseEntry.userId });
+            let user = await findUser({ userId: seedPhraseEntry.userId });
             if (!user) {
-                user = await this.iagonAPI.createUser({
+                user = await createUser({
                     userId: seedPhraseEntry.userId,
                     walletAddress: seedPhraseEntry.walletAddress || '',
                     phoneHash: '', // This would come from existing user data

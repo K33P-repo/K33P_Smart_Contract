@@ -184,6 +184,10 @@ export class DatabaseService {
   ): Promise<Transaction | null> {
     return await TransactionModel.updateStatus(txHash, status, confirmations);
   }
+
+  async getAllTransactions(): Promise<Transaction[]> {
+    return await TransactionModel.getAll();
+  }
   
   // ============================================================================
   // LEGACY COMPATIBILITY METHODS

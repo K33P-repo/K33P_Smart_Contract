@@ -41,7 +41,6 @@ export interface RetrievalResult {
     metadata: SeedPhraseMetadata;
 }
 export declare class EnhancedIagonService {
-    private iagonAPI;
     private readonly ENCRYPTION_ALGORITHM;
     private readonly KEY_DERIVATION_ITERATIONS;
     private readonly STORAGE_VERSION;

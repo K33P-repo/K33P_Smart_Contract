@@ -17,7 +17,7 @@ async function testRefund() {
     console.log(`Transaction hash: ${txHash}`);
     
     // First, let's check the deposits file
-    const depositsPath = path.resolve('./backend/user-deposits.json');
+    const depositsPath = path.resolve('./user-deposits.json');
     console.log('Looking for deposits file at:', depositsPath);
     
     const deposits = JSON.parse(fs.readFileSync(depositsPath, 'utf8'));

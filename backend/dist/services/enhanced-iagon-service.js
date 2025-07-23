@@ -4,18 +4,17 @@
  * with encryption, NOK access control, and comprehensive audit logging
  */
 import crypto from 'crypto';
-import { IagonAPI } from '../utils/iagon.js';
+import { storeData, retrieveData, deleteData } from '../utils/iagon.js';
 import { logger } from '../utils/logger.js';
 // ============================================================================
 // ENHANCED IAGON SERVICE CLASS
 // ============================================================================
 export class EnhancedIagonService {
-    iagonAPI;
     ENCRYPTION_ALGORITHM = 'aes-256-gcm';
     KEY_DERIVATION_ITERATIONS = 100000;
     STORAGE_VERSION = '1.0';
     constructor() {
-        this.iagonAPI = new IagonAPI();
+        // No longer need to instantiate IagonAPI class
     }
     // ============================================================================
     // ENCRYPTION AND SECURITY METHODS
@@ -132,7 +131,7 @@ export class EnhancedIagonService {
             const encryptedData = this.encryptSeedPhrase(seedPhrase, encryptionPassword, metadata);
             // Store on Iagon
             const storageKey = `k33p_seed_${userId}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
-            const iagonStorageId = await this.iagonAPI.storeData(storageKey, JSON.stringify(encryptedData));
+            const iagonStorageId = await storeData(storageKey, JSON.stringify(encryptedData));
             // Generate encryption key hash
             const encryptionKeyHash = this.generateKeyHash(encryptionPassword, encryptedData.salt);
             const seedPhraseMetadata = {
@@ -170,7 +169,7 @@ export class EnhancedIagonService {
     async retrieveSeedPhrase(iagonStorageId, encryptionPassword, requesterId) {
         try {
             // Retrieve encrypted data from Iagon
-            const encryptedDataStr = await this.iagonAPI.retrieveData(iagonStorageId);
+            const encryptedDataStr = await retrieveData(iagonStorageId);
             const encryptedData = JSON.parse(encryptedDataStr);
             // Decrypt seed phrase
             const seedPhrase = this.decryptSeedPhrase(encryptedData, encryptionPassword);
@@ -214,7 +213,7 @@ export class EnhancedIagonService {
             // Verify ownership by attempting to decrypt
             await this.retrieveSeedPhrase(iagonStorageId, encryptionPassword, userId);
             // Delete from Iagon
-            await this.iagonAPI.deleteData(iagonStorageId);
+            await deleteData(iagonStorageId);
             logger.info(`Seed phrase deleted successfully`, {
                 userId,
                 iagonStorageId
@@ -252,7 +251,7 @@ export class EnhancedIagonService {
      */
     async validateStorageIntegrity(iagonStorageId) {
         try {
-            const encryptedDataStr = await this.iagonAPI.retrieveData(iagonStorageId);
+            const encryptedDataStr = await retrieveData(iagonStorageId);
             const encryptedData = JSON.parse(encryptedDataStr);
             // Basic validation checks
             const requiredFields = ['encryptedSeedPhrase', 'salt', 'iv', 'authTag', 'metadata'];
@@ -276,10 +275,10 @@ export class EnhancedIagonService {
      */
     async backupSeedPhrase(iagonStorageId, backupLocation) {
         try {
-            const encryptedDataStr = await this.iagonAPI.retrieveData(iagonStorageId);
+            const encryptedDataStr = await retrieveData(iagonStorageId);
             // Create backup with timestamp
             const backupKey = `${backupLocation}_backup_${Date.now()}`;
-            const backupId = await this.iagonAPI.storeData(backupKey, encryptedDataStr);
+            const backupId = await storeData(backupKey, encryptedDataStr);
             logger.info(`Seed phrase backed up successfully`, {
                 originalId: iagonStorageId,
                 backupId,

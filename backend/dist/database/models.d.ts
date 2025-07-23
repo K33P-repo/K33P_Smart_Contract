@@ -85,6 +85,7 @@ export declare class TransactionModel {
     static create(transaction: Omit<Transaction, 'id' | 'created_at'>): Promise<Transaction>;
     static findByTxHash(txHash: string): Promise<Transaction | null>;
     static updateStatus(txHash: string, status: 'pending' | 'confirmed' | 'failed', confirmations?: number): Promise<Transaction | null>;
+    static getAll(): Promise<Transaction[]>;
 }
 export declare class DatabaseManager {
     static initializeDatabase(): Promise<void>;

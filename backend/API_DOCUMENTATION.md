@@ -105,6 +105,20 @@ Common error codes include:
 | ACCOUNT_SUSPENDED | 403 | The user account has been suspended |
 | FEATURE_NOT_AVAILABLE | 403 | This feature is not available for the current account type |
 
+#### **🆕 NEW Error Codes for Admin & Refund Endpoints:**
+
+| Error Code | HTTP Status | Description |
+|------------|-------------|-------------|
+| **ADMIN_UNAUTHORIZED** | 401 | Admin API key is missing or invalid |
+| **REFUND_ALREADY_PROCESSED** | 409 | User has already been refunded |
+| **REFUND_USER_NOT_FOUND** | 404 | No deposit found for the specified user address |
+| **REFUND_PROCESSING_FAILED** | 500 | Failed to process refund transaction |
+| **ADMIN_AUTO_VERIFY_FAILED** | 500 | Auto-verification process failed |
+| **ADMIN_MONITOR_FAILED** | 500 | Transaction monitoring failed |
+| **ADMIN_SIGNUP_PROCESSING_FAILED** | 500 | Signup processing failed |
+| **INVALID_USER_ADDRESS** | 400 | User address format is invalid |
+| **INVALID_WALLET_ADDRESS** | 400 | Wallet address format is invalid |
+
 ## Public Endpoints
 
 ### Health Check
@@ -127,6 +141,174 @@ Returns the health status of the service.
   "timestamp": "2023-06-01T12:34:56.789Z"
 }
 ```
+
+---
+
+## 🆕 **NEW API ENDPOINTS** 🆕
+
+### **🔧 Admin Endpoints**
+
+These are newly added administrative endpoints that require admin API key authentication.
+
+#### **📊 Get All Users (Admin)**
+
+```
+GET /api/admin/users
+```
+
+**🔑 Authentication Required:** Admin API Key
+
+**Headers:**
+```
+X-API-KEY: your_admin_api_key
+```
+
+Retrieves all user deposits and their status for administrative monitoring.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "users": [
+      {
+        "userAddress": "addr1...",
+        "userId": "user_12345",
+        "verified": true,
+        "signupCompleted": false,
+        "refunded": false,
+        "txHash": "abc123...",
+        "amount": "2.0",
+        "timestamp": "2023-06-01T12:34:56.789Z",
+        "verificationAttempts": 1
+      }
+    ],
+    "total": 1
+  },
+  "message": "Users retrieved"
+}
+```
+
+#### **✅ Auto-Verify Deposits (Admin)**
+
+```
+POST /api/admin/auto-verify
+```
+
+**🔑 Authentication Required:** Admin API Key
+
+**Headers:**
+```
+X-API-KEY: your_admin_api_key
+```
+
+Automatically verifies all unverified deposits in the system.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Auto-verification completed"
+}
+```
+
+#### **📡 Monitor Transactions (Admin)**
+
+```
+GET /api/admin/monitor
+```
+
+**🔑 Authentication Required:** Admin API Key
+
+**Headers:**
+```
+X-API-KEY: your_admin_api_key
+```
+
+Triggers manual monitoring of incoming transactions.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Transaction monitoring completed"
+}
+```
+
+#### **🚀 Process Signup (Admin)**
+
+```
+POST /api/admin/process-signup
+```
+
+**🔑 Authentication Required:** Admin API Key
+
+**Headers:**
+```
+X-API-KEY: your_admin_api_key
+```
+
+**Request Body:**
+```json
+{
+  "userAddress": "addr1qy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm"
+}
+```
+
+Processes signup completion for a specific user address.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "txHash": "abc123def456..."
+  },
+  "message": "Signup processed successfully"
+}
+```
+
+### **💰 Refund Endpoint**
+
+#### **⚡ Immediate Refund**
+
+```
+POST /api/refund
+```
+
+**🆕 NEW:** This endpoint allows immediate processing of refunds without waiting for the automatic refund monitor.
+
+**Request Body:**
+```json
+{
+  "userAddress": "addr1qy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm",
+  "walletAddress": "addr1qxyz..." // Optional: specific wallet to refund to
+}
+```
+
+Processes an immediate refund for the specified user address.
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "txHash": "refund_transaction_hash_abc123..."
+  },
+  "message": "Refund processed successfully"
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "error": "User not found or already refunded",
+  "timestamp": "2023-06-01T12:34:56.789Z"
+}
+```
+
+---
 
 ## User Authentication Endpoints
 

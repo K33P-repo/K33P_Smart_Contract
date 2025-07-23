@@ -2,7 +2,7 @@
 // Handles secure storage and retrieval of wallet seed phrases on Iagon
 
 import crypto from 'crypto';
-import { IagonAPI } from '../utils/iagon';
+import { findUser, createUser, findUserById } from '../utils/iagon';
 import winston from 'winston';
 
 // Logger setup
@@ -48,11 +48,9 @@ const DEFAULT_CONFIG: SeedPhraseStorageConfig = {
 
 export class SeedPhraseStorageService {
   private config: SeedPhraseStorageConfig;
-  private iagonAPI: IagonAPI;
 
   constructor(config?: Partial<SeedPhraseStorageConfig>) {
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.iagonAPI = new IagonAPI();
   }
 
   // ============================================================================
@@ -109,7 +107,7 @@ export class SeedPhraseStorageService {
    */
   async getUserSeedPhrases(userId: string): Promise<Omit<SeedPhraseEntry, 'encryptedSeedPhrase' | 'encryptionSalt'>[]> {
     try {
-      const user: any = await this.iagonAPI.findUser({ userId });
+      const user: any = await findUser({ userId });
       if (!user || !user.seedPhrases) {
         return [];
       }
@@ -238,10 +236,10 @@ export class SeedPhraseStorageService {
   private async storeOnIagon(seedPhraseEntry: SeedPhraseEntry): Promise<void> {
     try {
       // Find or create user record
-      let user: any = await this.iagonAPI.findUser({ userId: seedPhraseEntry.userId });
+      let user: any = await findUser({ userId: seedPhraseEntry.userId });
       
       if (!user) {
-        user = await this.iagonAPI.createUser({
+        user = await createUser({
           userId: seedPhraseEntry.userId,
           walletAddress: seedPhraseEntry.walletAddress || '',
           phoneHash: '', // This would come from existing user data

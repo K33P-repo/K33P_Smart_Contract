@@ -31,6 +31,7 @@
   "license": "MIT",
   "dependencies": {
     "@blockfrost/blockfrost-js": "^6.0.0",
+    "@peculiar/webcrypto": "1.4.6",
     "@types/node": "^20.17.55",
     "axios": "1.10.0",
     "cors": "^2.8.5",
@@ -46,6 +47,7 @@
     "node-cache": "^5.1.2",
     "nodemailer": "7.0.5",
     "pg": "^8.11.3",
+    "webcrypto-core": "1.8.1",
     "winston": "^3.17.0"
   },
   "devDependencies": {

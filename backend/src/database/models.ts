@@ -377,6 +377,20 @@ export class TransactionModel {
       client.release();
     }
   }
+
+  static async getAll(): Promise<Transaction[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM transactions ORDER BY created_at DESC';
+      const result = await client.query(query);
+      return result.rows.map(row => ({
+        ...row,
+        amount: BigInt(row.amount)
+      }));
+    } finally {
+      client.release();
+    }
+  }
 }
 
 // ============================================================================

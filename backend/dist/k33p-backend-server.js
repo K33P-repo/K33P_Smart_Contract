@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { EnhancedK33PManagerDB } from './enhanced-k33p-manager-db.js';
 import { dbService } from './database/service.js';
+import { autoRefundMonitor } from './services/auto-refund-monitor.js';
 import winston from 'winston';
 // Import routes
 // @ts-ignore
@@ -36,6 +37,10 @@ async function initializeK33P() {
         k33pManager = new EnhancedK33PManagerDB();
         await k33pManager.initialize();
         logger.info('K33P Manager with Database initialized successfully');
+        // Initialize and start auto-refund monitor
+        await autoRefundMonitor.initialize();
+        await autoRefundMonitor.start();
+        logger.info('🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded');
     }
     catch (error) {
         logger.error('Failed to initialize K33P Manager with Database:', error);
@@ -330,12 +335,16 @@ async function startServer() {
             logger.info(`Health check: ${baseUrl}/api/health`);
         });
         // Graceful shutdown
-        process.on('SIGTERM', () => {
+        process.on('SIGTERM', async () => {
             logger.info('SIGTERM received, shutting down gracefully');
+            await autoRefundMonitor.stop();
+            logger.info('Auto-Refund Monitor stopped');
             process.exit(0);
         });
-        process.on('SIGINT', () => {
+        process.on('SIGINT', async () => {
             logger.info('SIGINT received, shutting down gracefully');
+            await autoRefundMonitor.stop();
+            logger.info('Auto-Refund Monitor stopped');
             process.exit(0);
         });
     }

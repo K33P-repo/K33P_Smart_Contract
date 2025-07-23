@@ -124,6 +124,9 @@ export class DatabaseService {
     async updateTransactionStatus(txHash, status, confirmations) {
         return await TransactionModel.updateStatus(txHash, status, confirmations);
     }
+    async getAllTransactions() {
+        return await TransactionModel.getAll();
+    }
     // ============================================================================
     // LEGACY COMPATIBILITY METHODS
     // ============================================================================

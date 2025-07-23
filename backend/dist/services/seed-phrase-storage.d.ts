@@ -17,7 +17,6 @@ export interface SeedPhraseStorageConfig {
 }
 export declare class SeedPhraseStorageService {
     private config;
-    private iagonAPI;
     constructor(config?: Partial<SeedPhraseStorageConfig>);
     /**
      * Store a seed phrase securely on Iagon

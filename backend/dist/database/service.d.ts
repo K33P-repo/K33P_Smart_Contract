@@ -48,6 +48,7 @@ export declare class DatabaseService {
     }): Promise<Transaction>;
     getTransactionByHash(txHash: string): Promise<Transaction | null>;
     updateTransactionStatus(txHash: string, status: 'pending' | 'confirmed' | 'failed', confirmations?: number): Promise<Transaction | null>;
+    getAllTransactions(): Promise<Transaction[]>;
     /**
      * Load deposits in the format expected by the existing K33P manager
      * This maintains compatibility with existing code
