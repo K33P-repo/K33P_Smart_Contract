@@ -10,7 +10,7 @@ dotenv.config();
 
 // Hardcoded values for testing
 const BLOCKFROST_URL = 'https://cardano-preprod.blockfrost.io/api/v0';
-const BLOCKFROST_API_KEY = 'preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG';
+const BLOCKFROST_API_KEY = 'preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM';
 const NETWORK = 'Preprod';
 
 // User's wallet address

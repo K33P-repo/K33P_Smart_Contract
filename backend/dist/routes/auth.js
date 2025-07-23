@@ -197,7 +197,7 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
 export default router;
 // Initialize Blockfrost API
 const blockfrost = new BlockFrostAPI({
-    projectId: process.env.BLOCKFROST_API_KEY || 'preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG', // Fallback to the value in .env
+    projectId: process.env.BLOCKFROST_API_KEY || 'preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM', // Fallback to the value in .env
     network: 'preprod'
 });
 // Initialize cache with 5 minute TTL

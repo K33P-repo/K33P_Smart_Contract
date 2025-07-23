@@ -10,7 +10,7 @@ console.log("Deploy script is running...");
 const CONFIG = {
   network: "Preprod" as const,
   blockfrostUrl: "https://cardano-preprod.blockfrost.io/api/v0",
-  blockfrostApiKey: process.env.BLOCKFROST_API_KEY || "preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG",
+  blockfrostApiKey: process.env.BLOCKFROST_API_KEY || "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM",
   seedPhrase: process.env.SEED_PHRASE || "blame purpose battle mistake match cousin degree route bag return clump key metal actress poet outside group sword bring gravity weapon report alone dove",
   plutusScriptPath: "C:/Users/USER/Desktop/K33P_Smart_Contract/smart_contract_validator/plutus.json",
   minAda: 2_000_000n, // 2 ADA minimum for deployment

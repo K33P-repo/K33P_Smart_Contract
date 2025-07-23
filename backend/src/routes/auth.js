@@ -20,17 +20,24 @@ const router = express.Router();
 router.post('/signup', async (req, res) => {
   try {
     const { walletAddress, phone, biometric, passkey } = req.body;
-    if (!walletAddress || !phone || !biometric || !passkey) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!phone || !biometric || !passkey) {
+      return res.status(400).json({ error: 'Missing required fields: phone, biometric, and passkey are required' });
     }
     // Hash user data
     const phoneHash = hashPhone(phone);
     const biometricHash = hashBiometric(biometric);
     const passkeyHash = hashPasskey(passkey);
-    // Check if user already exists
-    const existingUser = await iagon.findUser({ walletAddress }) || await iagon.findUser({ phoneHash });
+    // Check if user already exists by phone hash (wallet address is optional during signup)
+    const existingUser = await iagon.findUser({ phoneHash });
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'User already exists with this phone number' });
+    }
+    // If wallet address is provided, also check if it's already in use
+    if (walletAddress) {
+      const existingWalletUser = await iagon.findUser({ walletAddress });
+      if (existingWalletUser) {
+        return res.status(400).json({ error: 'User already exists with this wallet address' });
+      }
     }
     // Generate ZK commitment
     const zkCommitment = generateZkCommitment({ phoneHash, biometricHash, passkeyHash });
@@ -39,10 +46,13 @@ router.post('/signup', async (req, res) => {
     if (!zkProof.isValid) {
       return res.status(400).json({ error: 'Invalid ZK proof' });
     }
-    // Create signup transaction
-    const txHash = await signupTxBuilder(walletAddress, { phoneHash, biometricHash, passkeyHash });
-    // Create user in Iagon
-    const user = await iagon.createUser({ walletAddress, phoneHash, biometricHash, passkeyHash, zkCommitment, txHash });
+    // Create signup transaction only if wallet address is provided
+    let txHash = null;
+    if (walletAddress) {
+      txHash = await signupTxBuilder(walletAddress, { phoneHash, biometricHash, passkeyHash });
+    }
+    // Create user in Iagon (walletAddress can be null)
+    const user = await iagon.createUser({ walletAddress: walletAddress || null, phoneHash, biometricHash, passkeyHash, zkCommitment, txHash });
     // Generate JWT token
     const token = jwt.sign(
       { id: user.id, walletAddress: user.walletAddress },
@@ -51,7 +61,12 @@ router.post('/signup', async (req, res) => {
     );
     // Create session in Iagon
     await iagon.createSession({ userId: user.id, token, expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) });
-    res.status(201).json({ message: 'User registered successfully', txHash, token });
+    
+    const response = { message: 'User registered successfully', token };
+    if (txHash) {
+      response.txHash = txHash;
+    }
+    res.status(201).json(response);
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Failed to register user' });
@@ -66,11 +81,14 @@ router.post('/signup', async (req, res) => {
 router.post('/login', verifyZkProof, async (req, res) => {
   try {
     const { walletAddress, phone, proof, commitment } = req.body;
-    if (!walletAddress || !phone || !proof || !commitment) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!phone || !proof || !commitment) {
+      return res.status(400).json({ error: 'Missing required fields: phone, proof, and commitment are required' });
     }
-    // Find user by wallet address or phone hash
-    const user = await iagon.findUser({ walletAddress }) || await iagon.findUser({ phoneHash: hashPhone(phone) });
+    // Find user by phone hash first (primary identifier), then by wallet address if provided
+    let user = await iagon.findUser({ phoneHash: hashPhone(phone) });
+    if (!user && walletAddress) {
+      user = await iagon.findUser({ walletAddress });
+    }
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -86,7 +104,7 @@ router.post('/login', verifyZkProof, async (req, res) => {
     );
     // Create session in Iagon
     await iagon.createSession({ userId: user.id, token, expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) });
-    res.status(200).json({ message: 'Login successful', token });
+    res.status(200).json({ message: 'Login successful', token, hasWallet: !!user.walletAddress });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Failed to login' });
@@ -128,16 +146,41 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
+// Initialize Blockfrost API
+const blockfrost = new BlockFrostAPI({
+  projectId: process.env.BLOCKFROST_API_KEY || 'preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM',
+  network: 'preprod'
+});
+
+// Initialize cache with 5 minute TTL
+const walletCache = new NodeCache({ stdTTL: 300 });
+
+// Rate limiter for wallet verification (5 requests per minute)
+const walletVerifyLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 5,
+  message: 'Too many wallet verification requests, please try again later'
+});
+
 /**
  * @route POST /api/auth/verify-wallet
  * @desc Verify wallet address and 2ADA transaction
  * @access Private
  */
-// New wallet verification endpoint
-router.post('/verify-wallet', authenticate, async (req, res) => {
+router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res) => {
   try {
     const { walletAddress } = req.body;
-    const userId = req.user.userId;
+    const userId = req.user.id;
+
+    if (!walletAddress) {
+      return res.status(400).json({ message: 'Wallet address is required' });
+    }
+
+    // Check if wallet address is already in use by another user
+    const existingUser = await iagon.findUser({ walletAddress });
+    if (existingUser && existingUser.id !== userId) {
+      return res.status(400).json({ message: 'Wallet address already in use by another user' });
+    }
 
     // Query blockchain for recent transactions
     const isValidTx = await verify2AdaTransaction(walletAddress);
@@ -145,13 +188,38 @@ router.post('/verify-wallet', authenticate, async (req, res) => {
       return res.status(400).json({ message: 'No valid 2 ADA transaction found' });
     }
 
-    // Update user with wallet address
-    await User.findByIdAndUpdate(userId, { walletAddress });
+    // Update user with wallet address using iagon
+    await iagon.updateUser(userId, { walletAddress });
 
     res.json({ message: 'Wallet verified successfully' });
   } catch (error) {
     console.error('Wallet verification error:', error);
     res.status(500).json({ message: 'Wallet verification failed', error: error.message });
+  }
+});
+
+/**
+ * @route GET /api/auth/wallet-connect
+ * @desc Get user's connected wallet address
+ * @access Private
+ */
+router.get('/wallet-connect', authenticate, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await iagon.findUserById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (!user.walletAddress) {
+      return res.status(400).json({ message: 'No wallet address found' });
+    }
+    
+    res.json({ walletAddress: user.walletAddress });
+  } catch (error) {
+    console.error('Wallet connect error:', error);
+    res.status(500).json({ message: 'Wallet connect failed', error: error.message });
   }
 });
 
@@ -201,59 +269,4 @@ async function verify2AdaTransaction(walletAddress) {
   }
 }
 
-// Wallet connect functionality
-router.get('/wallet-connect', authenticate, async (req, res) => {
-  try {
-    const { userId } = req.user;
-    const user = await User.findById(userId);
-    
-    if (!user.walletAddress) {
-      return res.status(400).json({ message: 'No wallet address found' });
-    }
-    
-    res.json({ walletAddress: user.walletAddress });
-  } catch (error) {
-    console.error('Wallet connect error:', error);
-    res.status(500).json({ message: 'Wallet connect failed', error: error.message });
-  }
-});
-
 export default router;
-
-// Initialize Blockfrost API
-const blockfrost = new BlockFrostAPI({
-  projectId: process.env.BLOCKFROST_API_KEY || 'preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG', // Fallback to the value in .env
-  network: 'preprod'
-});
-
-// Initialize cache with 5 minute TTL
-const walletCache = new NodeCache({ stdTTL: 300 });
-
-// Rate limiter for wallet verification (5 requests per minute)
-const walletVerifyLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5,
-  message: 'Too many wallet verification requests, please try again later'
-});
-
-// Apply rate limiter to verify-wallet endpoint
-router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res) => {
-  try {
-    const { walletAddress } = req.body;
-    const userId = req.user.userId;
-
-    // Query blockchain for recent transactions
-    const isValidTx = await verify2AdaTransaction(walletAddress);
-    if (!isValidTx) {
-      return res.status(400).json({ message: 'No valid 2 ADA transaction found' });
-    }
-
-    // Update user with wallet address
-    await User.findByIdAndUpdate(userId, { walletAddress });
-
-    res.json({ message: 'Wallet verified successfully' });
-  } catch (error) {
-    console.error('Wallet verification error:', error);
-    res.status(500).json({ message: 'Wallet verification failed', error: error.message });
-  }
-});

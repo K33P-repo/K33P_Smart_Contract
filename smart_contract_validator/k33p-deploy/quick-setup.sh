@@ -15,7 +15,7 @@ if [ ! -f ".env" ]; then
     echo "📝 Creating .env template..."
     cat > .env << EOF
 # Replace with your actual values
-BLOCKFROST_API_KEY=preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG
+BLOCKFROST_API_KEY=preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM
 SEED_PHRASE=blame purpose battle mistake match cousin degree route bag return clump key metal actress poet outside group sword bring gravity weapon report alone dove
 EOF
     echo "⚠️  Please edit .env file with your actual credentials!"

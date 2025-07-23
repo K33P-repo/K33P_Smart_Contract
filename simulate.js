@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import { Lucid, Blockfrost, Data } from "lucid-cardano";
 
-const BLOCKFROST_API_KEY = "preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG";
+const BLOCKFROST_API_KEY = "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM";
 const NETWORK = "Preprod";
 
 // Example 24-word mnemonic (replace with your own securely)

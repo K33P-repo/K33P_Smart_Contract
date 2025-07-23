@@ -1,7 +1,7 @@
 import { Lucid, Blockfrost, fromText, Data, Constr } from "lucid-cardano";
 import fs from "fs";
 
-const API_KEY = "preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG";
+const API_KEY = "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM";
 const lucid = await Lucid.new(
   new Blockfrost("https://cardano-preprod.blockfrost.io/api/v0", API_KEY),
   "Preprod"

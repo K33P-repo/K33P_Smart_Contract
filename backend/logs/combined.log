@@ -456,3 +456,9 @@
 {"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T11:46:30.330Z"}
 {"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T11:46:30.354Z"}
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T11:46:30.417Z"}
+{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-23T16:49:22.679Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T16:49:22.689Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-23T16:49:25.902Z"}
+{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-23T16:49:25.904Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-23T16:49:25.919Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-23T16:49:25.922Z"}

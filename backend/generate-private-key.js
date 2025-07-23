@@ -9,7 +9,7 @@ async function generatePrivateKey() {
     const lucid = await Lucid.new(
       new Blockfrost(
         'https://cardano-preprod.blockfrost.io/api/v0',
-        'preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG'
+        'preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM'
       ),
       'Preprod'
     );

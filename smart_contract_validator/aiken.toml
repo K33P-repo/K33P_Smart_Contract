@@ -18,6 +18,6 @@ source = "github"
 [deployment.preprod]
 network = "preprod"
 submit_url = "https://cardano-preprod.blockfrost.io/api/v0/tx/submit"
-project_id = "preprodbl7bIxYc2sbEeGAZyo2hpkjJwzOAQNtG"
+project_id = "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM"
 
 [config]
