@@ -1,0 +1,500 @@
+{
+  "preamble": {
+    "title": "k33pteam/smart_contract_validator",
+    "description": "Aiken contracts for project 'k33pteam/smart_contract_validator'",
+    "version": "0.0.0",
+    "plutusVersion": "v3",
+    "compiler": {
+      "name": "Aiken",
+      "version": "v1.1.17+c3a7fba"
+    },
+    "license": "Apache-2.0"
+  },
+  "validators": [
+    {
+      "title": "combined_validator.k33p_validator.spend",
+      "datum": {
+        "title": "datum",
+        "schema": {
+          "$ref": "#/definitions/combined_validator~1K33pDatum"
+        }
+      },
+      "redeemer": {
+        "title": "redeemer",
+        "schema": {
+          "$ref": "#/definitions/combined_validator~1K33pRedeemer"
+        }
+      },
+      "compiledCode": "5908fd01010029800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400530080024888966002600460106ea800e3300130093754007370e90024dc3a4001300837540089111194c0046600246024602660260032301230130019b8f4881009ba5480012222325980099198008009bac30063014375401844b30010018a518acc004cdc4a410125e8026006603000313300200230190018a50404c80b22b300130083012375400d198009980a980b18099baa0063301500e4bd70452848c966002601c60286ea8006260086602e6030602a6ea80052f5c114c0103d87a8000404c602e60286ea80064602e6030603060306030603060306030003371090002444446644b3001300f30193754005132598009808180d1baa0018994c004c06cdd5000c96600264b30013370e6e3400520408cc004c03800694294501c45282038375c6040603a6ea80062b30013006375a601c603a6ea8006266e20dd69807180e9baa001483fbfffffc3e294101b45282036980f980e1baa0044889660026028007132598009801800c5660026600e0306eb4c044c080dd5000c5660026032603e6ea8c048c080dd500144c024dd6981198101baa0028a50407914a080f2294101e1811180f9baa0048acc004c06000e264b300130030018acc004cc01c060dd6980898101baa0018acc004c064c07cdd5180918101baa0028acc004c024dd6981198101baa002899b89375a602260406ea8c044c080dd50011bad30113020375400314a080f2294101e4528203c8a5040786044603e6ea80122b300133006017375a6020603e6ea8c040c07cdd5000c4c060c078dd51808980f9baa0018a50407480e901d0c078c06cdd5000c01d019180e980f003c4c966002602860346ea8006330012232330010010032259800800c52845660026006604400314a31330020023023001407481024603e6040604060400032232598009809980e9baa00189919198008009bac3023302430243024302430243024302430243020375400844b30010018a508acc004cdc79bae30240010038a518998010011812800a03e40886eb8c084c078dd5000c528203832598009809980e9baa00189806998101810980f1baa0014bd7045300103d87a800040706040603a6ea800a6603a603c60366ea800ccc074c078c06cdd5000a5eb82294122222323259800980b800c566002602e60426ea8c094c098012264b30015980099192cc004cdc4a400c00315980099b8900148192330013015002a50a51408d14a0811a29410231b8d00137306e64dd7180a18119baa0018acc004c96600266e1cdc6800a41000319800980a000d28528a0448a5040886eb8c054c08cdd5000c56600260186eb4c01cc08cdd5000c4cdc41bad300730233754002907f7fffff87c52820428a50408514a0810a2b30013300a01b375a600e60466ea80062b30013300630263023375400203713259800998049bac3027302437540384b30013375e6050604a6ea8c058c094dd500080144cdc4a410125e8026026602c604a6ea8006294102344cc024dd6180b18121baa01c25980099baf30283025375400200513370e60260029040497a00c52820468a504088604c60466ea80062941021452820428a504084604a60446ea800a00681022b3001301b0018acc004c06cc084dd51812981300244c966002b3001300c375a602860466ea80062b3001337126eb4c050c08cdd5000a4101815195347515980099192cc004c0380062b300133712002904801c66002602a0054a14a2811a294102345282046371a0026e60dcc9bae30153023375400315980098061bad3007302337540031337106eb4c01cc08cdd5000a41fdfffffe1f14a0810a2941021452820428a5040851598009980500d9bad30073023375400313300630263023375400203714a0810a2941021181298111baa002801a0408acc004c060c084dd51812981300244c966002b3001300c375a602860466ea8006266e20dd6980a18119baa001483fbfffffc3e29410214566002660140366eb4c050c08cdd5000c4cc018c098c08cdd500080dc52820428a504084604a60446ea800a00681010202040302037540026046004803a032301d301e0074060603600a44646644b30013012301c3754005132598009809980e9baa00189991192cc004cdc4800a41018c1515980099b89480000062b30013371200601113371201000514a080fa294101f4528203e337020020046eb4c084c078dd50019bad3021301e3754003002407060406042007001406c603c0022940cc070c014c074c068dd51802180d1baa0023301c3005300b301a3754600860346ea80092f5c08a50404514a080888c966002601a60266ea80062900044dd6980b980a1baa001404864b3001300d3013375400314c0103d87a8000899198008009bab30183015375400444b30010018a6103d87a8000899192cc004cdc8a45000018acc004c0200062600e66034603000497ae08a60103d87a80004059133004004301c00340586eb8c058004c064005017202432330010013756600a60286ea8008896600200314c103d87a8000899192cc004cdc8a45000018acc004c01c0062600c66032602e00497ae08a60103d87a80004055133004004301b00340546eb8c054004c060005016244b30013005300f375400513232332259800980c001c0162c80a8dd6980a8009bae30150023015001301037540051640393011005488966002600c00b13259800980b000c4c8c9660026012003132323259800980d80144cc020c06800c0262c80c0dd7180c800980c800980a1baa0028acc004c0340062646464b3001301b002899804180d001804c590181bae30190013019001301437540051598009805000c4c8c96600260340050088b202e375c603000260286ea800a2c8091012202430123754002602a00316404c60226ea80322b3001300a0058992cc004c05800626464b30013009001899192cc004c06800a01116405c6eb8c060004c050dd50014566002601a0031323259800980d00140222c80b8dd7180c000980a1baa0028acc004c02800626464b3001301a0028044590171bae301800130143754005164048809101218091baa00130150018b20263011375401916403c8078602060220088a50401c300800130033754011149a26cac8009",
+      "hash": "bd5a54b5c873cd2465f4e01b6c87c90846d72d1a723fde02f055a4f2"
+    },
+    {
+      "title": "combined_validator.k33p_validator.else",
+      "redeemer": {
+        "schema": {}
+      },
+      "compiledCode": "5908fd01010029800aba2aba1aba0aab9faab9eaab9dab9a488888896600264653001300800198041804800cdc3a400530080024888966002600460106ea800e3300130093754007370e90024dc3a4001300837540089111194c0046600246024602660260032301230130019b8f4881009ba5480012222325980099198008009bac30063014375401844b30010018a518acc004cdc4a410125e8026006603000313300200230190018a50404c80b22b300130083012375400d198009980a980b18099baa0063301500e4bd70452848c966002601c60286ea8006260086602e6030602a6ea80052f5c114c0103d87a8000404c602e60286ea80064602e6030603060306030603060306030003371090002444446644b3001300f30193754005132598009808180d1baa0018994c004c06cdd5000c96600264b30013370e6e3400520408cc004c03800694294501c45282038375c6040603a6ea80062b30013006375a601c603a6ea8006266e20dd69807180e9baa001483fbfffffc3e294101b45282036980f980e1baa0044889660026028007132598009801800c5660026600e0306eb4c044c080dd5000c5660026032603e6ea8c048c080dd500144c024dd6981198101baa0028a50407914a080f2294101e1811180f9baa0048acc004c06000e264b300130030018acc004cc01c060dd6980898101baa0018acc004c064c07cdd5180918101baa0028acc004c024dd6981198101baa002899b89375a602260406ea8c044c080dd50011bad30113020375400314a080f2294101e4528203c8a5040786044603e6ea80122b300133006017375a6020603e6ea8c040c07cdd5000c4c060c078dd51808980f9baa0018a50407480e901d0c078c06cdd5000c01d019180e980f003c4c966002602860346ea8006330012232330010010032259800800c52845660026006604400314a31330020023023001407481024603e6040604060400032232598009809980e9baa00189919198008009bac3023302430243024302430243024302430243020375400844b30010018a508acc004cdc79bae30240010038a518998010011812800a03e40886eb8c084c078dd5000c528203832598009809980e9baa00189806998101810980f1baa0014bd7045300103d87a800040706040603a6ea800a6603a603c60366ea800ccc074c078c06cdd5000a5eb82294122222323259800980b800c566002602e60426ea8c094c098012264b30015980099192cc004cdc4a400c00315980099b8900148192330013015002a50a51408d14a0811a29410231b8d00137306e64dd7180a18119baa0018acc004c96600266e1cdc6800a41000319800980a000d28528a0448a5040886eb8c054c08cdd5000c56600260186eb4c01cc08cdd5000c4cdc41bad300730233754002907f7fffff87c52820428a50408514a0810a2b30013300a01b375a600e60466ea80062b30013300630263023375400203713259800998049bac3027302437540384b30013375e6050604a6ea8c058c094dd500080144cdc4a410125e8026026602c604a6ea8006294102344cc024dd6180b18121baa01c25980099baf30283025375400200513370e60260029040497a00c52820468a504088604c60466ea80062941021452820428a504084604a60446ea800a00681022b3001301b0018acc004c06cc084dd51812981300244c966002b3001300c375a602860466ea80062b3001337126eb4c050c08cdd5000a4101815195347515980099192cc004c0380062b300133712002904801c66002602a0054a14a2811a294102345282046371a0026e60dcc9bae30153023375400315980098061bad3007302337540031337106eb4c01cc08cdd5000a41fdfffffe1f14a0810a2941021452820428a5040851598009980500d9bad30073023375400313300630263023375400203714a0810a2941021181298111baa002801a0408acc004c060c084dd51812981300244c966002b3001300c375a602860466ea8006266e20dd6980a18119baa001483fbfffffc3e29410214566002660140366eb4c050c08cdd5000c4cc018c098c08cdd500080dc52820428a504084604a60446ea800a00681010202040302037540026046004803a032301d301e0074060603600a44646644b30013012301c3754005132598009809980e9baa00189991192cc004cdc4800a41018c1515980099b89480000062b30013371200601113371201000514a080fa294101f4528203e337020020046eb4c084c078dd50019bad3021301e3754003002407060406042007001406c603c0022940cc070c014c074c068dd51802180d1baa0023301c3005300b301a3754600860346ea80092f5c08a50404514a080888c966002601a60266ea80062900044dd6980b980a1baa001404864b3001300d3013375400314c0103d87a8000899198008009bab30183015375400444b30010018a6103d87a8000899192cc004cdc8a45000018acc004c0200062600e66034603000497ae08a60103d87a80004059133004004301c00340586eb8c058004c064005017202432330010013756600a60286ea8008896600200314c103d87a8000899192cc004cdc8a45000018acc004c01c0062600c66032602e00497ae08a60103d87a80004055133004004301b00340546eb8c054004c060005016244b30013005300f375400513232332259800980c001c0162c80a8dd6980a8009bae30150023015001301037540051640393011005488966002600c00b13259800980b000c4c8c9660026012003132323259800980d80144cc020c06800c0262c80c0dd7180c800980c800980a1baa0028acc004c0340062646464b3001301b002899804180d001804c590181bae30190013019001301437540051598009805000c4c8c96600260340050088b202e375c603000260286ea800a2c8091012202430123754002602a00316404c60226ea80322b3001300a0058992cc004c05800626464b30013009001899192cc004c06800a01116405c6eb8c060004c050dd50014566002601a0031323259800980d00140222c80b8dd7180c000980a1baa0028acc004c02800626464b3001301a0028044590171bae301800130143754005164048809101218091baa00130150018b20263011375401916403c8078602060220088a50401c300800130033754011149a26cac8009",
+      "hash": "bd5a54b5c873cd2465f4e01b6c87c90846d72d1a723fde02f055a4f2"
+    }
+  ],
+  "definitions": {
+    "Bool": {
+      "title": "Bool",
+      "anyOf": [
+        {
+          "title": "False",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": []
+        },
+        {
+          "title": "True",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "ByteArray": {
+      "dataType": "bytes"
+    },
+    "Int": {
+      "dataType": "integer"
+    },
+    "Option$cardano/address/StakeCredential": {
+      "title": "Option",
+      "anyOf": [
+        {
+          "title": "Some",
+          "description": "An optional value.",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/cardano~1address~1StakeCredential"
+            }
+          ]
+        },
+        {
+          "title": "None",
+          "description": "Nothing.",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": []
+        }
+      ]
+    },
+    "String": {
+      "dataType": "bytes"
+    },
+    "aiken/crypto/ScriptHash": {
+      "title": "ScriptHash",
+      "dataType": "bytes"
+    },
+    "aiken/crypto/VerificationKeyHash": {
+      "title": "VerificationKeyHash",
+      "dataType": "bytes"
+    },
+    "cardano/address/Address": {
+      "title": "Address",
+      "description": "A Cardano `Address` typically holding one or two credential references.\n\n Note that legacy bootstrap addresses (a.k.a. 'Byron addresses') are\n completely excluded from Plutus contexts. Thus, from an on-chain\n perspective only exists addresses of type 00, 01, ..., 07 as detailed\n in [CIP-0019 :: Shelley Addresses](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019/#shelley-addresses).",
+      "anyOf": [
+        {
+          "title": "Address",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "payment_credential",
+              "$ref": "#/definitions/cardano~1address~1PaymentCredential"
+            },
+            {
+              "title": "stake_credential",
+              "$ref": "#/definitions/Option$cardano~1address~1StakeCredential"
+            }
+          ]
+        }
+      ]
+    },
+    "cardano/address/Credential": {
+      "title": "Credential",
+      "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+      "anyOf": [
+        {
+          "title": "VerificationKey",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1VerificationKeyHash"
+            }
+          ]
+        },
+        {
+          "title": "Script",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1ScriptHash"
+            }
+          ]
+        }
+      ]
+    },
+    "cardano/address/PaymentCredential": {
+      "title": "PaymentCredential",
+      "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+      "anyOf": [
+        {
+          "title": "VerificationKey",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1VerificationKeyHash"
+            }
+          ]
+        },
+        {
+          "title": "Script",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/aiken~1crypto~1ScriptHash"
+            }
+          ]
+        }
+      ]
+    },
+    "cardano/address/StakeCredential": {
+      "title": "StakeCredential",
+      "description": "Represent a type of object that can be represented either inline (by hash)\n or via a reference (i.e. a pointer to an on-chain location).\n\n This is mainly use for capturing pointers to a stake credential\n registration certificate in the case of so-called pointer addresses.",
+      "anyOf": [
+        {
+          "title": "Inline",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/cardano~1address~1Credential"
+            }
+          ]
+        },
+        {
+          "title": "Pointer",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "title": "slot_number",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "transaction_index",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "certificate_index",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/AuthData": {
+      "title": "AuthData",
+      "anyOf": [
+        {
+          "title": "AuthData",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "phone_hash",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "created_at",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/AuthDatum": {
+      "title": "AuthDatum",
+      "anyOf": [
+        {
+          "title": "AuthDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "version",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "auth_data",
+              "$ref": "#/definitions/combined_validator~1AuthData"
+            },
+            {
+              "title": "is_active",
+              "$ref": "#/definitions/Bool"
+            },
+            {
+              "title": "nonce",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/AuthRedeemer": {
+      "title": "AuthRedeemer",
+      "anyOf": [
+        {
+          "title": "StoreAuthData",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "auth_data",
+              "$ref": "#/definitions/combined_validator~1AuthData"
+            },
+            {
+              "title": "signature",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        },
+        {
+          "title": "UpdateAuthData",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "title": "auth_data",
+              "$ref": "#/definitions/combined_validator~1AuthData"
+            },
+            {
+              "title": "signature",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        },
+        {
+          "title": "DeactivateAuthData",
+          "dataType": "constructor",
+          "index": 2,
+          "fields": [
+            {
+              "title": "signature",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/DeleteDatumValue": {
+      "title": "DeleteDatumValue",
+      "anyOf": [
+        {
+          "title": "DeleteDatumValue",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "wallet",
+              "$ref": "#/definitions/cardano~1address~1Address"
+            },
+            {
+              "title": "timestamp",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/IdentityDatum": {
+      "title": "IdentityDatum",
+      "anyOf": [
+        {
+          "title": "SignupDatum",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1SignupDatumValue"
+            }
+          ]
+        },
+        {
+          "title": "RefundDatum",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1RefundDatumValue"
+            }
+          ]
+        },
+        {
+          "title": "DeleteDatum",
+          "dataType": "constructor",
+          "index": 2,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1DeleteDatumValue"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/IdentityRedeemer": {
+      "title": "IdentityRedeemer",
+      "anyOf": [
+        {
+          "title": "ProcessSignup",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "signature",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        },
+        {
+          "title": "ProcessRefund",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "title": "signature",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        },
+        {
+          "title": "ProcessDeletion",
+          "dataType": "constructor",
+          "index": 2,
+          "fields": [
+            {
+              "title": "signature",
+              "$ref": "#/definitions/ByteArray"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/K33pDatum": {
+      "title": "K33pDatum",
+      "anyOf": [
+        {
+          "title": "AuthDatumType",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1AuthDatum"
+            }
+          ]
+        },
+        {
+          "title": "IdentityDatumType",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1IdentityDatum"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/K33pRedeemer": {
+      "title": "K33pRedeemer",
+      "anyOf": [
+        {
+          "title": "AuthRedeemerType",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1AuthRedeemer"
+            }
+          ]
+        },
+        {
+          "title": "IdentityRedeemerType",
+          "dataType": "constructor",
+          "index": 1,
+          "fields": [
+            {
+              "$ref": "#/definitions/combined_validator~1IdentityRedeemer"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/RefundDatumValue": {
+      "title": "RefundDatumValue",
+      "anyOf": [
+        {
+          "title": "RefundDatumValue",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "wallet",
+              "$ref": "#/definitions/cardano~1address~1Address"
+            },
+            {
+              "title": "refund_amount",
+              "$ref": "#/definitions/Int"
+            },
+            {
+              "title": "reason",
+              "$ref": "#/definitions/String"
+            },
+            {
+              "title": "timestamp",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    },
+    "combined_validator/SignupDatumValue": {
+      "title": "SignupDatumValue",
+      "anyOf": [
+        {
+          "title": "SignupDatumValue",
+          "dataType": "constructor",
+          "index": 0,
+          "fields": [
+            {
+              "title": "wallet",
+              "$ref": "#/definitions/cardano~1address~1Address"
+            },
+            {
+              "title": "user_id",
+              "$ref": "#/definitions/String"
+            },
+            {
+              "title": "zk_proof",
+              "$ref": "#/definitions/ByteArray"
+            },
+            {
+              "title": "timestamp",
+              "$ref": "#/definitions/Int"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
