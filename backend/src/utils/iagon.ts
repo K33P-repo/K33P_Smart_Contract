@@ -229,24 +229,19 @@ export async function createSession(data: any) {
       throw new Error('Invalid session data');
     }
     
-    // Use API if available, otherwise use mock
-    if (api) {
-      const res = await api.post('/sessions', data);
-      return res.data;
-    } else {
-      // Mock implementation
-      const newSession = {
-        id: crypto.randomUUID(),
-        ...data,
-        createdAt: new Date().toISOString()
-      };
-      mockDb.sessions.push(newSession);
-      
-      // Save updated mock database to file
-      saveMockDatabase();
-      
-      return newSession;
-    }
+    // Sessions are application-specific, not Iagon storage - always use mock
+    // Mock implementation
+    const newSession = {
+      id: crypto.randomUUID(),
+      ...data,
+      createdAt: new Date().toISOString()
+    };
+    mockDb.sessions.push(newSession);
+    
+    // Save updated mock database to file
+    saveMockDatabase();
+    
+    return newSession;
   } catch (error: any) {
     console.error('Error creating session:', error.message);
     throw error; // Rethrow as this is a critical operation
@@ -260,21 +255,16 @@ export async function deleteSessions(query: any) {
       throw new Error('Invalid query parameters');
     }
     
-    // Use API if available, otherwise use mock
-    if (api) {
-      await api.delete('/sessions', { params: query });
-      return true;
-    } else {
-      // Mock implementation
-      const key = Object.keys(query)[0];
-      const value = query[key];
-      mockDb.sessions = mockDb.sessions.filter(session => session[key] !== value);
-      
-      // Save updated mock database to file
-      saveMockDatabase();
-      
-      return true;
-    }
+    // Sessions are application-specific, not Iagon storage - always use mock
+    // Mock implementation
+    const key = Object.keys(query)[0];
+    const value = query[key];
+    mockDb.sessions = mockDb.sessions.filter(session => session[key] !== value);
+    
+    // Save updated mock database to file
+    saveMockDatabase();
+    
+    return true;
   } catch (error: any) {
     console.error('Error deleting sessions:', error.message);
     return false;
@@ -312,24 +302,19 @@ export async function createScriptUtxo(data: any) {
       throw new Error('Invalid UTxO data');
     }
     
-    // Use API if available, otherwise use mock
-    if (api) {
-      const res = await api.post('/script-utxos', data);
-      return res.data;
-    } else {
-      // Mock implementation
-      const newUtxo = {
-        id: crypto.randomUUID(),
-        ...data,
-        createdAt: new Date().toISOString()
-      };
-      mockDb.scriptUtxos.push(newUtxo);
-      
-      // Save updated mock database to file
-      saveMockDatabase();
-      
-      return newUtxo;
-    }
+    // Script UTxOs are application-specific, not Iagon storage - always use mock
+    // Mock implementation
+    const newUtxo = {
+      id: crypto.randomUUID(),
+      ...data,
+      createdAt: new Date().toISOString()
+    };
+    mockDb.scriptUtxos.push(newUtxo);
+    
+    // Save updated mock database to file
+    saveMockDatabase();
+    
+    return newUtxo;
   } catch (error: any) {
     console.error('Error creating script UTxO:', error.message);
     throw error; // Rethrow as this is a critical operation
@@ -343,23 +328,18 @@ export async function updateScriptUtxo(id: string, data: any) {
       throw new Error('Invalid UTxO ID or data');
     }
     
-    // Use API if available, otherwise use mock
-    if (api) {
-      const res = await api.patch(`/script-utxos/${id}`, data);
-      return res.data;
-    } else {
-      // Mock implementation
-      const index = mockDb.scriptUtxos.findIndex(utxo => utxo.id === id);
-      if (index === -1) {
-        throw new Error('UTxO not found');
-      }
-      mockDb.scriptUtxos[index] = { ...mockDb.scriptUtxos[index], ...data };
-      
-      // Save updated mock database to file
-      saveMockDatabase();
-      
-      return mockDb.scriptUtxos[index];
+    // Script UTxOs are application-specific, not Iagon storage - always use mock
+    // Mock implementation
+    const index = mockDb.scriptUtxos.findIndex(utxo => utxo.id === id);
+    if (index === -1) {
+      throw new Error('UTxO not found');
     }
+    mockDb.scriptUtxos[index] = { ...mockDb.scriptUtxos[index], ...data };
+    
+    // Save updated mock database to file
+    saveMockDatabase();
+    
+    return mockDb.scriptUtxos[index];
   } catch (error: any) {
     console.error('Error updating script UTxO:', error.message);
     throw error; // Rethrow as this is a critical operation
@@ -373,20 +353,15 @@ export async function findScriptUtxos(query: any) {
       throw new Error('Invalid query parameters');
     }
     
-    // Use API if available, otherwise use mock
-    if (api) {
-      const res = await api.get('/script-utxos', { params: query });
-      return res.data;
-    } else {
-      // Mock implementation
-      if (Object.keys(query).length === 0) {
-        return mockDb.scriptUtxos;
-      }
-      
-      const key = Object.keys(query)[0];
-      const value = query[key];
-      return mockDb.scriptUtxos.filter(utxo => utxo[key] === value);
+    // Script UTxOs are application-specific, not Iagon storage - always use mock
+    // Mock implementation
+    if (Object.keys(query).length === 0) {
+      return mockDb.scriptUtxos;
     }
+    
+    const key = Object.keys(query)[0];
+    const value = query[key];
+    return mockDb.scriptUtxos.filter(utxo => utxo[key] === value);
   } catch (error: any) {
     console.error('Error finding script UTxOs:', error.message);
     return [];
@@ -403,8 +378,26 @@ export async function storeData(key: string, data: string) {
     
     // Use API if available, otherwise use mock
     if (api) {
-      const res = await api.post('/storage', { key, data });
-      return res.data.id;
+      // Create form data for file upload
+      const FormData = require('form-data');
+      const formData = new FormData();
+      
+      // Create a buffer from the data string
+      const buffer = Buffer.from(data, 'utf8');
+      formData.append('file', buffer, {
+        filename: `${key}.json`,
+        contentType: 'application/json'
+      });
+      formData.append('filename', `${key}.json`);
+      formData.append('visibility', 'private');
+      
+      const res = await api.post('/storage/upload', formData, {
+        headers: {
+          ...formData.getHeaders(),
+          'Authorization': `Bearer ${process.env.IAGON_PERSONAL_ACCESS_TOKEN}`
+        }
+      });
+      return res.data.data?.file_id || res.data.id;
     } else {
       // Mock implementation - return a mock storage ID
       const storageId = crypto.randomUUID();
@@ -426,8 +419,10 @@ export async function retrieveData(storageId: string) {
     
     // Use API if available, otherwise use mock
     if (api) {
-      const res = await api.get(`/storage/${storageId}`);
-      return res.data.data;
+      const res = await api.get(`/storage/download/${storageId}`, {
+        responseType: 'text'
+      });
+      return res.data;
     } else {
       // Mock implementation - return mock data
       console.log(`Mock: Retrieved data for ID: ${storageId}`);
@@ -448,7 +443,28 @@ export async function updateData(storageId: string, data: string) {
     
     // Use API if available, otherwise use mock
     if (api) {
-      const res = await api.put(`/storage/${storageId}`, { data });
+      // For updates, we need to delete the old file and upload a new one
+      // First delete the existing file
+      await api.delete(`/storage/delete/${storageId}`);
+      
+      // Then upload the new data
+      const FormData = require('form-data');
+      const formData = new FormData();
+      
+      const buffer = Buffer.from(data, 'utf8');
+      formData.append('file', buffer, {
+        filename: `updated_${storageId}.json`,
+        contentType: 'application/json'
+      });
+      formData.append('filename', `updated_${storageId}.json`);
+      formData.append('visibility', 'private');
+      
+      const res = await api.post('/storage/upload', formData, {
+        headers: {
+          ...formData.getHeaders(),
+          'Authorization': `Bearer ${process.env.IAGON_PERSONAL_ACCESS_TOKEN}`
+        }
+      });
       return res.data;
     } else {
       // Mock implementation
@@ -470,7 +486,7 @@ export async function deleteData(storageId: string) {
     
     // Use API if available, otherwise use mock
     if (api) {
-      await api.delete(`/storage/${storageId}`);
+      await api.delete(`/storage/delete/${storageId}`);
       return true;
     } else {
       // Mock implementation

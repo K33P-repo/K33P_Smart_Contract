@@ -671,3 +671,106 @@
 {"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T11:39:00.593Z"}
 {"attempt":2,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:39:00.807Z"}
 {"attempt":3,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:39:03.091Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:53:48.367Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:53:48.371Z"}
+{"error":"getaddrinfo ENOTFOUND gw.v2.iagon.com","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:53:49.350Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T11:53:50.176Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T11:53:53.047Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T11:53:54.167Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T11:53:54.171Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T11:53:54.172Z"}
+{"error":"getaddrinfo ENOTFOUND gw.v2.iagon.com","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:54:03.589Z"}
+{"attempt":1,"error":"getaddrinfo ENOTFOUND gw.v2.iagon.com","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:54:03.616Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T11:54:04.441Z"}
+{"attempt":2,"error":"getaddrinfo ENOTFOUND gw.v2.iagon.com","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:54:04.632Z"}
+{"attempt":3,"error":"getaddrinfo ENOTFOUND gw.v2.iagon.com","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:54:06.655Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:55:00.996Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:55:01.007Z"}
+{"error":"getaddrinfo ENOTFOUND da.iagon.com","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:55:01.122Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T11:55:02.502Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T11:55:05.072Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T11:55:06.346Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T11:55:06.350Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T11:55:06.351Z"}
+{"error":"getaddrinfo ENOTFOUND da.iagon.com","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:55:21.038Z"}
+{"attempt":1,"error":"getaddrinfo ENOTFOUND da.iagon.com","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:55:21.050Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T11:55:22.006Z"}
+{"attempt":2,"error":"getaddrinfo ENOTFOUND da.iagon.com","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:55:22.142Z"}
+{"attempt":3,"error":"getaddrinfo ENOTFOUND da.iagon.com","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:55:24.234Z"}
+{"error":"getaddrinfo ENOTFOUND da.iagon.com","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:56:02.519Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:56:34.611Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:56:34.620Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:56:35.730Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T11:56:37.287Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T11:56:39.237Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T11:56:40.461Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T11:56:40.466Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T11:56:40.468Z"}
+{"attempt":1,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:56:54.458Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:56:54.481Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T11:56:55.390Z"}
+{"attempt":2,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:56:55.676Z"}
+{"attempt":3,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T11:56:57.892Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:57:38.053Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:58:38.102Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T11:59:37.934Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:00:37.908Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:02:17.403Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:02:17.461Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:02:18.487Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T12:02:19.773Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T12:02:22.636Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T12:02:25.295Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T12:02:25.495Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T12:02:25.579Z"}
+{"attempt":1,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:02:41.432Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:02:41.440Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:02:43.455Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T12:02:43.457Z"}
+{"attempt":2,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:02:43.512Z"}
+{"attempt":3,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:02:45.971Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:03:24.575Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:03:26.619Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:04:21.069Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:05:21.204Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:06:20.524Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:07:20.894Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:08:20.408Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:09:20.387Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:10:29.963Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:11:20.697Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:11:47.753Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:11:47.762Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:11:49.117Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T12:11:50.541Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T12:11:52.732Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T12:11:54.867Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:12:36.223Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:12:36.228Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:12:37.119Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T12:12:38.192Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T12:12:40.196Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T12:12:41.902Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T12:12:41.911Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T12:12:41.915Z"}
+{"ip":"::1","level":"info","message":"GET /api/health?ide_webview_request_time=1753359164698","service":"k33p-backend","timestamp":"2025-07-24T12:12:49.153Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"GET /api/health?ide_webview_request_time=1753359164698","service":"k33p-backend","timestamp":"2025-07-24T12:12:49.266Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-07-24T12:12:50.292Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:13:38.803Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:14:15.721Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T12:14:15.726Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:14:16.687Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T12:14:18.029Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T12:14:20.361Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T12:14:21.936Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T12:14:21.941Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T12:14:21.943Z"}
+{"ip":"::1","level":"info","message":"GET /api/health?ide_webview_request_time=1753359301039","service":"k33p-backend","timestamp":"2025-07-24T12:15:01.056Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-07-24T12:15:01.423Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:15:19.908Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:15:37.238Z"}
+{"attempt":1,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:15:37.276Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T12:15:38.502Z"}
+{"attempt":2,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:15:38.510Z"}
+{"attempt":3,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:15:40.785Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:16:18.655Z"}
