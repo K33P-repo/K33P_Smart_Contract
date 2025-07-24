@@ -173,6 +173,90 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.json(createResponse(true, { status: 'ok' }, undefined, 'K33P Backend is running'));
 });
 
+// API Status endpoint
+app.get('/api/status', (req: Request, res: Response) => {
+  res.json(createResponse(true, {
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    database: usingMockDatabase ? 'mock' : 'postgresql'
+  }, undefined, 'System status retrieved'));
+});
+
+// API Version endpoint
+app.get('/api/version', (req: Request, res: Response) => {
+  res.json(createResponse(true, {
+    version: '1.0.0',
+    apiVersion: 'v1',
+    buildDate: new Date().toISOString(),
+    features: ['auth', 'utxo', 'zk', 'users']
+  }, undefined, 'API version information'));
+});
+
+// User Profile endpoints
+app.get('/api/user/profile', (req: Request, res: Response) => {
+  res.status(404).json(createResponse(false, undefined, undefined, 'GET method not supported for user profile. Use POST with user data.'));
+});
+
+app.post('/api/user/profile', async (req: Request, res: Response) => {
+  try {
+    const { walletAddress, userId } = req.body;
+    
+    if (!walletAddress && !userId) {
+      return res.status(400).json(createResponse(false, undefined, undefined, 'Either walletAddress or userId is required'));
+    }
+
+    // Try to find user by wallet address or user ID
+    let userDeposit;
+    if (walletAddress) {
+      userDeposit = await dbService.getDepositByUserAddress(walletAddress);
+    } else if (userId) {
+      // Find by user ID (this would need to be implemented in dbService)
+      const deposits = await dbService.getAllDeposits();
+      userDeposit = deposits.find((d: any) => d.user_id === userId);
+    }
+    
+    if (!userDeposit) {
+      return res.status(404).json(createResponse(false, undefined, undefined, 'User profile not found'));
+    }
+    
+    const profile = {
+      userId: userDeposit.user_id,
+      userAddress: userDeposit.user_address,
+      verified: userDeposit.verified,
+      signupCompleted: userDeposit.signup_completed,
+      refunded: userDeposit.refunded,
+      amount: (Number(userDeposit.amount) / 1_000_000).toString(),
+      createdAt: userDeposit.timestamp?.toISOString() || new Date().toISOString(),
+      verificationAttempts: userDeposit.verification_attempts
+    };
+    
+    res.json(createResponse(true, profile, undefined, 'User profile retrieved'));
+  } catch (error) {
+    logger.error('Error getting user profile:', error);
+    res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get user profile'));
+  }
+});
+
+// Root endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.json(createResponse(true, {
+    message: 'K33P Backend API is running',
+    version: '1.0.0',
+    endpoints: [
+      '/api/health',
+      '/api/status', 
+      '/api/version',
+      '/api/auth/*',
+      '/api/utxo/*',
+      '/api/zk/*',
+      '/api/users/*'
+    ]
+  }, undefined, 'Welcome to K33P Backend API'));
+});
+
 // Get deposit address
 app.get('/api/deposit-address', async (req: Request, res: Response) => {
   try {

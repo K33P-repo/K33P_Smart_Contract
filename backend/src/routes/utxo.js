@@ -107,4 +107,209 @@ router.get('/user', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * @route POST /api/utxo/deposit
+ * @desc Create a new UTXO deposit
+ * @access Private
+ */
+router.post('/deposit', verifyToken, async (req, res) => {
+  try {
+    const { amount, walletAddress, txHash, outputIndex } = req.body;
+    
+    if (!amount || !walletAddress) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Missing required fields: amount and walletAddress are required' 
+      });
+    }
+
+    // Validate amount
+    if (isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid amount: must be a positive number' 
+      });
+    }
+
+    // Get user information
+    const user = await iagon.findUserById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'User not found' 
+      });
+    }
+
+    // Create deposit record
+    const deposit = {
+      userId: req.user.id,
+      amount: parseFloat(amount),
+      walletAddress,
+      txHash: txHash || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      outputIndex: outputIndex || 0,
+      status: 'pending',
+      createdAt: new Date().toISOString()
+    };
+
+    // Store deposit in Iagon (simulated)
+    const depositRecord = await iagon.createScriptUtxo({
+      txHash: deposit.txHash,
+      outputIndex: deposit.outputIndex,
+      datum: JSON.stringify(deposit),
+      userId: req.user.id,
+      refunded: false
+    });
+
+    res.status(201).json({ 
+      success: true,
+      message: 'Deposit created successfully',
+      data: {
+        depositId: depositRecord.id,
+        txHash: deposit.txHash,
+        amount: deposit.amount,
+        status: deposit.status
+      }
+    });
+  } catch (error) {
+    console.error('Deposit error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to create deposit' 
+    });
+  }
+});
+
+/**
+ * @route GET /api/utxo/balance
+ * @desc Get user's UTXO balance
+ * @access Private
+ */
+router.get('/balance', verifyToken, async (req, res) => {
+  try {
+    // Get all UTXOs for the current user
+    const utxos = await iagon.findScriptUtxos({ userId: req.user.id });
+    
+    // Calculate total balance
+    let totalBalance = 0;
+    let availableBalance = 0;
+    let pendingBalance = 0;
+    
+    utxos.forEach(utxo => {
+      try {
+        const datum = JSON.parse(utxo.datum || '{}');
+        const amount = parseFloat(datum.amount || 0);
+        
+        totalBalance += amount;
+        
+        if (utxo.refunded) {
+          // Already refunded, don't count as available
+        } else if (datum.status === 'pending') {
+          pendingBalance += amount;
+        } else {
+          availableBalance += amount;
+        }
+      } catch (parseError) {
+        console.warn('Failed to parse UTXO datum:', parseError);
+      }
+    });
+
+    res.status(200).json({ 
+      success: true,
+      data: {
+        totalBalance: totalBalance.toFixed(6),
+        availableBalance: availableBalance.toFixed(6),
+        pendingBalance: pendingBalance.toFixed(6),
+        utxoCount: utxos.length
+      }
+    });
+  } catch (error) {
+    console.error('Balance error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get balance' 
+    });
+  }
+});
+
+/**
+ * @route POST /api/utxo/history
+ * @desc Get UTXO transaction history
+ * @access Private
+ */
+router.post('/history', verifyToken, async (req, res) => {
+  try {
+    const { walletAddress, limit = 10, offset = 0 } = req.body;
+    
+    // Get user's UTXOs
+    const utxos = await iagon.findScriptUtxos({ userId: req.user.id });
+    
+    // Filter by wallet address if provided
+    let filteredUtxos = utxos;
+    if (walletAddress) {
+      filteredUtxos = utxos.filter(utxo => {
+        try {
+          const datum = JSON.parse(utxo.datum || '{}');
+          return datum.walletAddress === walletAddress;
+        } catch {
+          return false;
+        }
+      });
+    }
+    
+    // Sort by creation date (newest first)
+    filteredUtxos.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    
+    // Apply pagination
+    const paginatedUtxos = filteredUtxos.slice(offset, offset + limit);
+    
+    // Format response
+    const history = paginatedUtxos.map(utxo => {
+      try {
+        const datum = JSON.parse(utxo.datum || '{}');
+        return {
+          id: utxo.id,
+          txHash: utxo.txHash,
+          outputIndex: utxo.outputIndex,
+          amount: datum.amount || 0,
+          walletAddress: datum.walletAddress,
+          status: datum.status || 'unknown',
+          refunded: utxo.refunded,
+          refundTxHash: utxo.refundTxHash,
+          createdAt: utxo.createdAt,
+          updatedAt: utxo.updatedAt
+        };
+      } catch {
+        return {
+          id: utxo.id,
+          txHash: utxo.txHash,
+          outputIndex: utxo.outputIndex,
+          amount: 0,
+          status: 'unknown',
+          refunded: utxo.refunded,
+          createdAt: utxo.createdAt
+        };
+      }
+    });
+
+    res.status(200).json({ 
+      success: true,
+      data: {
+        history,
+        pagination: {
+          total: filteredUtxos.length,
+          limit,
+          offset,
+          hasMore: offset + limit < filteredUtxos.length
+        }
+      }
+    });
+  } catch (error) {
+    console.error('History error:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get transaction history' 
+    });
+  }
+});
+
 export default router;
