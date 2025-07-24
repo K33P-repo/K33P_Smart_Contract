@@ -1,11 +1,13 @@
 // Authentication routes for K33P Identity System
 import express from 'express';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { verifyToken, verifyZkProof, authenticate } from '../middleware/auth.js';
 import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
 import { generateZkCommitment, generateZkProof, verifyZkProof as verifyZkProofUtil } from '../utils/zk.js';
 import { signupTxBuilder } from '../utils/lucid.js';
 import * as iagon from '../utils/iagon.js';
+import { storageService } from '../services/storage-abstraction.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
@@ -128,10 +130,10 @@ router.post('/signup', async (req, res) => {
     console.log('Passkey hash created:', !!passkeyHash);
 
     console.log('Step 4: Checking existing user by phone...');
-    const existingUser = await iagon.findUser({ phoneHash });
-    console.log('Existing user check completed, found:', !!existingUser);
+    const existingUserResult = await storageService.findUser({ phoneHash });
+    console.log('Existing user check completed, found:', !!existingUserResult.data);
     
-    if (existingUser) {
+    if (existingUserResult.success && existingUserResult.data) {
       console.log('User already exists with this phone number');
       return res.status(400).json({ error: 'User already exists with this phone number' });
     }
@@ -139,10 +141,10 @@ router.post('/signup', async (req, res) => {
     // If user address is provided, check if it's already in use
     if (finalUserAddress) {
       console.log('Step 5: Checking existing user by wallet address...');
-      const existingWalletUser = await iagon.findUser({ walletAddress: finalUserAddress });
-      console.log('Existing wallet user check completed, found:', !!existingWalletUser);
+      const existingWalletUserResult = await storageService.findUser({ walletAddress: finalUserAddress });
+      console.log('Existing wallet user check completed, found:', !!existingWalletUserResult.data);
       
-      if (existingWalletUser) {
+      if (existingWalletUserResult.success && existingWalletUserResult.data) {
         console.log('User already exists with this wallet address');
         return res.status(400).json({ error: 'User already exists with this wallet address' });
       }
@@ -172,12 +174,12 @@ router.post('/signup', async (req, res) => {
     // Note: Transaction creation happens later when user sends 2 ADA for verification
     // No transaction is created during initial signup
 
-    console.log('Step 8: Creating user in Iagon...');
+    console.log('Step 8: Creating user in storage...');
     const userData = {
       walletAddress: finalUserAddress || null,
       phoneHash,
       zkCommitment,
-      userId: userId || null,
+      userId: userId || crypto.randomUUID(),
       verificationMethod,
       biometricType: biometricType || null,
       senderWalletAddress: senderWalletAddress || null
@@ -187,8 +189,14 @@ router.post('/signup', async (req, res) => {
     if (passkeyHash) userData.passkeyHash = passkeyHash;
     if (pin) userData.pin = pin;
 
-    const user = await iagon.createUser(userData);
-    console.log('User created in Iagon successfully, ID:', user.id);
+    const userResult = await storageService.storeUser(userData);
+    if (!userResult.success) {
+      console.log('Failed to create user:', userResult.error);
+      return res.status(500).json({ error: 'Failed to create user: ' + userResult.error });
+    }
+    
+    const user = { id: userResult.data.id, ...userData };
+    console.log('User created successfully, ID:', user.id, 'Storage:', userResult.storageUsed);
 
     console.log('Step 9: Generating JWT token...');
     const token = jwt.sign(
@@ -252,10 +260,14 @@ router.post('/login', verifyZkProof, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: phone, proof, and commitment are required' });
     }
     // Find user by phone hash first (primary identifier), then by wallet address if provided
-    let user = await iagon.findUser({ phoneHash: hashPhone(phone) });
+    let userResult = await storageService.findUser({ phoneHash: hashPhone(phone) });
+    let user = userResult.success ? userResult.data : null;
+    
     if (!user && walletAddress) {
-      user = await iagon.findUser({ walletAddress });
+      userResult = await storageService.findUser({ walletAddress });
+      user = userResult.success ? userResult.data : null;
     }
+    
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -301,12 +313,20 @@ router.post('/logout', verifyToken, async (req, res) => {
  */
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    // Find user by ID in Iagon
-    const user = await iagon.findUserById(req.user.id);
-    if (!user) {
+    // Find user by ID using storage abstraction
+    const userResult = await storageService.findUser({ userId: req.user.id });
+    if (!userResult.success || !userResult.data) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json({ id: user.id, walletAddress: user.walletAddress, createdAt: user.createdAt, updatedAt: user.updatedAt });
+    
+    const user = userResult.data;
+    res.status(200).json({ 
+      id: user.id, 
+      walletAddress: user.walletAddress, 
+      createdAt: user.createdAt, 
+      updatedAt: user.updatedAt,
+      storageUsed: userResult.storageUsed 
+    });
   } catch (error) {
     console.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
@@ -344,8 +364,8 @@ router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res
     }
 
     // Check if wallet address is already in use by another user
-    const existingUser = await iagon.findUser({ walletAddress });
-    if (existingUser && existingUser.id !== userId) {
+    const existingUserResult = await storageService.findUser({ walletAddress });
+    if (existingUserResult.success && existingUserResult.data && existingUserResult.data.userId !== userId) {
       return res.status(400).json({ message: 'Wallet address already in use by another user' });
     }
 
@@ -355,8 +375,11 @@ router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res
       return res.status(400).json({ message: 'No valid 2 ADA transaction found' });
     }
 
-    // Update user with wallet address using iagon
-    await iagon.updateUser(userId, { walletAddress });
+    // Update user with wallet address using storage abstraction
+    const updateResult = await storageService.updateUser(userId, { walletAddress });
+    if (!updateResult.success) {
+      return res.status(500).json({ message: 'Failed to update user wallet address: ' + updateResult.error });
+    }
 
     res.json({ message: 'Wallet verified successfully' });
   } catch (error) {
@@ -373,17 +396,21 @@ router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res
 router.get('/wallet-connect', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await iagon.findUserById(userId);
+    const userResult = await storageService.findUser({ userId });
     
-    if (!user) {
+    if (!userResult.success || !userResult.data) {
       return res.status(404).json({ message: 'User not found' });
     }
     
+    const user = userResult.data;
     if (!user.walletAddress) {
       return res.status(400).json({ message: 'No wallet address found' });
     }
     
-    res.json({ walletAddress: user.walletAddress });
+    res.json({ 
+      walletAddress: user.walletAddress,
+      storageUsed: userResult.storageUsed 
+    });
   } catch (error) {
     console.error('Wallet connect error:', error);
     res.status(500).json({ message: 'Wallet connect failed', error: error.message });
@@ -520,13 +547,15 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
     }
 
     // Get user data
-    const user = await iagon.findUserById(userId);
-    if (!user) {
+    const userResult = await storageService.findUser({ userId });
+    if (!userResult.success || !userResult.data) {
       return res.status(404).json({ 
         success: false,
         error: 'User not found' 
       });
     }
+    
+    const user = userResult.data;
 
     console.log('Step 1: Verifying 2 ADA transaction from sender wallet...');
     // Verify 2 ADA transaction from the sender wallet to the script address
@@ -553,11 +582,21 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
 
     console.log('Step 3: Updating user with transaction details...');
     // Update user with sender wallet and transaction hash
-    await iagon.updateUser(userId, { 
+    const updateResult = await storageService.updateUser(userId, { 
       senderWalletAddress,
       txHash,
       verified: true
     });
+    
+    if (!updateResult.success) {
+      console.log('Failed to update user:', updateResult.error);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Failed to update user: ' + updateResult.error
+      });
+    }
+    
+    console.log('User updated successfully, storage used:', updateResult.storageUsed);
 
     console.log('Step 4: Initiating refund process...');
     // Note: The actual refund will be handled by the auto-refund monitor
@@ -604,13 +643,15 @@ router.post('/verify', async (req, res) => {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       
       // Check if user exists
-      const user = await iagon.findUserById(decoded.id);
-      if (!user) {
+      const userResult = await storageService.findUser({ userId: decoded.id });
+      if (!userResult.success || !userResult.data) {
         return res.status(404).json({ 
           success: false,
           error: 'User not found' 
         });
       }
+      
+      const user = userResult.data;
 
       // Check if session exists in Iagon
       const session = await iagon.findSession({ userId: decoded.id, token });
