@@ -169,20 +169,14 @@ router.post('/signup', async (req, res) => {
       return res.status(400).json({ error: 'Invalid ZK proof' });
     }
 
-    // Create signup transaction if user address is provided
-    let txHash = null;
-    if (finalUserAddress) {
-      console.log('Step 8: Creating signup transaction...');
-      txHash = await signupTxBuilder(finalUserAddress, commitmentData);
-      console.log('Signup transaction created, txHash:', txHash);
-    }
+    // Note: Transaction creation happens later when user sends 2 ADA for verification
+    // No transaction is created during initial signup
 
-    console.log('Step 9: Creating user in Iagon...');
+    console.log('Step 8: Creating user in Iagon...');
     const userData = {
       walletAddress: finalUserAddress || null,
       phoneHash,
       zkCommitment,
-      txHash,
       userId: userId || null,
       verificationMethod,
       biometricType: biometricType || null,
@@ -196,7 +190,7 @@ router.post('/signup', async (req, res) => {
     const user = await iagon.createUser(userData);
     console.log('User created in Iagon successfully, ID:', user.id);
 
-    console.log('Step 10: Generating JWT token...');
+    console.log('Step 9: Generating JWT token...');
     const token = jwt.sign(
       { id: user.id, walletAddress: user.walletAddress },
       process.env.JWT_SECRET || 'default-secret',
@@ -204,7 +198,7 @@ router.post('/signup', async (req, res) => {
     );
     console.log('JWT token generated successfully');
 
-    console.log('Step 11: Creating session...');
+    console.log('Step 10: Creating session...');
     await iagon.createSession({ 
       userId: user.id, 
       token, 
@@ -212,7 +206,7 @@ router.post('/signup', async (req, res) => {
     });
     console.log('Session created successfully');
 
-    console.log('Step 12: Building response...');
+    console.log('Step 11: Building response...');
     const response = {
       success: true,
       data: {
@@ -225,10 +219,6 @@ router.post('/signup', async (req, res) => {
       message: 'Signup processed successfully',
       token
     };
-    
-    if (txHash) {
-      response.txHash = txHash;
-    }
 
     console.log('Response built successfully');
     console.log('=== SIGNUP DEBUG END ===');
