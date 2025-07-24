@@ -774,3 +774,11 @@
 {"attempt":2,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:15:38.510Z"}
 {"attempt":3,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T12:15:40.785Z"}
 {"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T12:16:18.655Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T15:27:02.206Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T15:27:02.220Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:27:03.536Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T15:27:04.408Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T15:27:06.515Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T15:27:07.610Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T15:27:07.614Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T15:27:07.614Z"}

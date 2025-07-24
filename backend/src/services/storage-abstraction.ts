@@ -284,8 +284,8 @@ export class StorageAbstractionService {
       
       if (tableName === 'users') {
         query = `
-          INSERT INTO users (user_id, email, name, wallet_address, phone_hash, zk_commitment, sender_wallet_address, tx_hash, verified)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          INSERT INTO users (user_id, email, name, wallet_address, phone_hash, zk_commitment)
+          VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id
         `;
         values = [
@@ -294,10 +294,7 @@ export class StorageAbstractionService {
           data.name,
           data.walletAddress,
           data.phoneHash,
-          data.zkCommitment,
-          data.senderWalletAddress,
-          data.txHash,
-          data.verified || false
+          data.zkCommitment
         ];
       } else if (tableName === 'user_deposits') {
         query = `
@@ -418,17 +415,13 @@ export class StorageAbstractionService {
           updates.push(`wallet_address = $${paramIndex++}`);
           params.push(data.walletAddress);
         }
-        if (data.senderWalletAddress !== undefined) {
-          updates.push(`sender_wallet_address = $${paramIndex++}`);
-          params.push(data.senderWalletAddress);
+        if (data.phoneHash !== undefined) {
+          updates.push(`phone_hash = $${paramIndex++}`);
+          params.push(data.phoneHash);
         }
-        if (data.txHash !== undefined) {
-          updates.push(`tx_hash = $${paramIndex++}`);
-          params.push(data.txHash);
-        }
-        if (data.verified !== undefined) {
-          updates.push(`verified = $${paramIndex++}`);
-          params.push(data.verified);
+        if (data.zkCommitment !== undefined) {
+          updates.push(`zk_commitment = $${paramIndex++}`);
+          params.push(data.zkCommitment);
         }
 
         updates.push(`updated_at = $${paramIndex++}`);

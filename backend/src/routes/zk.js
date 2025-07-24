@@ -137,6 +137,18 @@ router.post('/verify', async (req, res) => {
       });
     }
     
+    // Validate proof structure
+    if (!proof.publicInputs || !proof.publicInputs.commitment || typeof proof.isValid !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_PROOF_STRUCTURE',
+          message: 'Invalid proof object structure. Expected: { publicInputs: { commitment: string }, isValid: boolean }'
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+    
     // Verify the proof
     const isValid = verifyZkProof(proof, commitment);
     

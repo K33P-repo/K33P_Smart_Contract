@@ -9,7 +9,7 @@ interface AuthenticatedRequest extends Request {
 export declare const verifyToken: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
 /**
  * Middleware to verify ZK proof
- * This is a placeholder for actual ZK proof verification
+ * Uses the actual ZK proof verification function
  */
 export declare const verifyZkProof: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
 /**

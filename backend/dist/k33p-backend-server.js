@@ -9,6 +9,7 @@ import { autoRefundMonitor } from './services/auto-refund-monitor.js';
 import { MockDatabaseService } from './database/mock-service.js';
 import { testConnection } from './database/config.js';
 import winston from 'winston';
+import { authenticateToken } from './middleware/auth.js';
 // Import routes
 // @ts-ignore
 import zkRoutes from './routes/zk.js';
@@ -141,8 +142,34 @@ app.get('/api/version', (req, res) => {
     }, undefined, 'API version information'));
 });
 // User Profile endpoints
-app.get('/api/user/profile', (req, res) => {
-    res.status(404).json(createResponse(false, undefined, undefined, 'GET method not supported for user profile. Use POST with user data.'));
+app.get('/api/user/profile', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId) {
+            return res.status(401).json(createResponse(false, undefined, undefined, 'User not authenticated'));
+        }
+        // Try to find user by user ID
+        const deposits = await dbService.getAllDeposits();
+        const userDeposit = deposits.find((d) => d.user_id === userId);
+        if (!userDeposit) {
+            return res.status(404).json(createResponse(false, undefined, undefined, 'User profile not found'));
+        }
+        const profile = {
+            userId: userDeposit.user_id,
+            userAddress: userDeposit.user_address,
+            verified: userDeposit.verified,
+            signupCompleted: userDeposit.signup_completed,
+            refunded: userDeposit.refunded,
+            amount: (Number(userDeposit.amount) / 1_000_000).toString(),
+            createdAt: userDeposit.timestamp?.toISOString() || new Date().toISOString(),
+            verificationAttempts: userDeposit.verification_attempts
+        };
+        res.json(createResponse(true, profile, undefined, 'User profile retrieved'));
+    }
+    catch (error) {
+        logger.error('Error getting user profile:', error);
+        res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get user profile'));
+    }
 });
 app.post('/api/user/profile', async (req, res) => {
     try {

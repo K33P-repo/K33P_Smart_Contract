@@ -1,6 +1,7 @@
 // Authentication middleware for K33P Identity System
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
+import { verifyZkProof as zkVerify } from '../utils/zk.js';
 
 interface AuthenticatedRequest extends Request {
   user?: any;
@@ -41,7 +42,7 @@ export const verifyToken = (req: AuthenticatedRequest, res: Response, next: Next
 
 /**
  * Middleware to verify ZK proof
- * This is a placeholder for actual ZK proof verification
+ * Uses the actual ZK proof verification function
  */
 export const verifyZkProof = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
@@ -51,10 +52,19 @@ export const verifyZkProof = (req: AuthenticatedRequest, res: Response, next: Ne
       return res.status(400).json({ error: 'Missing ZK proof or commitment' });
     }
     
-    // In a real implementation, this would verify the ZK proof
-    // For now, we'll just assume it's valid
-    req.zkVerified = true;
+    // Validate proof structure
+    if (!proof.publicInputs || !proof.publicInputs.commitment || typeof proof.isValid !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid proof object structure. Expected: { publicInputs: { commitment: string }, isValid: boolean }' });
+    }
     
+    // Use the actual ZK verification function
+    const isValid = zkVerify(proof, commitment);
+    
+    if (!isValid) {
+      return res.status(401).json({ error: 'Invalid ZK proof' });
+    }
+    
+    req.zkVerified = true;
     next();
   } catch (error) {
     console.error('ZK verification error:', error);
