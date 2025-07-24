@@ -634,3 +634,17 @@
 {"ip":"::1","level":"info","message":"GET /api/health?ide_webview_request_time=1753354253691","service":"k33p-backend","timestamp":"2025-07-24T11:00:13.058Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
 {"ip":"::1","level":"info","message":"GET /api/health?ide_webview_request_time=1753354253691","service":"k33p-backend","timestamp":"2025-07-24T11:00:13.246Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
 {"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-07-24T11:00:14.496Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:11:30.157Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:11:30.164Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T11:11:35.853Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T11:11:37.307Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T11:11:37.313Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T11:11:37.313Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T11:11:59.006Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T11:12:10.683Z","userAgent":"Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.4249"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:16:30.280Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T11:16:30.284Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T11:16:34.412Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T11:16:35.719Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T11:16:35.724Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T11:16:35.731Z"}

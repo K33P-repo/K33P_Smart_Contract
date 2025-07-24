@@ -79,6 +79,28 @@
       "zkCommitment": "befce67f08cebe9c81a1dd1c4487c81f118ab02233c225b309-996be644",
       "txHash": "4459d99aa1e1a6656185e038229dc594a41fd2ec491036284456b326847d3e80",
       "createdAt": "2025-07-23T21:39:49.886Z"
+    },
+    {
+      "id": "3f9f8f83-e48d-407b-a263-f0ce5ee454cb",
+      "walletAddress": "addr_test456",
+      "phoneHash": "5844153a27dea6b30d52cb7e48698fa6ae9d8a02fafe137807dcf3da57557f35",
+      "zkCommitment": "d3bbcd459121d7bd0df5d63231f9d0130d97ef32b70363ad54-410e6879",
+      "userId": "test456",
+      "verificationMethod": "phone",
+      "biometricType": null,
+      "senderWalletAddress": null,
+      "createdAt": "2025-07-24T11:11:59.023Z"
+    },
+    {
+      "id": "cef5c9f2-e902-4d6d-8b26-d0e811e4186f",
+      "walletAddress": "addr_test789",
+      "phoneHash": "7d63d9725a98787c493d1a9b89099cbf8f37d7e41b0411f50a25fdcddf5348b7",
+      "zkCommitment": "8898a18f5fb329c1e01d6b5afd682692a068460f4c24e715b5-09f88346",
+      "userId": "test789",
+      "verificationMethod": "phone",
+      "biometricType": null,
+      "senderWalletAddress": null,
+      "createdAt": "2025-07-24T11:12:10.697Z"
     }
   ],
   "sessions": [

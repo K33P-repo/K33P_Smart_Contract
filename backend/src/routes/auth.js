@@ -436,6 +436,153 @@ async function verify2AdaTransaction(walletAddress) {
   }
 }
 
+async function verify2AdaDeposit(senderWalletAddress) {
+  // Check cache first
+  const cacheKey = `deposit_${senderWalletAddress}`;
+  const cachedResult = walletCache.get(cacheKey);
+  if (cachedResult !== undefined) {
+    return cachedResult;
+  }
+
+  try {
+    const scriptAddress = process.env.SCRIPT_ADDRESS;
+    if (!scriptAddress) {
+      console.error('SCRIPT_ADDRESS not configured');
+      return false;
+    }
+
+    console.log('Checking transactions from:', senderWalletAddress);
+    console.log('To script address:', scriptAddress);
+
+    // Query recent transactions from the sender wallet
+    const transactions = await blockfrost.addressesTransactions(senderWalletAddress, {
+      count: 20, // Check last 20 transactions
+      order: 'desc'
+    });
+
+    console.log(`Found ${transactions.length} transactions to check`);
+
+    // Check each transaction for 2 ADA deposit to script address
+    for (const tx of transactions) {
+      const txDetails = await blockfrost.txs(tx.tx_hash);
+      
+      // Check if this transaction has an input from sender wallet
+      const hasInputFromSender = txDetails.inputs.some(
+        input => input.address === senderWalletAddress
+      );
+      
+      // Check if this transaction has exactly 2 ADA output to script address
+      const hasOutputToScript = txDetails.outputs.some(
+        output => output.address === scriptAddress && 
+                 output.amount.some(asset => 
+                   asset.unit === 'lovelace' && 
+                   BigInt(asset.quantity) === 2000000n // 2 ADA in lovelace
+                 )
+      );
+
+      if (hasInputFromSender && hasOutputToScript) {
+        console.log('Valid 2 ADA deposit found, tx hash:', tx.tx_hash);
+        // Cache positive result for 10 minutes
+        walletCache.set(cacheKey, true, 600);
+        return true;
+      }
+    }
+    
+    console.log('No valid 2 ADA deposit found');
+    // Cache negative result for 2 minutes (shorter cache for negative results)
+    walletCache.set(cacheKey, false, 120);
+    return false;
+  } catch (error) {
+    console.error('Blockchain query error for deposit verification:', error);
+    return false;
+  }
+}
+
+/**
+ * @route POST /api/auth/verify-deposit
+ * @desc Verify 2 ADA deposit and initiate refund
+ * @access Private
+ */
+router.post('/verify-deposit', verifyToken, async (req, res) => {
+  try {
+    const { senderWalletAddress } = req.body;
+    const userId = req.user.id;
+
+    console.log('=== DEPOSIT VERIFICATION START ===');
+    console.log('User ID:', userId);
+    console.log('Sender wallet address:', senderWalletAddress);
+
+    if (!senderWalletAddress) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Sender wallet address is required' 
+      });
+    }
+
+    // Get user data
+    const user = await iagon.findUserById(userId);
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'User not found' 
+      });
+    }
+
+    console.log('Step 1: Verifying 2 ADA transaction from sender wallet...');
+    // Verify 2 ADA transaction from the sender wallet to the script address
+    const hasValidDeposit = await verify2AdaDeposit(senderWalletAddress);
+    
+    if (!hasValidDeposit) {
+      console.log('No valid 2 ADA deposit found');
+      return res.status(400).json({ 
+        success: false,
+        error: 'No valid 2 ADA deposit found from this wallet address' 
+      });
+    }
+
+    console.log('Step 2: Creating signup transaction with user data...');
+    // Create the signup transaction with user's commitment data
+    const commitmentData = {
+      phoneHash: user.phoneHash,
+      biometricHash: user.biometricHash || null,
+      passkeyHash: user.passkeyHash || null
+    };
+    
+    const txHash = await signupTxBuilder(senderWalletAddress, commitmentData);
+    console.log('Signup transaction created, txHash:', txHash);
+
+    console.log('Step 3: Updating user with transaction details...');
+    // Update user with sender wallet and transaction hash
+    await iagon.updateUser(userId, { 
+      senderWalletAddress,
+      txHash,
+      verified: true
+    });
+
+    console.log('Step 4: Initiating refund process...');
+    // Note: The actual refund will be handled by the auto-refund monitor
+    // which detects the UTXO and processes the refund automatically
+
+    console.log('=== DEPOSIT VERIFICATION SUCCESS ===');
+    res.status(200).json({ 
+      success: true,
+      message: 'Deposit verified successfully. Refund will be processed automatically.',
+      txHash,
+      senderWalletAddress
+    });
+  } catch (error) {
+    console.error('=== DEPOSIT VERIFICATION ERROR ===');
+    console.error('Error:', error);
+    console.error('=== END DEPOSIT VERIFICATION ERROR ===');
+    
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to verify deposit',
+      message: error.message
+    });
+  }
+});
+
 /**
  * @route POST /api/auth/verify
  * @desc Verify JWT token
