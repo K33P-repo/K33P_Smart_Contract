@@ -3,7 +3,7 @@
  * Tests the storage abstraction layer with both Iagon and PostgreSQL fallback
  */
 
-import { storageService } from './src/services/storage-abstraction.js';
+import { storageService } from './dist/services/storage-abstraction.js';
 import crypto from 'crypto';
 
 // Test configuration
