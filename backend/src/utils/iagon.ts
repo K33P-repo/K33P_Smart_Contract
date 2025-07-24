@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { dirname } from 'path';
+import FormData from 'form-data';
 
 // Ensure environment variables are loaded
 dotenv.config();
@@ -379,7 +380,6 @@ export async function storeData(key: string, data: string) {
     // Use API if available, otherwise use mock
     if (api) {
       // Create form data for file upload
-      const FormData = require('form-data');
       const formData = new FormData();
       
       // Create a buffer from the data string
@@ -448,7 +448,6 @@ export async function updateData(storageId: string, data: string) {
       await api.delete(`/storage/delete/${storageId}`);
       
       // Then upload the new data
-      const FormData = require('form-data');
       const formData = new FormData();
       
       const buffer = Buffer.from(data, 'utf8');

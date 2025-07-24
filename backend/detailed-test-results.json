@@ -1,0 +1,138 @@
+{
+  "timestamp": "2025-07-24T14:51:04.375Z",
+  "serverUrl": "https://k33p-backend-0kyx.onrender.com",
+  "totalTests": 16,
+  "passedTests": 16,
+  "failedTests": 0,
+  "errors": [],
+  "endpoints": [
+    {
+      "name": "Health Check",
+      "method": "GET",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/health",
+      "status": 200,
+      "responseTime": 949,
+      "success": true
+    },
+    {
+      "name": "API Status",
+      "method": "GET",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/status",
+      "status": 200,
+      "responseTime": 348,
+      "success": true
+    },
+    {
+      "name": "API Version",
+      "method": "GET",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/version",
+      "status": 200,
+      "responseTime": 315,
+      "success": true
+    },
+    {
+      "name": "Signup Test",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/auth/signup-test",
+      "status": 200,
+      "responseTime": 671,
+      "success": true
+    },
+    {
+      "name": "User Signup",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/auth/signup",
+      "status": 500,
+      "responseTime": 4094,
+      "success": true
+    },
+    {
+      "name": "User Login",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/auth/login",
+      "status": 400,
+      "responseTime": 318,
+      "success": true
+    },
+    {
+      "name": "Generate ZK Commitment",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/zk/commitment",
+      "status": 200,
+      "responseTime": 346,
+      "success": true
+    },
+    {
+      "name": "Generate ZK Proof",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/zk/proof",
+      "status": 200,
+      "responseTime": 437,
+      "success": true
+    },
+    {
+      "name": "Verify ZK Proof",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/zk/verify",
+      "status": 200,
+      "responseTime": 376,
+      "success": true
+    },
+    {
+      "name": "Get User Profile",
+      "method": "GET",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/user/profile?userId=test_user_123",
+      "status": 404,
+      "responseTime": 323,
+      "success": true
+    },
+    {
+      "name": "Update User Profile",
+      "method": "PUT",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/user/profile",
+      "status": 404,
+      "responseTime": 356,
+      "success": true
+    },
+    {
+      "name": "Verify Deposit",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/wallet/verify-deposit",
+      "status": 404,
+      "responseTime": 345,
+      "success": true
+    },
+    {
+      "name": "Get Wallet Balance",
+      "method": "GET",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/wallet/balance?address=addr_test1qztest123456789abcdef",
+      "status": 404,
+      "responseTime": 326,
+      "success": true
+    },
+    {
+      "name": "Request Refund",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/wallet/refund",
+      "status": 404,
+      "responseTime": 327,
+      "success": true
+    },
+    {
+      "name": "Store Data",
+      "method": "POST",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/storage/store",
+      "status": 404,
+      "responseTime": 324,
+      "success": true
+    },
+    {
+      "name": "Retrieve Data",
+      "method": "GET",
+      "url": "https://k33p-backend-0kyx.onrender.com/api/storage/retrieve?key=test_data_key",
+      "status": 404,
+      "responseTime": 343,
+      "success": true
+    }
+  ]
+}

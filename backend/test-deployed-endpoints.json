@@ -1,0 +1,612 @@
+{
+  "info": {
+    "_postman_id": "k33p-deployed-test-collection",
+    "name": "K33P Backend - Deployed Server Tests",
+    "description": "Comprehensive test collection for the deployed K33P backend server at https://k33p-backend-0kyx.onrender.com",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://k33p-backend-0kyx.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "admin_api_key",
+      "value": "your-admin-api-key-here",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "your-jwt-token-here",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Status",
+      "item": [
+        {
+          "name": "Root Endpoint",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/version",
+              "host": ["{{base_url}}"],
+              "path": ["api", "version"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Deposit Address",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/deposit-address",
+              "host": ["{{base_url}}"],
+              "path": ["api", "deposit-address"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication Endpoints",
+      "item": [
+        {
+          "name": "Signup Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"test\": \"data\",\n  \"timestamp\": \"{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup-test",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup-test"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"userId\": \"test_user_{{$randomUUID}}\",\n  \"userAddress\": \"addr_test1qztest123456789abcdef\",\n  \"verificationMethod\": \"phone\",\n  \"pin\": \"1234\",\n  \"biometricType\": \"fingerprint\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"pin\": \"1234\",\n  \"zkProof\": \"mock_proof\",\n  \"zkCommitment\": \"mock_commitment\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"addr_test1qztest123456789abcdef\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-wallet",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-wallet"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Zero-Knowledge Proof Endpoints",
+      "item": [
+        {
+          "name": "Generate ZK Commitment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1234567890\",\n  \"biometric\": \"sample_biometric_data\",\n  \"passkey\": \"sample_passkey\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/zk/commitment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "zk", "commitment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate ZK Proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1234567890\",\n  \"biometric\": \"sample_biometric_data\",\n  \"passkey\": \"sample_passkey\",\n  \"commitment\": \"sample_commitment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/zk/proof",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "zk", "proof"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify ZK Proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proof\": \"sample_proof\",\n  \"commitment\": \"sample_commitment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/zk/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "zk", "verify"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile (POST)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Profile (GET - Should Fail)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/user/addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user", "addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Retry Verification",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userAddress\": \"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/retry-verification",
+              "host": ["{{base_url}}"],
+              "path": ["api", "retry-verification"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Process Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userAddress\": \"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x\",\n  \"walletAddress\": \"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/refund",
+              "host": ["{{base_url}}"],
+              "path": ["api", "refund"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Wallet & Transaction Endpoints",
+      "item": [
+        {
+          "name": "Verify Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletAddress\": \"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x\",\n  \"amount\": 2000000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/wallet/verify-deposit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "wallet", "verify-deposit"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Wallet Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/wallet/balance?address=addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x",
+              "host": ["{{base_url}}"],
+              "path": ["api", "wallet", "balance"],
+              "query": [
+                {
+                  "key": "address",
+                  "value": "addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Request Refund",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userAddress\": \"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x\",\n  \"reason\": \"Test refund\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/wallet/refund",
+              "host": ["{{base_url}}"],
+              "path": ["api", "wallet", "refund"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin Endpoints",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{admin_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auto Verify Deposits",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{admin_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/auto-verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "auto-verify"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Monitor Transactions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{admin_api_key}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/monitor",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "monitor"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Process Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "x-api-key",
+                "value": "{{admin_api_key}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userAddress\": \"addr_test1vqymx67q572k8z5ln0850m35a6amuw25wg09slrwuv9g0vq7zup5x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/process-signup",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "process-signup"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Route-based Endpoints",
+      "item": [
+        {
+          "name": "UTXO Routes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/utxo",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utxo"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Users Routes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Phone Routes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/phone",
+              "host": ["{{base_url}}"],
+              "path": ["api", "phone"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recovery Routes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/recovery",
+              "host": ["{{base_url}}"],
+              "path": ["api", "recovery"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

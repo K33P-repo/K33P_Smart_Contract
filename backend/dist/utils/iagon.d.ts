@@ -6,7 +6,7 @@ export declare function deleteSessions(query: any): Promise<boolean>;
 export declare function findScriptUtxo(query: any): Promise<any>;
 export declare function createScriptUtxo(data: any): Promise<any>;
 export declare function updateScriptUtxo(id: string, data: any): Promise<any>;
-export declare function findScriptUtxos(query: any): Promise<any>;
+export declare function findScriptUtxos(query: any): Promise<any[]>;
 export declare function storeData(key: string, data: string): Promise<any>;
 export declare function retrieveData(storageId: string): Promise<any>;
 export declare function updateData(storageId: string, data: string): Promise<any>;
