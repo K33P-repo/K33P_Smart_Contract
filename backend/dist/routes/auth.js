@@ -11,65 +11,142 @@ import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 const router = express.Router();
 /**
+ * @route POST /api/auth/signup-test
+ * @desc Simple test endpoint to isolate JSON parsing issues
+ * @access Public
+ */
+router.post('/signup-test', async (req, res) => {
+    try {
+        console.log('=== SIGNUP TEST DEBUG START ===');
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+        console.log('Content-Type:', req.headers['content-type']);
+        console.log('Environment variables check:');
+        console.log('- JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
+        console.log('- JWT_EXPIRATION:', process.env.JWT_EXPIRATION || 'NOT SET (using default)');
+        console.log('- BLOCKFROST_API_KEY:', process.env.BLOCKFROST_API_KEY ? 'SET' : 'NOT SET');
+        console.log('=== END TEST DEBUG ===');
+        res.json({
+            success: true,
+            message: 'Test successful',
+            receivedBody: req.body,
+            timestamp: new Date().toISOString()
+        });
+    }
+    catch (error) {
+        console.error('=== SIGNUP TEST ERROR ===');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('=== END TEST ERROR ===');
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+/**
  * @route POST /api/auth/signup
  * @desc Register a new user with verification
  * @access Public
  */
 router.post('/signup', async (req, res) => {
     try {
+        console.log('=== SIGNUP DEBUG START ===');
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+        console.log('Content-Type:', req.headers['content-type']);
+        console.log('Environment variables check:');
+        console.log('- JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
+        console.log('- JWT_EXPIRATION:', process.env.JWT_EXPIRATION || 'NOT SET (using default)');
+        console.log('- BLOCKFROST_API_KEY:', process.env.BLOCKFROST_API_KEY ? 'SET' : 'NOT SET');
         const { userAddress, userId, phoneNumber, senderWalletAddress, pin, biometricData, verificationMethod = 'phone', biometricType, 
         // Legacy fields for backward compatibility
         walletAddress, phone, biometric, passkey } = req.body;
+        console.log('Extracted fields:', {
+            userAddress,
+            userId,
+            phoneNumber,
+            senderWalletAddress,
+            verificationMethod,
+            biometricType,
+            walletAddress,
+            phone,
+            hasPasskey: !!passkey,
+            hasBiometric: !!biometric,
+            hasBiometricData: !!biometricData
+        });
         // Support both new and legacy request formats
         const finalUserAddress = userAddress || walletAddress;
         const finalPhoneNumber = phoneNumber || phone;
         const finalBiometricData = biometricData || biometric;
+        console.log('Final processed fields:', {
+            finalUserAddress,
+            finalPhoneNumber,
+            hasFinalBiometricData: !!finalBiometricData
+        });
         // Validate required fields
         if (!finalPhoneNumber) {
+            console.log('Validation failed: Phone number is required');
             return res.status(400).json({ error: 'Phone number is required' });
         }
         if (!userId && !passkey) {
+            console.log('Validation failed: User ID or passkey is required');
             return res.status(400).json({ error: 'User ID or passkey is required' });
         }
-        // Hash user data
+        console.log('Step 1: Hashing phone...');
         const phoneHash = hashPhone(finalPhoneNumber);
+        console.log('Phone hash created successfully');
+        console.log('Step 2: Hashing biometric data...');
         const biometricHash = finalBiometricData ? hashBiometric(finalBiometricData) : null;
+        console.log('Biometric hash created:', !!biometricHash);
+        console.log('Step 3: Hashing passkey...');
         const passkeyHash = passkey ? hashPasskey(passkey) : null;
-        // Check if user already exists by phone hash
+        console.log('Passkey hash created:', !!passkeyHash);
+        console.log('Step 4: Checking existing user by phone...');
         const existingUser = await iagon.findUser({ phoneHash });
+        console.log('Existing user check completed, found:', !!existingUser);
         if (existingUser) {
+            console.log('User already exists with this phone number');
             return res.status(400).json({ error: 'User already exists with this phone number' });
         }
         // If user address is provided, check if it's already in use
         if (finalUserAddress) {
+            console.log('Step 5: Checking existing user by wallet address...');
             const existingWalletUser = await iagon.findUser({ walletAddress: finalUserAddress });
+            console.log('Existing wallet user check completed, found:', !!existingWalletUser);
             if (existingWalletUser) {
+                console.log('User already exists with this wallet address');
                 return res.status(400).json({ error: 'User already exists with this wallet address' });
             }
         }
-        // Generate ZK commitment
+        console.log('Step 6: Generating ZK commitment...');
         const commitmentData = { phoneHash };
         if (biometricHash)
             commitmentData.biometricHash = biometricHash;
         if (passkeyHash)
             commitmentData.passkeyHash = passkeyHash;
         const zkCommitment = generateZkCommitment(commitmentData);
-        // Simulate ZK proof
+        console.log('ZK commitment generated successfully');
+        console.log('Step 7: Generating ZK proof...');
         const proofData = { phone: finalPhoneNumber };
         if (finalBiometricData)
             proofData.biometric = finalBiometricData;
         if (passkey)
             proofData.passkey = passkey;
         const zkProof = generateZkProof(proofData, zkCommitment);
+        console.log('ZK proof generated, valid:', zkProof.isValid);
         if (!zkProof.isValid) {
+            console.log('ZK proof validation failed');
             return res.status(400).json({ error: 'Invalid ZK proof' });
         }
         // Create signup transaction if user address is provided
         let txHash = null;
         if (finalUserAddress) {
+            console.log('Step 8: Creating signup transaction...');
             txHash = await signupTxBuilder(finalUserAddress, commitmentData);
+            console.log('Signup transaction created, txHash:', txHash);
         }
-        // Create user in Iagon
+        console.log('Step 9: Creating user in Iagon...');
         const userData = {
             walletAddress: finalUserAddress || null,
             phoneHash,
@@ -87,23 +164,26 @@ router.post('/signup', async (req, res) => {
         if (pin)
             userData.pin = pin;
         const user = await iagon.createUser(userData);
-        // Generate JWT token
-        const token = jwt.sign({ id: user.id, walletAddress: user.walletAddress }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '24h' });
-        // Create session in Iagon
+        console.log('User created in Iagon successfully, ID:', user.id);
+        console.log('Step 10: Generating JWT token...');
+        const token = jwt.sign({ id: user.id, walletAddress: user.walletAddress }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+        console.log('JWT token generated successfully');
+        console.log('Step 11: Creating session...');
         await iagon.createSession({
             userId: user.id,
             token,
             expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000)
         });
-        // Build response in the format expected by the TypeScript server
+        console.log('Session created successfully');
+        console.log('Step 12: Building response...');
         const response = {
             success: true,
             data: {
-                verified: verificationMethod === 'phone' ? false : true, // Phone verification requires additional step
+                verified: verificationMethod === 'phone' ? false : true,
                 userId: userId || user.id,
                 verificationMethod,
                 message: 'Signup processed successfully',
-                depositAddress: finalUserAddress // Include deposit address in response
+                depositAddress: finalUserAddress
             },
             message: 'Signup processed successfully',
             token
@@ -111,14 +191,22 @@ router.post('/signup', async (req, res) => {
         if (txHash) {
             response.txHash = txHash;
         }
+        console.log('Response built successfully');
+        console.log('=== SIGNUP DEBUG END ===');
         res.status(201).json(response);
     }
     catch (error) {
-        console.error('Signup error:', error);
+        console.error('=== SIGNUP ERROR ===');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('=== END SIGNUP ERROR ===');
         res.status(500).json({
             success: false,
             error: 'Internal server error',
-            message: error.message
+            message: error.message,
+            debug: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            timestamp: new Date().toISOString()
         });
     }
 });

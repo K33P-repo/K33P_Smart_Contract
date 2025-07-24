@@ -3,7 +3,7 @@
  * Implements user data storage using Iagon's file storage services
  * with a custom user management layer on top of their storage API
  */
-import { SeedPhraseEntry } from './seed-phrase-storage';
+import { SeedPhraseEntry } from './seed-phrase-storage.js';
 export interface UserProfile {
     id: string;
     userId: string;

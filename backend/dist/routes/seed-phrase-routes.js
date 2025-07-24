@@ -5,7 +5,6 @@
 import express from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { SeedPhraseStorageService } from '../services/seed-phrase-storage.js';
-// NOK service imports removed
 import { authenticateToken } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rate-limiter.js';
 import { auditLogger } from '../middleware/audit-logger.js';

@@ -1,5 +1,5 @@
 import admin from 'firebase-admin';
-import { SendOtpResponse, VerifyOtpResponse, CancelVerificationResponse } from '../interfaces/otp';
+import { SendOtpResponse, VerifyOtpResponse, CancelVerificationResponse } from '../interfaces/otp.js';
 /**
  * Verify a Firebase authentication token from a mobile app
  * @param idToken The Firebase ID token to verify

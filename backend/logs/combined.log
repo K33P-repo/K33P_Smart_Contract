@@ -583,3 +583,7 @@
 {"ip":"::1","level":"info","message":"GET /?ide_webview_request_time=1753350994480","service":"k33p-backend","timestamp":"2025-07-24T09:57:18.829Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
 {"ip":"::1","level":"info","message":"GET /?ide_webview_request_time=1753350994480","service":"k33p-backend","timestamp":"2025-07-24T09:57:19.000Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
 {"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-07-24T09:57:20.020Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T10:45:55.761Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T10:45:55.765Z"}
+{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-24T10:45:58.098Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T10:45:58.100Z"}
