@@ -5,8 +5,9 @@
  */
 
 import crypto from 'crypto';
-import { findUser, createUser, findUserById, storeData, retrieveData, deleteData } from '../utils/iagon';
+import { findUser, createUser, findUserById, storeData, retrieveData, deleteData, updateData } from '../utils/iagon';
 import { logger } from '../utils/logger';
+import { UserDataStorageService } from './user-data-storage';
 
 // ============================================================================
 // INTERFACES AND TYPES
@@ -60,10 +61,11 @@ export interface RetrievalResult {
 export class EnhancedIagonService {
   private readonly ENCRYPTION_ALGORITHM = 'aes-256-gcm';
   private readonly KEY_DERIVATION_ITERATIONS = 100000;
-  private readonly STORAGE_VERSION = '1.0';
+  private readonly STORAGE_VERSION = '2.0';
+  private userDataService: UserDataStorageService;
 
   constructor() {
-    // No longer need to instantiate IagonAPI class
+    this.userDataService = new UserDataStorageService();
   }
 
   // ============================================================================
@@ -192,7 +194,7 @@ export class EnhancedIagonService {
   // ============================================================================
 
   /**
-   * Store encrypted seed phrase on Iagon
+   * Store encrypted seed phrase on Iagon with JSON format and user integration
    */
   async storeSeedPhrase(
     userId: string,
@@ -200,32 +202,59 @@ export class EnhancedIagonService {
     walletType: string,
     mnemonicType: '12-word' | '24-word',
     seedPhrase: string,
-    encryptionPassword: string
+    encryptionPassword: string,
+    walletAddress?: string
   ): Promise<StorageResult> {
     try {
       // Validate seed phrase
       this.validateSeedPhrase(seedPhrase, mnemonicType);
 
-      // Prepare metadata
+      // Prepare comprehensive metadata
       const metadata = {
         walletName,
         walletType,
         mnemonicType,
-        userId
+        userId,
+        walletAddress,
+        createdAt: new Date().toISOString(),
+        version: this.STORAGE_VERSION
       };
 
       // Encrypt seed phrase
       const encryptedData = this.encryptSeedPhrase(seedPhrase, encryptionPassword, metadata);
 
-      // Store on Iagon
-      const storageKey = `k33p_seed_${userId}_${Date.now()}_${crypto.randomBytes(8).toString('hex')}`;
-      const iagonStorageId = await storeData(storageKey, JSON.stringify(encryptedData));
+      // Create comprehensive JSON structure for storage
+      const seedPhraseDocument = {
+        id: crypto.randomUUID(),
+        userId,
+        walletName,
+        walletType,
+        mnemonicType,
+        walletAddress,
+        encryptedData,
+        metadata: {
+          ...metadata,
+          storageFormat: 'json',
+          encryptionMethod: this.ENCRYPTION_ALGORITHM,
+          keyDerivationIterations: this.KEY_DERIVATION_ITERATIONS
+        },
+        accessLog: {
+          createdAt: new Date().toISOString(),
+          lastAccessed: null,
+          accessCount: 0
+        },
+        version: this.STORAGE_VERSION
+      };
+
+      // Store on Iagon as JSON
+      const storageKey = `k33p_seed_${userId}_${seedPhraseDocument.id}_${Date.now()}`;
+      const iagonStorageId = await storeData(storageKey, JSON.stringify(seedPhraseDocument, null, 2));
 
       // Generate encryption key hash
       const encryptionKeyHash = this.generateKeyHash(encryptionPassword, encryptedData.salt);
 
       const seedPhraseMetadata: SeedPhraseMetadata = {
-        id: crypto.randomUUID(),
+        id: seedPhraseDocument.id,
         userId,
         walletName,
         walletType,
@@ -236,12 +265,28 @@ export class EnhancedIagonService {
         accessCount: 0
       };
 
+      // Add seed phrase to user profile
+      const seedPhraseEntry = {
+        id: seedPhraseDocument.id,
+        userId,
+        walletName,
+        walletType: walletType as 'cardano' | 'bitcoin' | 'ethereum' | 'other',
+        mnemonicType,
+        encryptedSeedPhrase: JSON.stringify(encryptedData),
+        encryptionSalt: encryptedData.salt,
+        walletAddress,
+        createdAt: new Date()
+      };
+
+      await this.userDataService.addSeedPhraseToUser(userId, seedPhraseEntry);
+
       logger.info(`Seed phrase stored successfully for user ${userId}`, {
         seedPhraseId: seedPhraseMetadata.id,
         walletName,
         walletType,
         mnemonicType,
-        iagonStorageId
+        iagonStorageId,
+        storageFormat: 'json'
       });
 
       return {
@@ -256,48 +301,78 @@ export class EnhancedIagonService {
   }
 
   /**
-   * Retrieve and decrypt seed phrase from Iagon
+   * Retrieve and decrypt seed phrase from Iagon with full JSON details
    */
   async retrieveSeedPhrase(
     iagonStorageId: string,
     encryptionPassword: string,
     requesterId: string
-  ): Promise<RetrievalResult> {
+  ): Promise<RetrievalResult & { fullDocument?: any }> {
     try {
       // Retrieve encrypted data from Iagon
-      const encryptedDataStr = await retrieveData(iagonStorageId);
-      const encryptedData: EncryptedSeedPhraseData = JSON.parse(encryptedDataStr);
+      const documentStr = await retrieveData(iagonStorageId);
+      const seedPhraseDocument = JSON.parse(documentStr);
+
+      // Check if this is the new JSON format or legacy format
+      let encryptedData: EncryptedSeedPhraseData;
+      let metadata: any;
+      
+      if (seedPhraseDocument.version && seedPhraseDocument.encryptedData) {
+        // New JSON format
+        encryptedData = seedPhraseDocument.encryptedData;
+        metadata = seedPhraseDocument.metadata;
+        
+        // Update access log
+        seedPhraseDocument.accessLog.lastAccessed = new Date().toISOString();
+        seedPhraseDocument.accessLog.accessCount += 1;
+        
+        // Update the document in storage
+        await updateData(iagonStorageId, JSON.stringify(seedPhraseDocument, null, 2));
+      } else {
+        // Legacy format
+        encryptedData = seedPhraseDocument;
+        metadata = encryptedData.metadata;
+      }
 
       // Decrypt seed phrase
       const seedPhrase = this.decryptSeedPhrase(encryptedData, encryptionPassword);
 
       // Validate decrypted seed phrase
-      this.validateSeedPhrase(seedPhrase, encryptedData.metadata.mnemonicType);
+      this.validateSeedPhrase(seedPhrase, metadata.mnemonicType);
 
-      const metadata: SeedPhraseMetadata = {
-        id: crypto.randomUUID(),
-        userId: encryptedData.metadata.userId || requesterId,
-        walletName: encryptedData.metadata.walletName,
-        walletType: encryptedData.metadata.walletType,
-        mnemonicType: encryptedData.metadata.mnemonicType,
+      const seedPhraseMetadata: SeedPhraseMetadata = {
+        id: seedPhraseDocument.id || crypto.randomUUID(),
+        userId: metadata.userId || requesterId,
+        walletName: metadata.walletName,
+        walletType: metadata.walletType,
+        mnemonicType: metadata.mnemonicType,
         encryptionKeyHash: this.generateKeyHash(encryptionPassword, encryptedData.salt),
-        createdAt: new Date(encryptedData.metadata.createdAt),
+        createdAt: new Date(metadata.createdAt),
         updatedAt: new Date(),
         lastAccessed: new Date(),
-        accessCount: 0
+        accessCount: seedPhraseDocument.accessLog?.accessCount || 0
       };
 
       logger.info(`Seed phrase retrieved successfully`, {
         requesterId,
-        walletName: metadata.walletName,
-        walletType: metadata.walletType,
-        mnemonicType: metadata.mnemonicType,
-        iagonStorageId
+        walletName: seedPhraseMetadata.walletName,
+        walletType: seedPhraseMetadata.walletType,
+        mnemonicType: seedPhraseMetadata.mnemonicType,
+        iagonStorageId,
+        accessCount: seedPhraseMetadata.accessCount,
+        format: seedPhraseDocument.version ? 'json' : 'legacy'
       });
 
       return {
         seedPhrase,
-        metadata
+        metadata: seedPhraseMetadata,
+        fullDocument: seedPhraseDocument.version ? {
+          id: seedPhraseDocument.id,
+          walletAddress: seedPhraseDocument.walletAddress,
+          accessLog: seedPhraseDocument.accessLog,
+          storageFormat: metadata.storageFormat,
+          version: seedPhraseDocument.version
+        } : undefined
       };
     } catch (error) {
       logger.error('Failed to retrieve seed phrase:', error);

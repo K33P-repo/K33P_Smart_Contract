@@ -44,6 +44,7 @@ export declare class EnhancedIagonService {
     private readonly ENCRYPTION_ALGORITHM;
     private readonly KEY_DERIVATION_ITERATIONS;
     private readonly STORAGE_VERSION;
+    private userDataService;
     constructor();
     /**
      * Derive encryption key from password using PBKDF2
@@ -74,13 +75,15 @@ export declare class EnhancedIagonService {
      */
     private validateSeedPhrase;
     /**
-     * Store encrypted seed phrase on Iagon
+     * Store encrypted seed phrase on Iagon with JSON format and user integration
      */
-    storeSeedPhrase(userId: string, walletName: string, walletType: string, mnemonicType: '12-word' | '24-word', seedPhrase: string, encryptionPassword: string): Promise<StorageResult>;
+    storeSeedPhrase(userId: string, walletName: string, walletType: string, mnemonicType: '12-word' | '24-word', seedPhrase: string, encryptionPassword: string, walletAddress?: string): Promise<StorageResult>;
     /**
-     * Retrieve and decrypt seed phrase from Iagon
+     * Retrieve and decrypt seed phrase from Iagon with full JSON details
      */
-    retrieveSeedPhrase(iagonStorageId: string, encryptionPassword: string, requesterId: string): Promise<RetrievalResult>;
+    retrieveSeedPhrase(iagonStorageId: string, encryptionPassword: string, requesterId: string): Promise<RetrievalResult & {
+        fullDocument?: any;
+    }>;
     /**
      * Delete seed phrase from Iagon storage
      */

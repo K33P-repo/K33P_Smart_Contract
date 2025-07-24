@@ -15,6 +15,8 @@ import zkRoutes from './routes/zk.js';
 import utxoRoutes from './routes/utxo.js';
 // @ts-ignore
 import authRoutes from './routes/auth.js';
+// @ts-ignore
+import userManagementRoutes from './routes/user-management.js';
 // Load environment variables
 dotenv.config();
 // Constants
@@ -85,6 +87,7 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/utxo', utxoRoutes);
 app.use('/api/zk', zkRoutes);
+app.use('/api/users', userManagementRoutes);
 // Validation error handler
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
