@@ -151,10 +151,7 @@ async function runCurlTests() {
       name: 'API Status',
       command: `curl -s -w "\nStatus: %{http_code}\nTime: %{time_total}s\n" "${BASE_URL}/api/status"`
     },
-    {
-      name: 'Signup Test',
-      command: `curl -s -w "\nStatus: %{http_code}\nTime: %{time_total}s\n" -X POST -H "Content-Type: application/json" -d "{\"test\":\"data\"}" "${BASE_URL}/api/auth/signup-test"`
-    }
+
   ];
   
   for (const test of tests) {

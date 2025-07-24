@@ -10,19 +10,7 @@ info: GET /api/health {"ip":"::ffff:10.222.26.34","service":"k33p-backend","time
 GET /api/health 200 0.421 ms - 114
 info: GET /api/deposit-address {"ip":"::1","service":"k33p-backend","timestamp":"2025-07-24T15:12:39.037Z","userAgent":"PostmanRuntime/7.39.1"}
 GET /api/deposit-address 200 1.067 ms - 178
-info: POST /api/auth/signup-test {"ip":"::1","service":"k33p-backend","timestamp":"2025-07-24T15:12:40.576Z","userAgent":"PostmanRuntime/7.39.1"}
-=== SIGNUP TEST DEBUG START ===
-Request body: {
-  "test": "data",
-  "timestamp": "1753369960"
-}
-Content-Type: application/json
-Environment variables check:
-- JWT_SECRET: SET
-- JWT_EXPIRATION: 3600000
-- BLOCKFROST_API_KEY: SET
-=== END TEST DEBUG ===
-POST /api/auth/signup-test 200 1.248 ms - 139
+
 info: POST /api/auth/signup {"ip":"::1","service":"k33p-backend","timestamp":"2025-07-24T15:12:42.020Z","userAgent":"PostmanRuntime/7.39.1"}
 === SIGNUP DEBUG START ===
 Request body: {

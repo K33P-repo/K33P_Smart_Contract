@@ -65,28 +65,7 @@
     {
       "name": "Authentication",
       "item": [
-        {
-          "name": "Signup Test",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"test\": \"data\",\n  \"timestamp\": \"{{$timestamp}}\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/auth/signup-test",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "auth", "signup-test"]
-            }
-          },
-          "response": []
-        },
+
         {
           "name": "User Signup",
           "request": {

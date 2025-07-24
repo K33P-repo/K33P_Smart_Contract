@@ -13,41 +13,6 @@ import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 const router = express.Router();
 /**
- * @route POST /api/auth/signup-test
- * @desc Simple test endpoint to isolate JSON parsing issues
- * @access Public
- */
-router.post('/signup-test', async (req, res) => {
-    try {
-        console.log('=== SIGNUP TEST DEBUG START ===');
-        console.log('Request body:', JSON.stringify(req.body, null, 2));
-        console.log('Content-Type:', req.headers['content-type']);
-        console.log('Environment variables check:');
-        console.log('- JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
-        console.log('- JWT_EXPIRATION:', process.env.JWT_EXPIRATION || 'NOT SET (using default)');
-        console.log('- BLOCKFROST_API_KEY:', process.env.BLOCKFROST_API_KEY ? 'SET' : 'NOT SET');
-        console.log('=== END TEST DEBUG ===');
-        res.json({
-            success: true,
-            message: 'Test successful',
-            receivedBody: req.body,
-            timestamp: new Date().toISOString()
-        });
-    }
-    catch (error) {
-        console.error('=== SIGNUP TEST ERROR ===');
-        console.error('Error name:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-        console.error('=== END TEST ERROR ===');
-        res.status(500).json({
-            success: false,
-            error: error.message,
-            timestamp: new Date().toISOString()
-        });
-    }
-});
-/**
  * @route POST /api/auth/signup
  * @desc Register a new user with verification
  * @access Public

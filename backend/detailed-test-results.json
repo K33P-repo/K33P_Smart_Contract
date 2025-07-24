@@ -1,8 +1,8 @@
 {
   "timestamp": "2025-07-24T14:51:04.375Z",
   "serverUrl": "https://k33p-backend-0kyx.onrender.com",
-  "totalTests": 16,
-  "passedTests": 16,
+  "totalTests": 15,
+  "passedTests": 15,
   "failedTests": 0,
   "errors": [],
   "endpoints": [
@@ -30,14 +30,7 @@
       "responseTime": 315,
       "success": true
     },
-    {
-      "name": "Signup Test",
-      "method": "POST",
-      "url": "https://k33p-backend-0kyx.onrender.com/api/auth/signup-test",
-      "status": 200,
-      "responseTime": 671,
-      "success": true
-    },
+
     {
       "name": "User Signup",
       "method": "POST",
