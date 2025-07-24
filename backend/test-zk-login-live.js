@@ -1,6 +1,6 @@
 // Test script for ZK login endpoint using PostgreSQL data
 import fetch from 'node-fetch';
-import pool from './src/database/config.js';
+import pool from './dist/database/config.js';
 
 const API_BASE_URL = 'http://localhost:3001/api';
 
@@ -18,7 +18,7 @@ async function testZkLoginEndpoint() {
         u.wallet_address,
         u.phone_hash,
         u.zk_commitment,
-        zp.proof_data,
+        zp.proof,
         zp.public_inputs
       FROM users u
       JOIN zk_proofs zp ON u.user_id = zp.user_id
@@ -40,9 +40,9 @@ async function testZkLoginEndpoint() {
     console.log(`   ZK Commitment: ${user.zk_commitment}`);
     console.log();
     
-    // Parse the proof data
-    const proofData = JSON.parse(user.proof_data);
-    const publicInputs = JSON.parse(user.public_inputs);
+    // Parse the proof data (handle both string and object formats)
+    const proofData = typeof user.proof === 'string' ? JSON.parse(user.proof) : user.proof;
+    const publicInputs = typeof user.public_inputs === 'string' ? JSON.parse(user.public_inputs) : user.public_inputs;
     
     // Test 1: Login with wallet address
     console.log('🔐 Test 1: Login with Wallet Address');

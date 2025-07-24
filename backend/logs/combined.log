@@ -859,3 +859,31 @@
 {"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T19:46:18.909Z"}
 {"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T19:46:18.914Z"}
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T19:46:18.916Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:47:16.320Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:48:15.938Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:49:15.933Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:50:15.959Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:51:16.107Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:52:16.304Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:53:15.926Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-24T19:53:17.077Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-24T19:53:17.098Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-24T19:53:17.107Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T19:53:45.904Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T19:53:45.909Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:53:47.611Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T19:53:49.518Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T19:53:51.398Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-24T19:53:52.681Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:54:15.919Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T19:54:54.923Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T19:54:54.944Z"}
+{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-24T19:54:58.770Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T19:54:58.857Z"}
+{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:55:05.773Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T19:55:07.888Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T19:55:07.891Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T19:55:13.270Z"}
+{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-24T19:55:13.271Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T19:55:13.274Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T19:55:13.275Z"}
