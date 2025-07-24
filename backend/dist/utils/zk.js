@@ -45,14 +45,28 @@ export function generateZkCommitment(hashedInputs) {
             throw new Error('Invalid hashed inputs');
         }
         const { phoneHash, biometricHash, passkeyHash } = hashedInputs;
-        if (!phoneHash || !biometricHash || !passkeyHash) {
-            throw new Error('Missing required hashed inputs');
+        // Phone hash is required, others are optional
+        if (!phoneHash) {
+            throw new Error('Phone hash is required');
         }
-        if (typeof phoneHash !== 'string' || typeof biometricHash !== 'string' || typeof passkeyHash !== 'string') {
-            throw new Error('All hashed inputs must be strings');
+        if (typeof phoneHash !== 'string') {
+            throw new Error('Phone hash must be a string');
         }
+        // Validate optional inputs if provided
+        if (biometricHash && typeof biometricHash !== 'string') {
+            throw new Error('Biometric hash must be a string');
+        }
+        if (passkeyHash && typeof passkeyHash !== 'string') {
+            throw new Error('Passkey hash must be a string');
+        }
+        // Build inputs array with available hashes
+        const inputs = [phoneHash];
+        if (biometricHash)
+            inputs.push(biometricHash);
+        if (passkeyHash)
+            inputs.push(passkeyHash);
         // Generate commitment using poseidonHash
-        return poseidonHash([phoneHash, biometricHash, passkeyHash]);
+        return poseidonHash(inputs);
     }
     catch (error) {
         console.error('Error in generateZkCommitment:', error.message);
@@ -77,8 +91,9 @@ export function generateZkProof(inputs, commitment) {
             throw new Error('Invalid commitment');
         }
         const { phone, biometric, passkey } = inputs;
-        if (!phone || !biometric || !passkey) {
-            throw new Error('Missing required inputs');
+        // Phone is required, others are optional
+        if (!phone) {
+            throw new Error('Phone is required');
         }
         // In a real implementation, this would generate an actual ZK proof
         // For simulation, we'll create a proof object with the commitment

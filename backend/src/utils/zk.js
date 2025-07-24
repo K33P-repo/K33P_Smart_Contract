@@ -51,16 +51,31 @@ export function generateZkCommitment(hashedInputs) {
     
     const { phoneHash, biometricHash, passkeyHash } = hashedInputs;
     
-    if (!phoneHash || !biometricHash || !passkeyHash) {
-      throw new Error('Missing required hashed inputs');
+    // phoneHash is required, others are optional
+    if (!phoneHash) {
+      throw new Error('phoneHash is required');
     }
     
-    if (typeof phoneHash !== 'string' || typeof biometricHash !== 'string' || typeof passkeyHash !== 'string') {
-      throw new Error('All hashed inputs must be strings');
+    if (typeof phoneHash !== 'string') {
+      throw new Error('phoneHash must be a string');
     }
+    
+    // Validate optional inputs if provided
+    if (biometricHash && typeof biometricHash !== 'string') {
+      throw new Error('biometricHash must be a string if provided');
+    }
+    
+    if (passkeyHash && typeof passkeyHash !== 'string') {
+      throw new Error('passkeyHash must be a string if provided');
+    }
+    
+    // Build input array dynamically based on available hashes
+    const inputs = [phoneHash];
+    if (biometricHash) inputs.push(biometricHash);
+    if (passkeyHash) inputs.push(passkeyHash);
     
     // Generate commitment using poseidonHash
-    return poseidonHash([phoneHash, biometricHash, passkeyHash]);
+    return poseidonHash(inputs);
   } catch (error) {
     console.error('Error in generateZkCommitment:', error.message);
     throw new Error(`Failed to generate ZK commitment: ${error.message}`);
@@ -88,8 +103,9 @@ export function generateZkProof(inputs, commitment) {
     
     const { phone, biometric, passkey } = inputs;
     
-    if (!phone || !biometric || !passkey) {
-      throw new Error('Missing required inputs');
+    // phone is required, others are optional
+    if (!phone) {
+      throw new Error('phone is required');
     }
     
     // In a real implementation, this would generate an actual ZK proof
