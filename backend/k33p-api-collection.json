@@ -1,0 +1,254 @@
+{
+  "info": {
+    "name": "K33P Backend API Collection",
+    "description": "Complete API collection for K33P Identity System Backend",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001",
+      "type": "string"
+    },
+    {
+      "key": "apiKey",
+      "value": "{{POSTMAN_API_KEY}}",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "health"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "status"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "API Version",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/version",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "version"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Signup Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"test\": \"data\",\n  \"timestamp\": \"{{$timestamp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup-test",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup-test"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"userId\": \"test_user_{{$randomUUID}}\",\n  \"userAddress\": \"addr_test1qztest123456789abcdef\",\n  \"verificationMethod\": \"phone\",\n  \"pin\": \"1234\",\n  \"biometricType\": \"fingerprint\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"pin\": \"1234\",\n  \"zkProof\": \"mock_proof\",\n  \"zkCommitment\": \"mock_commitment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Zero-Knowledge Proofs",
+      "item": [
+        {
+          "name": "Generate ZK Commitment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1234567890\",\n  \"biometric\": \"sample_biometric_data\",\n  \"passkey\": \"sample_passkey\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/zk/commitment",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "zk", "commitment"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Generate ZK Proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1234567890\",\n  \"biometric\": \"sample_biometric_data\",\n  \"passkey\": \"sample_passkey\",\n  \"commitment\": \"sample_commitment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/zk/proof",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "zk", "proof"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verify ZK Proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proof\": \"sample_proof\",\n  \"commitment\": \"sample_commitment\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/zk/verify",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "zk", "verify"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile?userId=test_user_123",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "test_user_123"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"test_user_123\",\n  \"phoneNumber\": \"+1234567890\",\n  \"verificationMethod\": \"phone\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
