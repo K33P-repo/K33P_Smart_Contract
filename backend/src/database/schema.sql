@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     user_id VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255),
     name VARCHAR(255),
-    wallet_address TEXT NOT NULL,
+    wallet_address TEXT,
     phone_hash VARCHAR(128),
     zk_commitment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

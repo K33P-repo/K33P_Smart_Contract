@@ -430,6 +430,15 @@ router.post('/change/verify-onchain',
         });
       }
       
+      // Check if user has a wallet address
+      if (!user.wallet_address) {
+        return res.status(400).json({
+          success: false,
+          message: 'User wallet address not found. Please add a wallet address first.',
+          error: 'NO_WALLET_ADDRESS'
+        });
+      }
+      
       // Verify transaction using K33P manager
       const verificationResult = await k33pManager.verifyTransactionByWalletAddress(
         user.wallet_address,

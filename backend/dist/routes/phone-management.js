@@ -336,6 +336,14 @@ router.post('/change/verify-onchain', authenticateToken, body('requestId').isUUI
                 error: 'USER_NOT_FOUND'
             });
         }
+        // Check if user has a wallet address
+        if (!user.wallet_address) {
+            return res.status(400).json({
+                success: false,
+                message: 'User wallet address not found. Please add a wallet address first.',
+                error: 'NO_WALLET_ADDRESS'
+            });
+        }
         // Verify transaction using K33P manager
         const verificationResult = await k33pManager.verifyTransactionByWalletAddress(user.wallet_address, 2000000n // 2 ADA
         );

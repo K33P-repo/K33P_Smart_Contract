@@ -10,7 +10,7 @@ export interface User {
   user_id: string;
   email?: string;
   name?: string;
-  wallet_address: string;
+  wallet_address?: string;
   phone_hash?: string;
   zk_commitment?: string;
   created_at?: Date;
