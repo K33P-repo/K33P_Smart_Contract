@@ -30,12 +30,80 @@ app.use('/api/recovery', recoveryRoutes);
 
 // Root route
 app.get('/', (req, res) => {
-  res.status(200).json({ message: 'K33P Backend API is running. See /api/health for status.' });
+  res.status(200).json({ 
+    message: 'K33P Backend API is running', 
+    version: '1.0.0',
+    endpoints: [
+      '/api/health',
+      '/api/status',
+      '/api/version',
+      '/api/auth/*',
+      '/api/utxo/*',
+      '/api/zk/*',
+      '/api/user/profile'
+    ]
+  });
 });
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
+});
+
+// API Status endpoint
+app.get('/api/status', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    version: '1.0.0',
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// API Version endpoint
+app.get('/api/version', (req, res) => {
+  res.status(200).json({
+    version: '1.0.0',
+    apiVersion: 'v1',
+    buildDate: new Date().toISOString(),
+    features: ['auth', 'utxo', 'zk', 'users']
+  });
+});
+
+// User Profile endpoints
+app.get('/api/user/profile', (req, res) => {
+  res.status(404).json({ 
+    success: false,
+    error: 'GET method not supported for user profile. Use POST with user data.' 
+  });
+});
+
+app.post('/api/user/profile', (req, res) => {
+  const { walletAddress, userId } = req.body;
+  
+  if (!walletAddress && !userId) {
+    return res.status(400).json({ 
+      success: false,
+      error: 'Either walletAddress or userId is required' 
+    });
+  }
+  
+  // Mock response for now
+  res.status(200).json({
+    success: true,
+    data: {
+      userId: userId || 'mock_user_id',
+      userAddress: walletAddress || 'mock_wallet_address',
+      verified: false,
+      signupCompleted: false,
+      refunded: false,
+      amount: '0',
+      createdAt: new Date().toISOString(),
+      verificationAttempts: 0
+    },
+    message: 'User profile retrieved (mock data)'
+  });
 });
 
 // Also keep the original endpoint for backward compatibility

@@ -18,6 +18,10 @@ import utxoRoutes from './routes/utxo.js';
 import authRoutes from './routes/auth.js';
 // @ts-ignore
 import userManagementRoutes from './routes/user-management.js';
+// @ts-ignore
+import phoneRoutes from './routes/phone-management.js';
+// @ts-ignore
+import recoveryRoutes from './routes/account-recovery.js';
 
 
 // Load environment variables
@@ -106,6 +110,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/utxo', utxoRoutes);
 app.use('/api/zk', zkRoutes);
 app.use('/api/users', userManagementRoutes);
+app.use('/api/phone', phoneRoutes);
+app.use('/api/recovery', recoveryRoutes);
 
 
 // Validation error handler
@@ -252,7 +258,10 @@ app.get('/', (req: Request, res: Response) => {
       '/api/auth/*',
       '/api/utxo/*',
       '/api/zk/*',
-      '/api/users/*'
+      '/api/users/*',
+      '/api/phone/*',
+      '/api/recovery/*',
+      '/api/user/profile'
     ]
   }, undefined, 'Welcome to K33P Backend API'));
 });

@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc && node fix-imports.js",
-    "start": "node dist/index.js",
-    "dev": "ts-node --esm k33p-backend-server.ts",
-    "dev:watch": "nodemon --exec ts-node --esm k33p-backend-server.ts",
+    "start": "node dist/k33p-backend-server.js",
+    "dev": "ts-node --esm src/k33p-backend-server.ts",
+    "dev:watch": "nodemon --exec ts-node --esm src/k33p-backend-server.ts",
     "test": "npm run build && npm start",
     "clean": "rm -rf dist",
     "lint": "eslint . --ext .ts",

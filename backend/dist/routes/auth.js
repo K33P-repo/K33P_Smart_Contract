@@ -294,5 +294,63 @@ async function verify2AdaTransaction(walletAddress) {
         return false;
     }
 }
+/**
+ * @route POST /api/auth/verify
+ * @desc Verify JWT token
+ * @access Public
+ */
+router.post('/verify', async (req, res) => {
+    try {
+        const { token } = req.body;
+        if (!token) {
+            return res.status(400).json({
+                success: false,
+                error: 'Token is required'
+            });
+        }
+        // Verify JWT token
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            // Check if user exists
+            const user = await iagon.findUserById(decoded.id);
+            if (!user) {
+                return res.status(404).json({
+                    success: false,
+                    error: 'User not found'
+                });
+            }
+            // Check if session exists in Iagon
+            const session = await iagon.findSession({ userId: decoded.id, token });
+            if (!session) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Invalid session'
+                });
+            }
+            res.status(200).json({
+                success: true,
+                message: 'Token is valid',
+                user: {
+                    id: user.id,
+                    walletAddress: user.walletAddress,
+                    createdAt: user.createdAt
+                }
+            });
+        }
+        catch (jwtError) {
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid or expired token'
+            });
+        }
+    }
+    catch (error) {
+        console.error('Token verification error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to verify token'
+        });
+    }
+});
 export default router;
 //# sourceMappingURL=auth.js.map
