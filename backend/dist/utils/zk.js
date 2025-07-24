@@ -45,21 +45,21 @@ export function generateZkCommitment(hashedInputs) {
             throw new Error('Invalid hashed inputs');
         }
         const { phoneHash, biometricHash, passkeyHash } = hashedInputs;
-        // Phone hash is required, others are optional
+        // phoneHash is required, others are optional
         if (!phoneHash) {
-            throw new Error('Phone hash is required');
+            throw new Error('phoneHash is required');
         }
         if (typeof phoneHash !== 'string') {
-            throw new Error('Phone hash must be a string');
+            throw new Error('phoneHash must be a string');
         }
         // Validate optional inputs if provided
         if (biometricHash && typeof biometricHash !== 'string') {
-            throw new Error('Biometric hash must be a string');
+            throw new Error('biometricHash must be a string if provided');
         }
         if (passkeyHash && typeof passkeyHash !== 'string') {
-            throw new Error('Passkey hash must be a string');
+            throw new Error('passkeyHash must be a string if provided');
         }
-        // Build inputs array with available hashes
+        // Build input array dynamically based on available hashes
         const inputs = [phoneHash];
         if (biometricHash)
             inputs.push(biometricHash);
@@ -91,9 +91,9 @@ export function generateZkProof(inputs, commitment) {
             throw new Error('Invalid commitment');
         }
         const { phone, biometric, passkey } = inputs;
-        // Phone is required, others are optional
+        // phone is required, others are optional
         if (!phone) {
-            throw new Error('Phone is required');
+            throw new Error('phone is required');
         }
         // In a real implementation, this would generate an actual ZK proof
         // For simulation, we'll create a proof object with the commitment
