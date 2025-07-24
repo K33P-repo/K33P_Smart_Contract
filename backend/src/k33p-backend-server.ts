@@ -19,9 +19,9 @@ import authRoutes from './routes/auth.js';
 // @ts-ignore
 import userManagementRoutes from './routes/user-management.js';
 // @ts-ignore
-import phoneRoutes from './routes/phone-management.js';
+import phoneRoutes from './routes/phone-management';
 // @ts-ignore
-import recoveryRoutes from './routes/account-recovery.js';
+import recoveryRoutes from './routes/account-recovery';
 
 
 // Load environment variables
