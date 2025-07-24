@@ -815,3 +815,18 @@
 {"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T15:35:22.894Z","userAgent":"curl/8.9.1"}
 {"level":"info","message":"User stored successfully","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-07-24T15:35:28.012Z","userId":"new_test_user_456"}
 {"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:36:03.045Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:37:03.088Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:38:02.944Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:39:04.979Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:40:02.994Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:41:03.025Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:42:03.075Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T15:42:22.452Z","userAgent":"curl/8.9.1"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T15:42:33.439Z","userAgent":"curl/8.9.1"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T15:42:44.181Z","userAgent":"curl/8.9.1"}
+{"attempt":1,"error":"null value in column \"wallet_address\" of relation \"users\" violates not-null constraint","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T15:42:44.538Z"}
+{"attempt":2,"error":"null value in column \"wallet_address\" of relation \"users\" violates not-null constraint","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T15:42:45.714Z"}
+{"attempt":3,"error":"null value in column \"wallet_address\" of relation \"users\" violates not-null constraint","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T15:42:47.906Z"}
+{"error":"null value in column \"wallet_address\" of relation \"users\" violates not-null constraint","level":"error","message":"Failed to store user","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-07-24T15:42:47.908Z","userId":"test_optional_wallet"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:43:03.177Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T15:44:03.230Z"}
