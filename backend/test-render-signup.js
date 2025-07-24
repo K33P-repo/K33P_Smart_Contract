@@ -9,18 +9,18 @@ const RENDER_BASE_URL = 'https://k33p-backend-0kyx.onrender.com';
 
 async function testSignupEndpoint() {
     console.log('🚀 Testing K33P Backend Signup Endpoint on Render');
-    console.log('URL:', `${RENDER_BASE_URL}/api/signup`);
+    console.log('URL:', `${RENDER_BASE_URL}/api/auth/signup`);
     console.log('\n' + '='.repeat(50));
 
     try {
         // Test data using the correct JSON.stringify approach
         const signupData = {
-            userAddress: "addr_test1qr8z9x2y3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5q",
-            userId: "testuser123",
+            userAddress: "addr_test1qr8z9x2y3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5r",
+            userId: "testuser234",
             phoneNumber: "1234567890",
-            senderWalletAddress: "addr_test1qr8z9x2y3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5q",
-            pin: "1234",
-            biometricData: "test456",
+            senderWalletAddress: "addr_test1qr8z9x2y3a4b5c6d7e8f9g0h1i2j3k4l5m6n7o8p9q0r1s2t3u4v5w6x7y8z9a0b1c2d3e4f5g6h7i8j9k0l1m2n3o4p5r",
+            pin: "2345",
+            biometricData: "test466",
             verificationMethod: "pin",
             biometricType: "fingerprint"
         };
@@ -29,7 +29,7 @@ async function testSignupEndpoint() {
         console.log(JSON.stringify(signupData, null, 2));
         console.log('\n' + '-'.repeat(30));
 
-        const response = await fetch(`${RENDER_BASE_URL}/api/signup`, {
+        const response = await fetch(`${RENDER_BASE_URL}/api/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -283,6 +283,29 @@ export class AutoRefundMonitor {
         }
     }
     /**
+     * Create user record if it doesn't exist for automatic refunds
+     */
+    async createUserIfNotExists(userId, walletAddress) {
+        try {
+            const existingUser = await dbService.getUserById(userId);
+            if (!existingUser) {
+                await dbService.createUser({
+                    userId: userId,
+                    walletAddress: walletAddress,
+                    name: 'Auto Refund User',
+                    email: undefined,
+                    phoneHash: undefined,
+                    zkCommitment: undefined
+                });
+                logger.info(`✅ Created user record for automatic refund: ${userId}`);
+            }
+        }
+        catch (error) {
+            logger.error(`❌ Error creating user record for ${userId}:`, error);
+            throw error;
+        }
+    }
+    /**
      * Process automatic refund for an incoming transaction
      */
     async processAutomaticRefund(transaction) {
@@ -290,10 +313,13 @@ export class AutoRefundMonitor {
             // Create or update deposit record
             const existingDeposit = await dbService.getDepositByUserAddress(transaction.fromAddress);
             if (!existingDeposit) {
+                const userId = `auto_${Date.now()}`; // Auto-generated user ID
+                // Create user record first to avoid foreign key constraint error
+                await this.createUserIfNotExists(userId, transaction.fromAddress);
                 // Create new deposit record for tracking
                 await dbService.createDeposit({
                     userAddress: transaction.fromAddress,
-                    userId: `auto_${Date.now()}`, // Auto-generated user ID
+                    userId: userId,
                     phoneHash: '', // Empty for automatic deposits
                     zkProof: '', // Empty for automatic deposits
                     txHash: transaction.txHash,

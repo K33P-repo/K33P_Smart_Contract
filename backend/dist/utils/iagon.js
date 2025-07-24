@@ -14,18 +14,19 @@ const rootDir = path.resolve(__dirname, '../..');
 // Load environment variables from .env file
 dotenv.config({ path: path.join(rootDir, '.env') });
 const IAGON_API_URL = process.env.IAGON_API_URL;
-const IAGON_API_KEY = process.env.IAGON_API_KEY;
+const IAGON_PERSONAL_ACCESS_TOKEN = process.env.IAGON_PERSONAL_ACCESS_TOKEN;
 // Debug environment variables
 console.log('Environment variables:');
 console.log('IAGON_API_URL:', process.env.IAGON_API_URL);
-console.log('IAGON_API_KEY:', process.env.IAGON_API_KEY ? '[REDACTED]' : undefined);
+console.log('IAGON_PERSONAL_ACCESS_TOKEN:', process.env.IAGON_PERSONAL_ACCESS_TOKEN ? '[REDACTED]' : undefined);
 console.log('NODE_ENV:', process.env.NODE_ENV);
-// Validate API URL and key
+// Validate API URL and token
 if (!IAGON_API_URL) {
     console.warn('IAGON_API_URL is not set. Using mock implementation.');
 }
-if (!IAGON_API_KEY) {
-    console.warn('IAGON_API_KEY is not set. Using mock implementation.');
+if (!IAGON_PERSONAL_ACCESS_TOKEN) {
+    console.warn('IAGON_PERSONAL_ACCESS_TOKEN is not set. Using mock implementation.');
+    console.warn('Please generate a Personal Access Token from https://app.iagon.com/ settings page.');
 }
 // Create a mock database for development/testing when API is not available
 import fs from 'fs';
@@ -81,13 +82,13 @@ function isValidUrl(urlString) {
 const createApiClient = () => {
     console.log('Creating API client with:', {
         url: IAGON_API_URL,
-        hasKey: !!IAGON_API_KEY,
+        hasToken: !!IAGON_PERSONAL_ACCESS_TOKEN,
         isValidUrl: IAGON_API_URL ? isValidUrl(IAGON_API_URL) : false
     });
-    if (!IAGON_API_URL || !IAGON_API_KEY || !isValidUrl(IAGON_API_URL)) {
+    if (!IAGON_API_URL || !IAGON_PERSONAL_ACCESS_TOKEN || !isValidUrl(IAGON_API_URL)) {
         console.warn('Using mock implementation because:', {
             missingUrl: !IAGON_API_URL,
-            missingKey: !IAGON_API_KEY,
+            missingToken: !IAGON_PERSONAL_ACCESS_TOKEN,
             invalidUrl: IAGON_API_URL ? !isValidUrl(IAGON_API_URL) : false
         });
         return null; // Will use mock implementation
@@ -95,7 +96,10 @@ const createApiClient = () => {
     console.log('Successfully created API client for production use');
     return axios.create({
         baseURL: IAGON_API_URL,
-        headers: { 'Authorization': `Bearer ${IAGON_API_KEY}` },
+        headers: {
+            'Authorization': `Bearer ${IAGON_PERSONAL_ACCESS_TOKEN}`,
+            'Content-Type': 'application/json'
+        },
         timeout: 10000 // 10 second timeout
     });
 };
@@ -108,11 +112,13 @@ export async function findUser(query) {
             throw new Error('Invalid query parameters');
         }
         // Use API if available, otherwise use mock
+        // Note: Iagon API v2 doesn't have a direct /users endpoint
         if (api) {
-            const res = await api.get('/users', { params: query });
-            return res.data[0] || null;
+            console.warn('Iagon API available but using mock implementation for user search');
+            console.warn('Iagon API v2 focuses on storage services, not user management');
         }
-        else {
+        // Mock implementation (used in all cases for now)
+        {
             // Mock implementation
             const key = Object.keys(query)[0];
             const value = query[key];
@@ -138,11 +144,16 @@ export async function createUser(data) {
             }
         }
         // Use API if available, otherwise use mock
+        // Note: Iagon API v2 doesn't have a direct /users endpoint
+        // This implementation uses mock data until proper storage endpoints are identified
         if (api) {
-            const res = await api.post('/users', data);
-            return res.data;
+            // For now, we'll use mock implementation even with API available
+            // TODO: Implement proper Iagon storage service integration
+            console.warn('Iagon API available but using mock implementation for user creation');
+            console.warn('Iagon API v2 focuses on storage services, not user management');
         }
-        else {
+        // Mock implementation (used in all cases for now)
+        {
             // Mock implementation
             const newUser = {
                 id: crypto.randomUUID(),
@@ -167,11 +178,13 @@ export async function findUserById(id) {
             throw new Error('Invalid user ID');
         }
         // Use API if available, otherwise use mock
+        // Note: Iagon API v2 doesn't have a direct /users endpoint
         if (api) {
-            const res = await api.get(`/users/${id}`);
-            return res.data;
+            console.warn('Iagon API available but using mock implementation for user lookup');
+            console.warn('Iagon API v2 focuses on storage services, not user management');
         }
-        else {
+        // Mock implementation (used in all cases for now)
+        {
             // Mock implementation
             return mockDb.users.find(user => user.id === id) || null;
         }

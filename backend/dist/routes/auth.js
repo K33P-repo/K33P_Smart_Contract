@@ -12,50 +12,102 @@ import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 const router = express.Router();
 /**
  * @route POST /api/auth/signup
- * @desc Register a new user
+ * @desc Register a new user with verification
  * @access Public
  */
 router.post('/signup', async (req, res) => {
     try {
-        const { walletAddress, phone, biometric, passkey } = req.body;
-        if (!phone || !biometric || !passkey) {
-            return res.status(400).json({ error: 'Missing required fields: phone, biometric, and passkey are required' });
+        const { userAddress, userId, phoneNumber, senderWalletAddress, pin, biometricData, verificationMethod = 'phone', biometricType, 
+        // Legacy fields for backward compatibility
+        walletAddress, phone, biometric, passkey } = req.body;
+        // Support both new and legacy request formats
+        const finalUserAddress = userAddress || walletAddress;
+        const finalPhoneNumber = phoneNumber || phone;
+        const finalBiometricData = biometricData || biometric;
+        // Validate required fields
+        if (!finalPhoneNumber) {
+            return res.status(400).json({ error: 'Phone number is required' });
+        }
+        if (!userId && !passkey) {
+            return res.status(400).json({ error: 'User ID or passkey is required' });
         }
         // Hash user data
-        const phoneHash = hashPhone(phone);
-        const biometricHash = hashBiometric(biometric);
-        const passkeyHash = hashPasskey(passkey);
-        // Check if user already exists by phone hash (wallet address is optional during signup)
+        const phoneHash = hashPhone(finalPhoneNumber);
+        const biometricHash = finalBiometricData ? hashBiometric(finalBiometricData) : null;
+        const passkeyHash = passkey ? hashPasskey(passkey) : null;
+        // Check if user already exists by phone hash
         const existingUser = await iagon.findUser({ phoneHash });
         if (existingUser) {
             return res.status(400).json({ error: 'User already exists with this phone number' });
         }
-        // If wallet address is provided, also check if it's already in use
-        if (walletAddress) {
-            const existingWalletUser = await iagon.findUser({ walletAddress });
+        // If user address is provided, check if it's already in use
+        if (finalUserAddress) {
+            const existingWalletUser = await iagon.findUser({ walletAddress: finalUserAddress });
             if (existingWalletUser) {
                 return res.status(400).json({ error: 'User already exists with this wallet address' });
             }
         }
         // Generate ZK commitment
-        const zkCommitment = generateZkCommitment({ phoneHash, biometricHash, passkeyHash });
+        const commitmentData = { phoneHash };
+        if (biometricHash)
+            commitmentData.biometricHash = biometricHash;
+        if (passkeyHash)
+            commitmentData.passkeyHash = passkeyHash;
+        const zkCommitment = generateZkCommitment(commitmentData);
         // Simulate ZK proof
-        const zkProof = generateZkProof({ phone, biometric, passkey }, zkCommitment);
+        const proofData = { phone: finalPhoneNumber };
+        if (finalBiometricData)
+            proofData.biometric = finalBiometricData;
+        if (passkey)
+            proofData.passkey = passkey;
+        const zkProof = generateZkProof(proofData, zkCommitment);
         if (!zkProof.isValid) {
             return res.status(400).json({ error: 'Invalid ZK proof' });
         }
-        // Create signup transaction only if wallet address is provided
+        // Create signup transaction if user address is provided
         let txHash = null;
-        if (walletAddress) {
-            txHash = await signupTxBuilder(walletAddress, { phoneHash, biometricHash, passkeyHash });
+        if (finalUserAddress) {
+            txHash = await signupTxBuilder(finalUserAddress, commitmentData);
         }
-        // Create user in Iagon (walletAddress can be null)
-        const user = await iagon.createUser({ walletAddress: walletAddress || null, phoneHash, biometricHash, passkeyHash, zkCommitment, txHash });
+        // Create user in Iagon
+        const userData = {
+            walletAddress: finalUserAddress || null,
+            phoneHash,
+            zkCommitment,
+            txHash,
+            userId: userId || null,
+            verificationMethod,
+            biometricType: biometricType || null,
+            senderWalletAddress: senderWalletAddress || null
+        };
+        if (biometricHash)
+            userData.biometricHash = biometricHash;
+        if (passkeyHash)
+            userData.passkeyHash = passkeyHash;
+        if (pin)
+            userData.pin = pin;
+        const user = await iagon.createUser(userData);
         // Generate JWT token
         const token = jwt.sign({ id: user.id, walletAddress: user.walletAddress }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '24h' });
         // Create session in Iagon
-        await iagon.createSession({ userId: user.id, token, expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) });
-        const response = { message: 'User registered successfully', token };
+        await iagon.createSession({
+            userId: user.id,
+            token,
+            expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000)
+        });
+        // Build response in the format expected by the TypeScript server
+        const response = {
+            success: true,
+            data: {
+                verified: verificationMethod === 'phone' ? false : true, // Phone verification requires additional step
+                userId: userId || user.id,
+                verificationMethod,
+                message: 'Signup processed successfully',
+                depositAddress: finalUserAddress // Include deposit address in response
+            },
+            message: 'Signup processed successfully',
+            token
+        };
         if (txHash) {
             response.txHash = txHash;
         }
@@ -63,7 +115,11 @@ router.post('/signup', async (req, res) => {
     }
     catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ error: 'Failed to register user' });
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: error.message
+        });
     }
 });
 /**

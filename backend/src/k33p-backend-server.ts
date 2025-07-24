@@ -181,68 +181,7 @@ app.get('/api/deposit-address', async (req: Request, res: Response) => {
   }
 });
 
-// Record signup with verification
-app.post('/api/signup', [
-  body('userAddress')
-    .isLength({ min: 10 })
-    .withMessage('User address must be at least 10 characters'),
-  body('userId')
-    .isLength({ min: 3, max: 50 })
-    .matches(/^[a-zA-Z0-9_]+$/)
-    .withMessage('User ID must be 3-50 characters, alphanumeric and underscores only'),
-  body('phoneNumber')
-    .isLength({ min: 10 })
-    .withMessage('Phone number must be at least 10 characters'),
-  body('senderWalletAddress')
-    .optional() // Make senderWalletAddress optional
-    .matches(/^addr_(test|vkh|vk)[a-zA-Z0-9]+$/)
-    .withMessage('Invalid sender wallet address format'),
-  body('pin')
-    .optional()
-    .isLength({ min: 4, max: 4 })
-    .isNumeric()
-    .withMessage('PIN must be exactly 4 digits'),
-  body('verificationMethod')
-    .optional()
-    .isIn(['phone', 'pin', 'biometric'])
-    .withMessage('Verification method must be one of: phone, pin, biometric'),
-  body('biometricType')
-    .optional()
-    .isIn(['fingerprint', 'faceid', 'voice', 'iris'])
-    .withMessage('Biometric type must be one of: fingerprint, faceid, voice, iris')
-], handleValidationErrors, async (req: Request, res: Response) => {
-  try {
-    const { userAddress, userId, phoneNumber, senderWalletAddress, pin, biometricData, verificationMethod = 'phone', biometricType }: SignupRequest = req.body;
-    
-    logger.info('Processing signup request', { userId, userAddress, senderWalletAddress, verificationMethod, biometricType });
-    
-    const result = await k33pManager.recordSignupWithVerification(
-      userAddress, 
-      userId, 
-      phoneNumber, 
-      senderWalletAddress, // Using sender wallet address instead of txHash
-      pin,
-      biometricData,
-      verificationMethod,
-      biometricType
-    );
-    
-    if (result.success) {
-      res.json(createResponse(true, {
-        verified: result.verified,
-        userId,
-        verificationMethod,
-        message: result.message,
-        depositAddress: result.depositAddress // Include deposit address in response
-      }, 'Signup processed successfully'));
-    } else {
-      res.status(400).json(createResponse(false, undefined, undefined, result.message));
-    }
-  } catch (error) {
-    logger.error('Error processing signup:', error);
-    res.status(500).json(createResponse(false, undefined, undefined, 'Internal server error'));
-  }
-});
+// Signup route removed - use /api/auth/signup instead
 
 // Retry verification for a user
 app.post('/api/retry-verification', [

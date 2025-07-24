@@ -43,6 +43,10 @@ export declare class AutoRefundMonitor {
      */
     private processIncomingTransaction;
     /**
+     * Create user record if it doesn't exist for automatic refunds
+     */
+    private createUserIfNotExists;
+    /**
      * Process automatic refund for an incoming transaction
      */
     private processAutomaticRefund;
