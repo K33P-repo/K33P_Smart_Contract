@@ -5,13 +5,13 @@
 
 import express from 'express';
 import { body, param, query, validationResult } from 'express-validator';
-import { SeedPhraseStorageService } from '../services/seed-phrase-storage';
-// NOK service imports removed
-import { authenticateToken } from '../middleware/auth';
-import { createRateLimiter } from '../middleware/rate-limiter';
-import { auditLogger } from '../middleware/audit-logger';
+import { SeedPhraseStorageService } from '../services/seed-phrase-storage.js';
+
+import { authenticateToken } from '../middleware/auth.js';
+import { createRateLimiter } from '../middleware/rate-limiter.js';
+import { auditLogger } from '../middleware/audit-logger.js';
 import { Pool } from 'pg';
-import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db';
+import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db.js';
 
 // Extend Express Request interface to include user
 declare global {

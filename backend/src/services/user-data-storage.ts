@@ -5,9 +5,9 @@
  */
 
 import crypto from 'crypto';
-import { storeData, retrieveData, updateData, deleteData } from '../utils/iagon';
-import { logger } from '../utils/logger';
-import { SeedPhraseEntry } from './seed-phrase-storage';
+import { storeData, retrieveData, updateData, deleteData } from '../utils/iagon.js';
+import { logger } from '../utils/logger.js';
+import { SeedPhraseEntry } from './seed-phrase-storage.js';
 
 // ============================================================================
 // INTERFACES AND TYPES

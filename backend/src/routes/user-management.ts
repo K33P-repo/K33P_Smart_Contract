@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import { UserDataStorageService } from '../services/user-data-storage';
-import { EnhancedIagonService } from '../services/enhanced-iagon-service';
-import { authenticateToken } from '../middleware/auth';
-import logger from '../utils/logger';
+import { UserDataStorageService } from '../services/user-data-storage.js';
+import { EnhancedIagonService } from '../services/enhanced-iagon-service.js';
+import { authenticateToken } from '../middleware/auth.js';
+import logger from '../utils/logger.js';
 
 const router = Router();
 const userDataService = new UserDataStorageService();

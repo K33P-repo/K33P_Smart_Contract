@@ -1,7 +1,7 @@
 // firebase.ts - Firebase Phone Authentication Service
 import dotenv from 'dotenv';
 import admin from 'firebase-admin';
-import { OtpRequest, SendOtpResponse, VerifyOtpResponse, CancelVerificationResponse } from '../interfaces/otp';
+import { OtpRequest, SendOtpResponse, VerifyOtpResponse, CancelVerificationResponse } from '../interfaces/otp.js';
 
 // Load environment variables
 dotenv.config();

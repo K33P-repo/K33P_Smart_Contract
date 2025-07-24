@@ -2,7 +2,7 @@
 // Handles secure storage and retrieval of wallet seed phrases on Iagon
 
 import crypto from 'crypto';
-import { findUser, createUser, findUserById } from '../utils/iagon';
+import { findUser, createUser, findUserById } from '../utils/iagon.js';
 import winston from 'winston';
 
 // Logger setup

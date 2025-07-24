@@ -5,9 +5,9 @@
  */
 
 import crypto from 'crypto';
-import { findUser, createUser, findUserById, storeData, retrieveData, deleteData, updateData } from '../utils/iagon';
-import { logger } from '../utils/logger';
-import { UserDataStorageService } from './user-data-storage';
+import { findUser, createUser, findUserById, storeData, retrieveData, deleteData, updateData } from '../utils/iagon.js';
+import { logger } from '../utils/logger.js';
+import { UserDataStorageService } from './user-data-storage.js';
 
 // ============================================================================
 // INTERFACES AND TYPES

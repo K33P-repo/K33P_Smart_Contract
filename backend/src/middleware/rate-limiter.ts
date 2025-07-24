@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+import { logger } from '../utils/logger.js';
 
 // Simple in-memory rate limiter
 const requestCounts = new Map<string, { count: number; resetTime: number }>();

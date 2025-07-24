@@ -1,7 +1,7 @@
 // otp.ts - OTP Authentication Routes
 import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { sendOtp, verifyOtp, cancelVerification, verifyFirebaseToken } from '../utils/firebase';
+import { sendOtp, verifyOtp, cancelVerification, verifyFirebaseToken } from '../utils/firebase.js';
 import { 
   SendOtpRequest, 
   SendOtpResponse, 
@@ -9,7 +9,7 @@ import {
   VerifyOtpResponse,
   CancelVerificationRequest,
   CancelVerificationResponse 
-} from '../interfaces/otp';
+} from '../interfaces/otp.js';
 
 const router = express.Router();
 
