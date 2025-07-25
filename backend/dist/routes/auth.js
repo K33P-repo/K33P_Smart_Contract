@@ -148,7 +148,7 @@ router.post('/signup', async (req, res) => {
         console.log('Step 8.1: Storing ZK proof using ZK Proof Service...');
         try {
             // Import ZK Proof Service
-            const { ZKProofService } = await import('../services/zk-proof-service.js.js');
+            const { ZKProofService } = await import('../services/zk-proof-service.js');
             // Generate and store comprehensive ZK proof
             await ZKProofService.generateAndStoreUserZKProof({
                 userId: userData.userId,

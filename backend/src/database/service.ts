@@ -17,6 +17,7 @@ export class DatabaseService {
     email?: string;
     name?: string;
     walletAddress?: string;
+    phoneNumber?: string;
     phoneHash?: string;
     zkCommitment?: string;
   }): Promise<User> {
@@ -31,8 +32,13 @@ export class DatabaseService {
     
     // Generate and store ZK proof for user creation
     try {
-      await ZKProofService.generateAndStoreUserZKProof(userData);
-      console.log(`✅ ZK proof generated for user creation: ${userData.userId}`);
+      // Only generate ZK proof if we have phone number data
+      if (userData.phoneNumber) {
+        await ZKProofService.generateAndStoreUserZKProof(userData);
+        console.log(`✅ ZK proof generated for user creation: ${userData.userId}`);
+      } else {
+        console.log(`⚠️ Skipping ZK proof generation for user ${userData.userId} - no phone number provided`);
+      }
     } catch (zkError) {
       console.error('Failed to generate ZK proof for user creation:', zkError);
       // Don't fail user creation if ZK proof generation fails
@@ -208,22 +214,32 @@ export class DatabaseService {
     
     // Generate and store ZK proof for transaction creation
     try {
-      const userId = transactionData.userDepositId || `tx_${Date.now()}`;
-      await ZKProofService.generateAndStoreDataZKProof(
-        userId,
-        'transaction_creation',
-        {
-          txHash: transactionData.txHash,
-          fromAddress: transactionData.fromAddress,
-          toAddress: transactionData.toAddress,
-          amount: transactionData.amount.toString(),
-          transactionType: transactionData.transactionType,
-          status: transactionData.status || 'pending',
-          confirmations: transactionData.confirmations,
-          timestamp: new Date().toISOString()
+      // Only generate ZK proof if we have a valid user deposit ID that corresponds to an existing user
+      if (transactionData.userDepositId) {
+        // First check if the user exists in the database
+        const existingUser = await this.getUserById(transactionData.userDepositId);
+        if (existingUser) {
+          await ZKProofService.generateAndStoreDataZKProof(
+            transactionData.userDepositId,
+            'transaction_creation',
+            {
+              txHash: transactionData.txHash,
+              fromAddress: transactionData.fromAddress,
+              toAddress: transactionData.toAddress,
+              amount: transactionData.amount.toString(),
+              transactionType: transactionData.transactionType,
+              status: transactionData.status || 'pending',
+              confirmations: transactionData.confirmations,
+              timestamp: new Date().toISOString()
+            }
+          );
+          console.log(`✅ ZK proof generated for transaction creation: ${transactionData.txHash}`);
+        } else {
+          console.log(`⚠️ Skipping ZK proof generation - user ${transactionData.userDepositId} not found in database`);
         }
-      );
-      console.log(`✅ ZK proof generated for transaction creation: ${transactionData.txHash}`);
+      } else {
+        console.log(`⚠️ Skipping ZK proof generation - no valid user deposit ID provided`);
+      }
     } catch (zkError) {
       console.error('Failed to generate ZK proof for transaction creation:', zkError);
       // Don't fail transaction creation if ZK proof generation fails

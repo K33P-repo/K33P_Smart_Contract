@@ -88,8 +88,8 @@ export class ZKProofService {
             const biometricHash = hashBiometric('dummy_biometric');
             const passkeyHash = hashPasskey('dummy_passkey');
             const commitment = generateZkCommitment({ phoneHash, biometricHash, passkeyHash });
-            // Generate proof for the data
-            const proof = generateZkProof({ phoneHash, biometricHash, passkeyHash }, commitment);
+            // Generate proof for the data - use dataHash as phone parameter
+            const proof = generateZkProof({ phone: dataHash, biometric: 'dummy_biometric', passkey: 'dummy_passkey' }, commitment);
             // Prepare public inputs
             const publicInputs = {
                 dataId,

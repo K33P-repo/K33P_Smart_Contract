@@ -5,6 +5,7 @@ export declare class DatabaseService {
         email?: string;
         name?: string;
         walletAddress?: string;
+        phoneNumber?: string;
         phoneHash?: string;
         zkCommitment?: string;
     }): Promise<User>;

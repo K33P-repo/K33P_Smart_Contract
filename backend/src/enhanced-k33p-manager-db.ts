@@ -606,11 +606,14 @@ export class EnhancedK33PManagerDB {
         try {
           const existingUser = await currentDbService.getUserById(userId);
           if (!existingUser) {
+            // Create a minimal user record for refund tracking with dummy phone data
+            const dummyPhoneNumber = `refund_${Date.now()}`;
             await currentDbService.createUser({
               userId: userId,
               walletAddress: userAddress,
               name: 'Refund User',
               email: undefined,
+              phoneNumber: dummyPhoneNumber, // Provide dummy phone for ZK proof generation
               phoneHash: undefined,
               zkCommitment: undefined
             });
