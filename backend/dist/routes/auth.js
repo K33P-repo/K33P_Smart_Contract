@@ -73,8 +73,22 @@ router.post('/signup', async (req, res) => {
         const existingUserResult = await storageService.findUser({ phoneHash });
         console.log('Existing user check completed, found:', !!existingUserResult.data);
         if (existingUserResult.success && existingUserResult.data) {
-            console.log('User already exists with this phone number');
-            return res.status(400).json({ error: 'User already exists with this phone number' });
+            console.log('User already exists with this phone number - returning existing user info');
+            // Generate JWT token for existing user
+            const existingUser = existingUserResult.data;
+            const token = jwt.sign({ id: existingUser.id, walletAddress: existingUser.walletAddress }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+            return res.status(200).json({
+                success: true,
+                data: {
+                    verified: existingUser.verified || false,
+                    userId: existingUser.userId || existingUser.id,
+                    verificationMethod: existingUser.verificationMethod || 'phone',
+                    message: 'User already exists - login successful',
+                    depositAddress: existingUser.walletAddress
+                },
+                message: 'User already exists - login successful',
+                token
+            });
         }
         // If user address is provided, check if it's already in use
         if (finalUserAddress) {
@@ -131,6 +145,29 @@ router.post('/signup', async (req, res) => {
         }
         const user = { id: userResult.data.id, ...userData };
         console.log('User created successfully, ID:', user.id, 'Storage:', userResult.storageUsed);
+        console.log('Step 8.1: Storing ZK proof using ZK Proof Service...');
+        try {
+            // Import ZK Proof Service
+            const { ZKProofService } = await import('../services/zk-proof-service.js.js');
+            // Generate and store comprehensive ZK proof
+            await ZKProofService.generateAndStoreUserZKProof({
+                userId: userData.userId,
+                phoneNumber: finalPhoneNumber,
+                biometricData: finalBiometricData,
+                passkeyData: passkey,
+                userAddress: finalUserAddress,
+                additionalData: {
+                    verificationMethod,
+                    biometricType,
+                    senderWalletAddress
+                }
+            });
+            console.log('ZK proof stored using ZK Proof Service successfully');
+        }
+        catch (zkError) {
+            console.error('Failed to store ZK proof using ZK Proof Service:', zkError);
+            // Don't fail the signup if ZK proof storage fails, just log it
+        }
         console.log('Step 9: Generating JWT token...');
         const token = jwt.sign({ id: user.id, walletAddress: user.walletAddress }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
         console.log('JWT token generated successfully');

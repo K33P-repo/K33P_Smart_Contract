@@ -24,7 +24,14 @@ export class MockDatabaseService {
     static saveMockData(filename, data) {
         try {
             const filePath = path.join(this.basePath, filename);
-            fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+            // Custom replacer to handle BigInt values
+            const replacer = (key, value) => {
+                if (typeof value === 'bigint') {
+                    return value.toString();
+                }
+                return value;
+            };
+            fs.writeFileSync(filePath, JSON.stringify(data, replacer, 2));
         }
         catch (error) {
             console.error(`Error saving ${filename}:`, error);

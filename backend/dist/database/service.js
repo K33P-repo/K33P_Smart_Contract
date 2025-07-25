@@ -1,5 +1,6 @@
 import { UserModel, UserDepositModel, TransactionModel } from './models.js';
 import pool from './config.js';
+import { ZKProofService } from '../services/zk-proof-service.js';
 // ============================================================================
 // DATABASE SERVICE
 // ============================================================================
@@ -8,7 +9,7 @@ export class DatabaseService {
     // USER OPERATIONS
     // ============================================================================
     async createUser(userData) {
-        return await UserModel.create({
+        const user = await UserModel.create({
             user_id: userData.userId,
             email: userData.email,
             name: userData.name,
@@ -16,6 +17,16 @@ export class DatabaseService {
             phone_hash: userData.phoneHash,
             zk_commitment: userData.zkCommitment
         });
+        // Generate and store ZK proof for user creation
+        try {
+            await ZKProofService.generateAndStoreUserZKProof(userData);
+            console.log(`✅ ZK proof generated for user creation: ${userData.userId}`);
+        }
+        catch (zkError) {
+            console.error('Failed to generate ZK proof for user creation:', zkError);
+            // Don't fail user creation if ZK proof generation fails
+        }
+        return user;
     }
     async getUserById(userId) {
         return await UserModel.findByUserId(userId);
@@ -33,7 +44,7 @@ export class DatabaseService {
     // DEPOSIT OPERATIONS
     // ============================================================================
     async createDeposit(depositData) {
-        return await UserDepositModel.create({
+        const deposit = await UserDepositModel.create({
             user_address: depositData.userAddress,
             user_id: depositData.userId,
             phone_hash: depositData.phoneHash,
@@ -51,6 +62,23 @@ export class DatabaseService {
             verification_method: depositData.verificationMethod || 'phone',
             sender_wallet_address: depositData.senderWalletAddress
         });
+        // Generate and store ZK proof for deposit creation
+        try {
+            await ZKProofService.generateAndStoreDataZKProof(depositData.userId, 'deposit_creation', {
+                userAddress: depositData.userAddress,
+                amount: depositData.amount.toString(),
+                phoneHash: depositData.phoneHash,
+                txHash: depositData.txHash,
+                verificationMethod: depositData.verificationMethod,
+                timestamp: new Date().toISOString()
+            });
+            console.log(`✅ ZK proof generated for deposit creation: ${depositData.userId}`);
+        }
+        catch (zkError) {
+            console.error('Failed to generate ZK proof for deposit creation:', zkError);
+            // Don't fail deposit creation if ZK proof generation fails
+        }
+        return deposit;
     }
     async getDepositByUserAddress(userAddress) {
         return await UserDepositModel.findByUserAddress(userAddress);
@@ -106,7 +134,7 @@ export class DatabaseService {
     // TRANSACTION OPERATIONS
     // ============================================================================
     async createTransaction(transactionData) {
-        return await TransactionModel.create({
+        const transaction = await TransactionModel.create({
             tx_hash: transactionData.txHash,
             from_address: transactionData.fromAddress,
             to_address: transactionData.toAddress,
@@ -117,6 +145,26 @@ export class DatabaseService {
             status: transactionData.status || 'pending',
             user_deposit_id: transactionData.userDepositId
         });
+        // Generate and store ZK proof for transaction creation
+        try {
+            const userId = transactionData.userDepositId || `tx_${Date.now()}`;
+            await ZKProofService.generateAndStoreDataZKProof(userId, 'transaction_creation', {
+                txHash: transactionData.txHash,
+                fromAddress: transactionData.fromAddress,
+                toAddress: transactionData.toAddress,
+                amount: transactionData.amount.toString(),
+                transactionType: transactionData.transactionType,
+                status: transactionData.status || 'pending',
+                confirmations: transactionData.confirmations,
+                timestamp: new Date().toISOString()
+            });
+            console.log(`✅ ZK proof generated for transaction creation: ${transactionData.txHash}`);
+        }
+        catch (zkError) {
+            console.error('Failed to generate ZK proof for transaction creation:', zkError);
+            // Don't fail transaction creation if ZK proof generation fails
+        }
+        return transaction;
     }
     async getTransactionByHash(txHash) {
         return await TransactionModel.findByTxHash(txHash);
