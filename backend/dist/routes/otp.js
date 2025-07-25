@@ -2,6 +2,7 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { sendOtp, verifyOtp, cancelVerification, verifyFirebaseToken } from '../utils/firebase.js';
+import { createRateLimiter } from '../middleware/rate-limiter.js';
 const router = express.Router();
 // Helper function to create standardized API responses
 const createResponse = (success, data, message, error) => {
@@ -25,7 +26,8 @@ const handleValidationErrors = (req, res, next) => {
  * Send OTP to a phone number
  * POST /api/otp/send
  */
-router.post('/send', [
+router.post('/send', createRateLimiter({ windowMs: 5 * 60 * 1000, max: 3 }), // 3 requests per 5 minutes
+[
     body('phoneNumber')
         .isLength({ min: 10 })
         .withMessage('Phone number must be at least 10 characters')
@@ -51,7 +53,8 @@ router.post('/send', [
  * Verify OTP code
  * POST /api/otp/verify
  */
-router.post('/verify', [
+router.post('/verify', createRateLimiter({ windowMs: 5 * 60 * 1000, max: 10 }), // 10 requests per 5 minutes
+[
     body('requestId')
         .isString()
         .withMessage('Request ID is required')

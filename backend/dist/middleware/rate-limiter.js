@@ -12,12 +12,31 @@ export const createRateLimiter = (options) => {
                 count: 1,
                 resetTime: now + options.windowMs
             });
+            // Add rate limit headers
+            res.set({
+                'X-RateLimit-Limit': options.max.toString(),
+                'X-RateLimit-Remaining': (options.max - 1).toString(),
+                'X-RateLimit-Reset': Math.floor(clientData?.resetTime || (now + options.windowMs) / 1000).toString(),
+                'X-RateLimit-Window': Math.floor(options.windowMs / 1000).toString()
+            });
             return next();
         }
+        // Add rate limit headers
+        const remaining = Math.max(0, options.max - clientData.count);
+        res.set({
+            'X-RateLimit-Limit': options.max.toString(),
+            'X-RateLimit-Remaining': remaining.toString(),
+            'X-RateLimit-Reset': Math.floor(clientData.resetTime / 1000).toString(),
+            'X-RateLimit-Window': Math.floor(options.windowMs / 1000).toString()
+        });
         if (clientData.count >= options.max) {
             logger.warn(`Rate limit exceeded for IP: ${clientId}`);
             return res.status(429).json({
-                error: options.message || 'Too many requests, please try again later.'
+                success: false,
+                error: 'Rate limit exceeded. Please try again later.',
+                code: 'RATE_LIMIT_EXCEEDED',
+                retryAfter: Math.ceil((clientData.resetTime - now) / 1000),
+                timestamp: new Date().toISOString()
             });
         }
         clientData.count++;

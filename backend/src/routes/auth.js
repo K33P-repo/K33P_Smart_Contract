@@ -3,6 +3,7 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { verifyToken, verifyZkProof, authenticate } from '../middleware/auth.js';
+import { createRateLimiter } from '../middleware/rate-limiter.js';
 import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
 import { generateZkCommitment, generateZkProof, verifyZkProof as verifyZkProofUtil } from '../utils/zk.js';
 import { signupTxBuilder } from '../utils/lucid.js';
@@ -14,6 +15,19 @@ import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 
 const router = express.Router();
 
+// Rate limiters for auth routes
+const signupLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 signup attempts per 15 minutes
+  message: 'Too many signup attempts, please try again later'
+});
+
+const loginLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 login attempts per 15 minutes
+  message: 'Too many login attempts, please try again later'
+});
+
 
 
 /**
@@ -21,7 +35,7 @@ const router = express.Router();
  * @desc Register a new user with verification
  * @access Public
  */
-router.post('/signup', async (req, res) => {
+router.post('/signup', signupLimiter, async (req, res) => {
   try {
     console.log('=== SIGNUP DEBUG START ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -99,12 +113,113 @@ router.post('/signup', async (req, res) => {
     console.log('Existing user check completed, found:', !!existingUserResult.data);
     
     if (existingUserResult.success && existingUserResult.data) {
-      console.log('User already exists with this phone number - returning existing user info');
+      console.log('Existing user found - updating with new ZK commitment and processing refund');
       
-      // Generate JWT token for existing user
       const existingUser = existingUserResult.data;
+      
+      // Generate new ZK commitment and proof for existing user
+      console.log('Step 4.1: Generating new ZK commitment for existing user...');
+      const newCommitmentData = { phoneHash };
+      if (biometricHash) newCommitmentData.biometricHash = biometricHash;
+      if (passkeyHash) newCommitmentData.passkeyHash = passkeyHash;
+      
+      const newZkCommitment = generateZkCommitment(newCommitmentData);
+      console.log('New ZK commitment generated successfully');
+
+      console.log('Step 4.2: Generating new ZK proof for existing user...');
+      const newProofData = { phone: finalPhoneNumber };
+      if (finalBiometricData) newProofData.biometric = finalBiometricData;
+      if (passkey) newProofData.passkey = passkey;
+      
+      const newZkProof = generateZkProof(newProofData, newZkCommitment);
+      console.log('New ZK proof generated, valid:', newZkProof.isValid);
+      
+      if (!newZkProof.isValid) {
+        console.log('New ZK proof validation failed');
+        return res.status(400).json({ error: 'Invalid ZK proof for existing user update' });
+      }
+
+      // Update existing user with new data
+      console.log('Step 4.3: Updating existing user with new ZK commitment...');
+      const updateData = {
+        zkCommitment: newZkCommitment,
+        verificationMethod,
+        biometricType: biometricType || null,
+        senderWalletAddress: senderWalletAddress || null,
+        updatedAt: new Date()
+      };
+      
+      if (biometricHash) updateData.biometricHash = biometricHash;
+      if (passkeyHash) updateData.passkeyHash = passkeyHash;
+      if (pin) updateData.pin = pin;
+      if (finalUserAddress) updateData.walletAddress = finalUserAddress;
+
+      const updateResult = await storageService.updateUser(existingUser.id, updateData);
+      if (!updateResult.success) {
+        console.log('Failed to update existing user:', updateResult.error);
+        return res.status(500).json({ error: 'Failed to update existing user: ' + updateResult.error });
+      }
+      
+      console.log('Existing user updated successfully');
+
+      // Process 2 ADA refund for existing user
+      console.log('Step 4.4: Processing 2 ADA refund for existing user...');
+      try {
+        // Import the enhanced K33P manager for refund processing
+        const { EnhancedK33PManagerDB } = await import('../enhanced-k33p-manager-db.js');
+        const k33pManager = new EnhancedK33PManagerDB();
+        
+        // Determine refund address (priority: senderWalletAddress > finalUserAddress > existing walletAddress)
+        const refundAddress = senderWalletAddress || finalUserAddress || existingUser.walletAddress;
+        
+        if (refundAddress) {
+          const refundResult = await k33pManager.processRefund(refundAddress, {
+            userId: existingUser.userId || existingUser.id,
+            reason: 'Existing user signup update',
+            zkCommitment: newZkCommitment,
+            zkProof: newZkProof
+          });
+          
+          if (refundResult.success) {
+            console.log('2 ADA refund processed successfully for existing user:', refundResult.txHash);
+          } else {
+            console.log('Refund processing failed but continuing:', refundResult.error);
+          }
+        } else {
+          console.log('No refund address available for existing user');
+        }
+      } catch (refundError) {
+        console.error('Error processing refund for existing user:', refundError);
+        // Continue with signup even if refund fails
+      }
+
+      // Store new ZK proof using ZK Proof Service
+      console.log('Step 4.5: Storing new ZK proof for existing user...');
+      try {
+        const { ZKProofService } = await import('../services/zk-proof-service');
+        
+        await ZKProofService.generateAndStoreUserZKProof({
+          userId: existingUser.userId || existingUser.id,
+          phoneNumber: finalPhoneNumber,
+          biometricData: finalBiometricData,
+          passkeyData: passkey,
+          userAddress: finalUserAddress,
+          additionalData: {
+            verificationMethod,
+            biometricType,
+            senderWalletAddress,
+            isUpdate: true
+          }
+        });
+        
+        console.log('New ZK proof stored for existing user successfully');
+      } catch (zkError) {
+        console.error('Failed to store new ZK proof for existing user:', zkError);
+      }
+      
+      // Generate JWT token for updated existing user
       const token = jwt.sign(
-        { id: existingUser.id, walletAddress: existingUser.walletAddress },
+        { id: existingUser.id, walletAddress: finalUserAddress || existingUser.walletAddress },
         process.env.JWT_SECRET || 'default-secret',
         { expiresIn: process.env.JWT_EXPIRATION || '24h' }
       );
@@ -114,11 +229,12 @@ router.post('/signup', async (req, res) => {
         data: {
           verified: existingUser.verified || false,
           userId: existingUser.userId || existingUser.id,
-          verificationMethod: existingUser.verificationMethod || 'phone',
-          message: 'User already exists - login successful',
-          depositAddress: existingUser.walletAddress
+          verificationMethod,
+          message: 'User account updated successfully. Your refund has been processed.',
+          depositAddress: finalUserAddress || existingUser.walletAddress,
+          isUpdate: true
         },
-        message: 'User already exists - login successful',
+        message: 'User account updated successfully. Your refund has been processed.',
         token
       });
     }
@@ -131,7 +247,11 @@ router.post('/signup', async (req, res) => {
       
       if (existingWalletUserResult.success && existingWalletUserResult.data) {
         console.log('User already exists with this wallet address');
-        return res.status(400).json({ error: 'User already exists with this wallet address' });
+        return res.status(400).json({ 
+          success: false,
+          error: 'This wallet address is already registered with another account. Please use a different wallet or contact support if this is your wallet.',
+          code: 'WALLET_IN_USE'
+        });
       }
     }
 
@@ -231,10 +351,10 @@ router.post('/signup', async (req, res) => {
         verified: verificationMethod === 'phone' ? false : true,
         userId: userId || user.id,
         verificationMethod,
-        message: 'Signup processed successfully',
+        message: 'DID created successfully. Welcome to K33P!',
         depositAddress: finalUserAddress
       },
-      message: 'Signup processed successfully',
+      message: 'DID created successfully. Welcome to K33P!',
       token
     };
 
@@ -263,7 +383,7 @@ router.post('/signup', async (req, res) => {
  * @desc Login a user with ZK proof
  * @access Public
  */
-router.post('/login', verifyZkProof, async (req, res) => {
+router.post('/login', loginLimiter, verifyZkProof, async (req, res) => {
   try {
     const { walletAddress, phone, proof, commitment } = req.body;
     if (!phone || !proof || !commitment) {
@@ -344,19 +464,39 @@ router.get('/me', verifyToken, async (req, res) => {
 });
 
 // Initialize Blockfrost API
+if (!process.env.BLOCKFROST_API_KEY) {
+  throw new Error('BLOCKFROST_API_KEY environment variable is required');
+}
+
 const blockfrost = new BlockFrostAPI({
-  projectId: process.env.BLOCKFROST_API_KEY || 'preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM',
+  projectId: process.env.BLOCKFROST_API_KEY,
   network: 'preprod'
 });
 
 // Initialize cache with 5 minute TTL
 const walletCache = new NodeCache({ stdTTL: 300 });
 
-// Rate limiter for wallet verification (5 requests per minute)
+// Rate limiter for wallet verification (10 requests per 5 minutes)
 const walletVerifyLimiter = rateLimit({
-  windowMs: 60 * 1000, // 1 minute
-  max: 5,
-  message: 'Too many wallet verification requests, please try again later'
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10,
+  message: {
+    success: false,
+    error: 'Rate limit exceeded. Please try again later.',
+    code: 'RATE_LIMIT_EXCEEDED',
+    timestamp: new Date().toISOString()
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: 'Rate limit exceeded. Please try again later.',
+      code: 'RATE_LIMIT_EXCEEDED',
+      retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 /**

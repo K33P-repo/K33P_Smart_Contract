@@ -37,7 +37,7 @@ const handleValidationErrors = (req, res, next) => {
  * Store a new seed phrase on Iagon
  * POST /api/seed-phrases/store
  */
-router.post('/store', authenticateToken, createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }), // 5 requests per 15 minutes
+router.post('/store', authenticateToken, createRateLimiter({ windowMs: 60 * 60 * 1000, max: 3 }), // 3 requests per hour
 [
     body('walletName')
         .isLength({ min: 1, max: 100 })
@@ -119,7 +119,7 @@ router.get('/', authenticateToken, auditLogger('LIST', 'SEED_PHRASE'), async (re
  * Retrieve a specific seed phrase (owner only)
  * POST /api/seed-phrases/:id/retrieve
  */
-router.post('/:id/retrieve', authenticateToken, createRateLimiter({ windowMs: 15 * 60 * 1000, max: 3 }), // 3 requests per 15 minutes
+router.post('/:id/retrieve', authenticateToken, createRateLimiter({ windowMs: 60 * 60 * 1000, max: 3 }), // 3 requests per hour
 [
     param('id').isUUID().withMessage('Invalid seed phrase ID'),
     body('encryptionPassword')

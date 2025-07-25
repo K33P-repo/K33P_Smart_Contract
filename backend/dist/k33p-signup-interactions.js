@@ -15,7 +15,9 @@ config();
 const CONFIG = {
     network: "Preprod",
     blockfrostUrl: "https://cardano-preprod.blockfrost.io/api/v0",
-    blockfrostApiKey: process.env.BLOCKFROST_API_KEY || "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM",
+    blockfrostApiKey: process.env.BLOCKFROST_API_KEY || (() => {
+        throw new Error('BLOCKFROST_API_KEY environment variable is required');
+    })(),
     seedPhrase: process.env.SEED_PHRASE || "blame purpose battle mistake match cousin degree route bag return clump key metal actress poet outside group sword bring gravity weapon report alone dove",
     requiredDeposit: 2000000n, // 2 ADA
     refundAmount: 2000000n, // 2 ADA

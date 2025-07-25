@@ -16,7 +16,7 @@ export class StorageAbstractionService {
     healthCheckTimer;
     constructor(config) {
         this.config = {
-            primaryStorage: 'iagon',
+            primaryStorage: 'postgresql', // Changed to PostgreSQL as primary due to Iagon auth issues
             enableFallback: true,
             syncBetweenStorages: false,
             healthCheckInterval: 60000, // 1 minute
@@ -26,8 +26,9 @@ export class StorageAbstractionService {
         };
         this.healthStatus = {
             iagon: {
-                available: false,
-                lastChecked: new Date()
+                available: false, // Disabled due to authentication issues
+                lastChecked: new Date(),
+                lastError: 'Authentication issues - using PostgreSQL as primary'
             },
             postgresql: {
                 available: false,
@@ -52,29 +53,13 @@ export class StorageAbstractionService {
         });
     }
     async checkStorageHealth() {
-        // Check Iagon health
-        const iagonStart = Date.now();
-        try {
-            // Test Iagon with a simple operation
-            await storeData('health_check_' + Date.now(), JSON.stringify({ test: true }));
-            this.healthStatus.iagon = {
-                available: true,
-                responseTime: Date.now() - iagonStart,
-                lastChecked: new Date()
-            };
-            logger.debug('Iagon storage health check passed', { service: 'storage-abstraction' });
-        }
-        catch (error) {
-            this.healthStatus.iagon = {
-                available: false,
-                lastError: error.message,
-                lastChecked: new Date()
-            };
-            logger.warn('Iagon storage health check failed', {
-                service: 'storage-abstraction',
-                error: error.message
-            });
-        }
+        // Set Iagon as unavailable due to authentication issues
+        this.healthStatus.iagon = {
+            available: false,
+            lastError: 'Iagon storage disabled due to authentication issues (401 errors)',
+            lastChecked: new Date()
+        };
+        logger.debug('Iagon storage health check disabled due to authentication issues', { service: 'storage-abstraction' });
         // Check PostgreSQL health
         const pgStart = Date.now();
         try {
@@ -107,23 +92,8 @@ export class StorageAbstractionService {
     // STORAGE SELECTION LOGIC
     // ============================================================================
     selectStorage() {
-        if (this.config.primaryStorage === 'iagon' && this.healthStatus.iagon.available) {
-            return 'iagon';
-        }
-        if (this.config.primaryStorage === 'postgresql' && this.healthStatus.postgresql.available) {
-            return 'postgresql';
-        }
-        // Fallback logic
-        if (this.config.enableFallback) {
-            if (this.healthStatus.iagon.available) {
-                return 'iagon';
-            }
-            if (this.healthStatus.postgresql.available) {
-                return 'postgresql';
-            }
-        }
-        // Default to primary even if unhealthy (will likely fail but allows for error handling)
-        return this.config.primaryStorage;
+        // Always use PostgreSQL due to Iagon authentication issues
+        return 'postgresql';
     }
     // ============================================================================
     // RETRY LOGIC

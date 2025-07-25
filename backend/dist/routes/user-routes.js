@@ -7,6 +7,7 @@ import express from 'express';
 import { body, param, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import { authenticateToken } from '../middleware/auth.js';
+import { createRateLimiter } from '../middleware/rate-limiter.js';
 // NOK service imports removed
 import { logger } from '../utils/logger.js';
 import { Pool } from 'pg';
@@ -282,7 +283,7 @@ router.post('/signup', validatePhoneSignup, handleValidationErrors, handleAsyncR
             pin_hash: hashedPin,
             auth_methods: authMethods,
             biometric_data: biometricData || {},
-            account_status: 'free',
+            account_status: 'freemium',
             is_active: true,
             created_at: new Date().toISOString()
         };
@@ -301,7 +302,7 @@ router.post('/signup', validatePhoneSignup, handleValidationErrors, handleAsyncR
                 phoneNumber,
                 userName,
                 authMethods,
-                accountStatus: 'free',
+                accountStatus: 'freemium',
                 tokens: {
                     accessToken,
                     refreshToken,
@@ -737,6 +738,128 @@ router.post('/login/iris', body('phoneNumber').isMobilePhone('any').withMessage(
         res.status(500).json({
             success: false,
             message: 'Iris authentication failed',
+            error: 'SERVER_ERROR'
+        });
+    }
+}));
+/**
+ * POST /api/users/signin
+ * Unified signin route that handles phone number, PIN, and biometrics
+ */
+router.post('/signin', body('phoneNumber').isMobilePhone('any').withMessage('Valid phone number is required'), body('pin').optional().isLength({ min: 4, max: 6 }).isNumeric().withMessage('PIN must be 4-6 digits'), body('biometricData').optional().isObject().withMessage('Biometric data must be an object'), body('biometricType').optional().isIn(['face_id', 'fingerprint', 'voice', 'iris']).withMessage('Valid biometric type is required'), handleValidationErrors, handleAsyncRoute(async (req, res) => {
+    try {
+        const { phoneNumber, pin, biometricData, biometricType } = req.body;
+        logger.info(`Unified signin attempt for: ${phoneNumber}`);
+        // Validate that either PIN or biometric data is provided
+        if (!pin && (!biometricData || !biometricType)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Either PIN or biometric authentication is required',
+                error: 'MISSING_AUTH_METHOD'
+            });
+        }
+        // Get user by phone number from database
+        const client = await pool.connect();
+        let user = null;
+        try {
+            const phoneHash = crypto.createHash('sha256').update(phoneNumber).digest('hex');
+            const result = await client.query('SELECT * FROM users WHERE phone_hash = $1', [phoneHash]);
+            if (result.rows.length > 0) {
+                user = result.rows[0];
+            }
+        }
+        finally {
+            client.release();
+        }
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found with this phone number',
+                error: 'USER_NOT_FOUND'
+            });
+        }
+        if (user.is_active === false) {
+            return res.status(401).json({
+                success: false,
+                message: 'Account is deactivated',
+                error: 'ACCOUNT_DEACTIVATED'
+            });
+        }
+        // Parse auth methods and biometric data from database
+        const authMethods = user.auth_methods ? JSON.parse(user.auth_methods) : [];
+        const storedBiometricData = user.biometric_data ? JSON.parse(user.biometric_data) : {};
+        let authenticationSuccessful = false;
+        let authMethod = '';
+        // Try PIN authentication if provided
+        if (pin && user.pin_hash) {
+            if (authMethods.includes('pin')) {
+                // Verify PIN using crypto comparison
+                const pinHash = crypto.createHash('sha256').update(pin).digest('hex');
+                if (pinHash === user.pin_hash) {
+                    authenticationSuccessful = true;
+                    authMethod = 'PIN';
+                }
+            }
+        }
+        // Try biometric authentication if provided and PIN failed or not provided
+        if (!authenticationSuccessful && biometricData && biometricType) {
+            if (authMethods.includes(biometricType)) {
+                const storedBiometric = storedBiometricData[biometricType];
+                if (storedBiometric) {
+                    // Simple comparison for biometric data (in production, use proper biometric verification)
+                    const providedBiometric = biometricData[biometricType];
+                    if (providedBiometric && providedBiometric === storedBiometric) {
+                        authenticationSuccessful = true;
+                        authMethod = biometricType.toUpperCase().replace('_', ' ');
+                    }
+                }
+            }
+        }
+        if (!authenticationSuccessful) {
+            logger.warn(`Failed signin attempt for: ${phoneNumber}`);
+            return res.status(401).json({
+                success: false,
+                message: 'Authentication failed. Please check your PIN or biometric data.',
+                error: 'INVALID_CREDENTIALS'
+            });
+        }
+        // Generate tokens
+        const { accessToken, refreshToken } = generateTokens(user.user_id || user.id);
+        // Update last login timestamp
+        const updateClient = await pool.connect();
+        try {
+            await updateClient.query('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = $1', [user.user_id || user.id]);
+        }
+        finally {
+            updateClient.release();
+        }
+        // Log successful activity
+        logger.info(`Successful signin for user: ${phoneNumber} using ${authMethod}`);
+        res.json({
+            success: true,
+            message: `Signin successful using ${authMethod}`,
+            data: {
+                user: {
+                    id: user.user_id || user.id,
+                    phoneNumber: phoneNumber,
+                    userName: user.user_name || user.name,
+                    accountStatus: user.subscription_tier || 'freemium',
+                    authMethods: authMethods
+                },
+                tokens: {
+                    accessToken,
+                    refreshToken,
+                    expiresIn: 900
+                },
+                authMethod
+            }
+        });
+    }
+    catch (error) {
+        logger.error('Error during unified signin:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Signin failed',
             error: 'SERVER_ERROR'
         });
     }
@@ -1560,7 +1683,8 @@ router.put('/username/:userId', authenticateToken, validateUserId, body('userNam
  * POST /api/users/avatar/:userId
  * Update user avatar
  */
-router.post('/avatar/:userId', authenticateToken, validateUserId, uploadAvatar.single('avatar'), handleValidationErrors, handleAsyncRoute(async (req, res) => {
+router.post('/avatar/:userId', authenticateToken, createRateLimiter({ windowMs: 60 * 60 * 1000, max: 5 }), // 5 requests per hour
+validateUserId, uploadAvatar.single('avatar'), handleValidationErrors, handleAsyncRoute(async (req, res) => {
     try {
         const userId = req.params.userId;
         const authenticatedUserId = req.user.id;
@@ -1994,7 +2118,7 @@ router.get('/account-status/:userId', authenticateToken, validateUserId, handleV
         }
         logger.info(`Getting account status for user: ${userId}`);
         // TODO: Implement getUserAccountStatus method in NOKService
-        const accountStatus = 'free'; // Mock data
+        const accountStatus = 'freemium'; // Mock data
         res.json({
             success: true,
             message: 'Account status retrieved successfully',
@@ -2002,13 +2126,14 @@ router.get('/account-status/:userId', authenticateToken, validateUserId, handleV
                 userId,
                 accountStatus,
                 features: accountStatus === 'premium' ? [
-                    'unlimited_wallets',
-                    'advanced_security',
-                    'priority_support',
-                    'backup_recovery'
+                    'basic_vault',
+                    'unlimited_seed_phrases',
+                    'inheritance_mode',
+                    'nok_support',
+                    'priority_support'
                 ] : [
-                    'basic_wallet_management',
-                    'standard_security'
+                    'basic_vault',
+                    'two_seed_phrase_backup'
                 ]
             }
         });
@@ -2027,8 +2152,8 @@ router.get('/account-status/:userId', authenticateToken, validateUserId, handleV
  * Update user account status
  */
 router.put('/account-status/:userId', authenticateToken, validateUserId, body('accountStatus')
-    .isIn(['free', 'premium'])
-    .withMessage('Account status must be either free or premium'), handleValidationErrors, handleAsyncRoute(async (req, res) => {
+    .isIn(['freemium', 'premium'])
+    .withMessage('Account status must be either freemium or premium'), handleValidationErrors, handleAsyncRoute(async (req, res) => {
     try {
         const userId = req.params.userId;
         const authenticatedUserId = req.user.id;
@@ -2095,10 +2220,11 @@ router.post('/upgrade-pro/:userId', authenticateToken, validateUserId, body('pay
                 userId,
                 accountStatus: 'premium',
                 features: [
-                    'unlimited_wallets',
-                    'advanced_security',
-                    'priority_support',
-                    'backup_recovery'
+                    'basic_vault',
+                    'unlimited_seed_phrases',
+                    'inheritance_mode',
+                    'nok_support',
+                    'priority_support'
                 ]
             }
         });

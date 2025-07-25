@@ -9,6 +9,8 @@ export declare class AutoRefundMonitor {
     private intervalId?;
     private depositAddress;
     private processedTransactions;
+    private paymentErrorOccurred;
+    private lastPaymentError?;
     constructor();
     /**
      * Initialize the auto-refund monitor
@@ -65,6 +67,11 @@ export declare class AutoRefundMonitor {
         isRunning: boolean;
         processedCount: number;
         depositAddress: string;
+        paymentErrorStatus?: {
+            occurred: boolean;
+            lastError?: Date;
+            inCooldown: boolean;
+        };
     };
     /**
      * Manual trigger for testing

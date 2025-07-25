@@ -7,7 +7,11 @@ dotenv.config();
 
 // Hardcoded values for testing
 const BLOCKFROST_URL = 'https://cardano-preprod.blockfrost.io/api/v0';
-const BLOCKFROST_API_KEY = 'preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM';
+const BLOCKFROST_API_KEY = process.env.BLOCKFROST_API_KEY;
+
+if (!BLOCKFROST_API_KEY) {
+  throw new Error('BLOCKFROST_API_KEY environment variable is required');
+}
 const BACKEND_PRIVATE_KEY = '582057d5312245310f83c4ba6694bd777bb1c9fd28608bcb2d72ea7261263c56aec2';
 const NETWORK = 'Preprod';
 

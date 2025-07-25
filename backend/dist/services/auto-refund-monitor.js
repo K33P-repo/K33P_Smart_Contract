@@ -14,10 +14,14 @@ const CONFIG = {
     maxRetries: 3,
     retryDelay: 5000, // 5 seconds
     requiredAmount: 2000000n, // 2 ADA in lovelace
-    blockfrostApiKey: process.env.BLOCKFROST_API_KEY || "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM",
+    blockfrostApiKey: process.env.BLOCKFROST_API_KEY || (() => {
+        throw new Error('BLOCKFROST_API_KEY environment variable is required');
+    })(),
     blockfrostUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     autoRefundEnabled: process.env.AUTO_REFUND_ENABLED === 'true',
     maxTransactionAge: 3600, // 1 hour - only process recent transactions
+    disableOnPaymentError: true, // Disable monitoring when payment is required
+    paymentErrorCooldown: 300000, // 5 minutes cooldown after payment error
 };
 // Logger setup
 const logger = winston.createLogger({
@@ -37,6 +41,8 @@ export class AutoRefundMonitor {
     intervalId;
     depositAddress = '';
     processedTransactions = new Set();
+    paymentErrorOccurred = false;
+    lastPaymentError;
     constructor() {
         this.k33pManager = new EnhancedK33PManagerDB();
     }
@@ -104,6 +110,11 @@ export class AutoRefundMonitor {
      */
     async monitorAndProcessRefunds() {
         try {
+            // Check if we're in payment error cooldown
+            if (this.paymentErrorOccurred && CONFIG.disableOnPaymentError) {
+                logger.debug('⏸️ Monitoring paused due to payment error. Waiting for cooldown.');
+                return;
+            }
             logger.debug('🔍 Checking for new incoming transactions...');
             // Get recent transactions to deposit address
             const incomingTransactions = await this.getIncomingTransactions();
@@ -135,6 +146,20 @@ export class AutoRefundMonitor {
                     headers: { 'project_id': CONFIG.blockfrostApiKey }
                 });
                 if (!response.ok) {
+                    // Handle Payment Required error specifically
+                    if (response.status === 402) {
+                        this.paymentErrorOccurred = true;
+                        this.lastPaymentError = new Date();
+                        logger.warn('⚠️ Blockfrost API quota exceeded or payment required. Auto-refund monitoring temporarily disabled.');
+                        if (CONFIG.disableOnPaymentError) {
+                            logger.info('🔒 Auto-refund monitoring disabled due to payment error. Will retry after cooldown period.');
+                            setTimeout(() => {
+                                this.paymentErrorOccurred = false;
+                                logger.info('🔄 Payment error cooldown expired. Resuming auto-refund monitoring.');
+                            }, CONFIG.paymentErrorCooldown);
+                        }
+                        return [];
+                    }
                     throw new Error(`Blockfrost API error: ${response.statusText}`);
                 }
                 const transactions = await response.json();
@@ -194,6 +219,12 @@ export class AutoRefundMonitor {
                     headers: { 'project_id': CONFIG.blockfrostApiKey }
                 });
                 if (!txResponse.ok) {
+                    if (txResponse.status === 402) {
+                        this.paymentErrorOccurred = true;
+                        this.lastPaymentError = new Date();
+                        logger.warn('⚠️ Blockfrost API quota exceeded for transaction details.');
+                        return null;
+                    }
                     throw new Error(`Transaction API error: ${txResponse.statusText}`);
                 }
                 const txData = await txResponse.json();
@@ -202,6 +233,12 @@ export class AutoRefundMonitor {
                     headers: { 'project_id': CONFIG.blockfrostApiKey }
                 });
                 if (!utxosResponse.ok) {
+                    if (utxosResponse.status === 402) {
+                        this.paymentErrorOccurred = true;
+                        this.lastPaymentError = new Date();
+                        logger.warn('⚠️ Blockfrost API quota exceeded for UTXO details.');
+                        return null;
+                    }
                     throw new Error(`UTXOs API error: ${utxosResponse.statusText}`);
                 }
                 const utxosData = await utxosResponse.json();
@@ -393,10 +430,17 @@ export class AutoRefundMonitor {
      * Get monitoring status
      */
     getStatus() {
+        const inCooldown = !!(this.paymentErrorOccurred && this.lastPaymentError &&
+            (Date.now() - this.lastPaymentError.getTime()) < CONFIG.paymentErrorCooldown);
         return {
             isRunning: this.isRunning,
             processedCount: this.processedTransactions.size,
-            depositAddress: this.depositAddress
+            depositAddress: this.depositAddress,
+            paymentErrorStatus: {
+                occurred: this.paymentErrorOccurred,
+                lastError: this.lastPaymentError,
+                inCooldown
+            }
         };
     }
     /**

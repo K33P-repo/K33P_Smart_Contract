@@ -58,7 +58,7 @@ const handleValidationErrors = (req: express.Request, res: express.Response, nex
  */
 router.post('/store',
   authenticateToken,
-  createRateLimiter({ windowMs: 15 * 60 * 1000, max: 5 }), // 5 requests per 15 minutes
+  createRateLimiter({ windowMs: 60 * 60 * 1000, max: 3 }), // 3 requests per hour
   [
     body('walletName')
       .isLength({ min: 1, max: 100 })
@@ -166,7 +166,7 @@ router.get('/',
  */
 router.post('/:id/retrieve',
   authenticateToken,
-  createRateLimiter({ windowMs: 15 * 60 * 1000, max: 3 }), // 3 requests per 15 minutes
+  createRateLimiter({ windowMs: 60 * 60 * 1000, max: 3 }), // 3 requests per hour
   [
     param('id').isUUID().withMessage('Invalid seed phrase ID'),
     body('encryptionPassword')

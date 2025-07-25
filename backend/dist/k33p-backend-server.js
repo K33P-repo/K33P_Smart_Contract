@@ -10,6 +10,7 @@ import { MockDatabaseService } from './database/mock-service.js';
 import { testConnection } from './database/config.js';
 import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
+import { createRateLimiter } from './middleware/rate-limiter.js';
 // Import routes
 // @ts-ignore
 import zkRoutes from './routes/zk-postgres.js';
@@ -23,6 +24,12 @@ import userManagementRoutes from './routes/user-management.js';
 import phoneRoutes from './routes/phone-management.js';
 // @ts-ignore
 import recoveryRoutes from './routes/account-recovery.js';
+// @ts-ignore
+import otpRoutes from './routes/otp.js';
+// @ts-ignore
+import seedPhraseRoutes from './routes/seed-phrase-routes.js';
+// @ts-ignore
+import userRoutes from './routes/user-routes.js';
 // Load environment variables
 dotenv.config();
 // Constants
@@ -97,6 +104,9 @@ app.use('/api/zk', zkRoutes);
 app.use('/api/users', userManagementRoutes);
 app.use('/api/phone', phoneRoutes);
 app.use('/api/recovery', recoveryRoutes);
+app.use('/api/otp', otpRoutes);
+app.use('/api/seed-phrases', seedPhraseRoutes);
+app.use('/api/user', userRoutes);
 // Validation error handler
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
@@ -117,12 +127,18 @@ function createResponse(success, data, meta, message) {
 // ============================================================================
 // ROUTES
 // ============================================================================
+// Rate limiters for system endpoints
+const systemEndpointLimiter = createRateLimiter({
+    windowMs: 60 * 1000, // 1 minute
+    max: 100, // 100 requests per minute for system endpoints
+    message: 'Too many requests to system endpoints'
+});
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/api/health', systemEndpointLimiter, (req, res) => {
     res.json(createResponse(true, { status: 'ok' }, undefined, 'K33P Backend is running'));
 });
 // API Status endpoint
-app.get('/api/status', (req, res) => {
+app.get('/api/status', systemEndpointLimiter, (req, res) => {
     res.json(createResponse(true, {
         status: 'healthy',
         timestamp: new Date().toISOString(),
@@ -133,7 +149,7 @@ app.get('/api/status', (req, res) => {
     }, undefined, 'System status retrieved'));
 });
 // API Version endpoint
-app.get('/api/version', (req, res) => {
+app.get('/api/version', systemEndpointLimiter, (req, res) => {
     res.json(createResponse(true, {
         version: '1.0.0',
         apiVersion: 'v1',
@@ -227,7 +243,8 @@ app.get('/', (req, res) => {
     }, undefined, 'Welcome to K33P Backend API'));
 });
 // Get deposit address
-app.get('/api/deposit-address', async (req, res) => {
+app.get('/api/deposit-address', createRateLimiter({ windowMs: 60 * 1000, max: 20 }), // 20 requests per minute
+async (req, res) => {
     try {
         const address = await k33pManager.getDepositAddress();
         res.json(createResponse(true, { address }, undefined, 'Deposit address retrieved'));

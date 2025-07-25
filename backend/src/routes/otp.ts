@@ -2,6 +2,7 @@
 import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { sendOtp, verifyOtp, cancelVerification, verifyFirebaseToken } from '../utils/firebase.js';
+import { createRateLimiter } from '../middleware/rate-limiter.js';
 import { 
   SendOtpRequest, 
   SendOtpResponse, 
@@ -39,12 +40,16 @@ const handleValidationErrors = (req: Request, res: Response, next: Function) => 
  * Send OTP to a phone number
  * POST /api/otp/send
  */
-router.post('/send', [
-  body('phoneNumber')
-    .isLength({ min: 10 })
-    .withMessage('Phone number must be at least 10 characters')
-    .trim()
-], handleValidationErrors, async (req: Request, res: Response) => {
+router.post('/send', 
+  createRateLimiter({ windowMs: 5 * 60 * 1000, max: 3 }), // 3 requests per 5 minutes
+  [
+    body('phoneNumber')
+      .isLength({ min: 10 })
+      .withMessage('Phone number must be at least 10 characters')
+      .trim()
+  ], 
+  handleValidationErrors, 
+  async (req: Request, res: Response) => {
   try {
     const { phoneNumber }: SendOtpRequest = req.body;
     
@@ -66,16 +71,20 @@ router.post('/send', [
  * Verify OTP code
  * POST /api/otp/verify
  */
-router.post('/verify', [
-  body('requestId')
-    .isString()
-    .withMessage('Request ID is required')
-    .trim(),
-  body('code')
-    .isLength({ min: 4, max: 6 })
-    .withMessage('Verification code must be 4-6 digits')
-    .trim()
-], handleValidationErrors, async (req: Request, res: Response) => {
+router.post('/verify', 
+  createRateLimiter({ windowMs: 5 * 60 * 1000, max: 10 }), // 10 requests per 5 minutes
+  [
+    body('requestId')
+      .isString()
+      .withMessage('Request ID is required')
+      .trim(),
+    body('code')
+      .isLength({ min: 4, max: 6 })
+      .withMessage('Verification code must be 4-6 digits')
+      .trim()
+  ], 
+  handleValidationErrors, 
+  async (req: Request, res: Response) => {
   try {
     const { requestId, code }: VerifyOtpRequest = req.body;
     

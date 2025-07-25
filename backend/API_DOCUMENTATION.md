@@ -1,1488 +1,1027 @@
 # K33P Backend API Documentation
 
-This document provides information about the available API endpoints for the K33P Identity System backend server.
+This document provides comprehensive information about the available API endpoints for the K33P Identity System backend server.
 
 ## Base URL
 
-In development environment:
+**Development:**
 ```
-http://localhost:3000/api
+http://localhost:3001/api
 ```
 
-In production environment, the base URL will be different. The application uses the `getApiUrl` utility function to dynamically determine the appropriate URL based on the environment.
+**Production:**
+```
+https://k33p-backend-0kyx.onrender.com/api
+```
 
 ## Authentication
 
-### Admin API Key
-
-Some admin endpoints require an admin API key which should be included in the request headers:
-
-```
-X-API-KEY: k33p_admin_api_key_12345
-```
-
 ### JWT Token Authentication
 
-Most user-specific endpoints require JWT authentication. Include the access token in the Authorization header:
+Most endpoints require JWT authentication. Include the access token in the Authorization header:
 
 ```
 Authorization: Bearer your_jwt_access_token
 ```
 
-### Authentication Flow
+### Admin API Key
 
-The K33P system supports two authentication flows:
+Admin endpoints require an admin API key in the request headers:
 
-#### 1. Phone-Based Authentication (Recommended)
-
-1. **Signup**: `POST /api/users/signup` - Register with phone, PIN, biometric data, and username
-2. **Login Process**:
-   - `POST /api/users/login/request-otp` - Request OTP via SMS
-   - `POST /api/users/login/verify-otp` - Verify OTP and get temporary token
-   - `POST /api/users/login/pin` - Complete login with PIN authentication
-   - `POST /api/users/login/face-id` - Alternative: Complete login with biometric verification (Face ID, fingerprint, etc.)
-
-#### 2. Legacy Email Authentication
-
-1. **Register**: `POST /api/users/register` - Register with email and password
-2. **Login**: `POST /api/users/login` - Login with email and password
-
-### Token Management
-
-- **Access Token**: Short-lived token (15 minutes) for API access
-- **Refresh Token**: Long-lived token (7 days) for obtaining new access tokens
-- **Token Refresh**: `POST /api/users/refresh-token` - Get new access token using refresh token
-- **Logout**: `POST /api/users/logout` - Invalidate refresh token
-
-### Security Features
-
-- **Multi-factor Authentication**: PIN + Biometric (Face ID, fingerprint, voice, iris)
-- **OTP Verification**: SMS-based one-time passwords
-- **Multiple Biometric Options**: Support for Face ID, fingerprint, voice recognition, and iris scanning
-- **Token Rotation**: Automatic refresh token rotation on use
-- **Rate Limiting**: Protection against brute force attacks
-- **Input Validation**: Comprehensive validation on all endpoints
+```
+X-API-KEY: k33p_admin_api_key_12345
+```
 
 ## Error Handling
 
-All API endpoints follow a consistent error handling pattern. When an error occurs, the response will have the following structure:
+All API endpoints follow a consistent error handling pattern:
 
 ```json
 {
   "success": false,
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable error message"
-  },
-  "timestamp": "2023-06-01T12:34:56.789Z"
+  "error": "Error message",
+  "code": "ERROR_CODE",
+  "timestamp": "2024-01-25T12:34:56.789Z"
 }
 ```
 
-Common error codes include:
+### Common Error Codes
 
 | Error Code | HTTP Status | Description |
 |------------|-------------|-------------|
-| INVALID_INPUT | 400 | The request contains invalid or missing parameters |
-| UNAUTHORIZED | 401 | Authentication is required or the provided credentials are invalid |
-| FORBIDDEN | 403 | The authenticated user does not have permission to access the resource |
-| NOT_FOUND | 404 | The requested resource was not found |
-| CONFLICT | 409 | The request conflicts with the current state of the resource |
-| INTERNAL_ERROR | 500 | An unexpected error occurred on the server |
-| SERVICE_UNAVAILABLE | 503 | The service is temporarily unavailable (e.g., Iagon API is down) |
-| ZK_VERIFICATION_FAILED | 401 | Zero-Knowledge proof verification failed |
-| INVALID_CREDENTIALS | 401 | The provided login credentials are incorrect |
-| ACCESS_DENIED | 403 | User does not have permission to access this resource |
-| USER_NOT_FOUND | 404 | The specified user was not found |
-| PHONE_ALREADY_EXISTS | 409 | A user with this phone number already exists |
-| USERNAME_TAKEN | 409 | The requested username is already taken |
-| OTP_EXPIRED | 400 | The OTP has expired and needs to be regenerated |
-| OTP_INVALID | 400 | The provided OTP is incorrect |
-| BIOMETRIC_VERIFICATION_FAILED | 401 | Biometric authentication failed |
-| PIN_INVALID | 401 | The provided PIN is incorrect |
-| FILE_TOO_LARGE | 400 | The uploaded file exceeds the maximum size limit |
-| INVALID_FILE_TYPE | 400 | The uploaded file type is not supported |
-| PAYMENT_FAILED | 402 | Payment processing failed |
-| ACCOUNT_SUSPENDED | 403 | The user account has been suspended |
-| FEATURE_NOT_AVAILABLE | 403 | This feature is not available for the current account type |
+| INVALID_INPUT | 400 | Invalid or missing parameters |
+| UNAUTHORIZED | 401 | Authentication required or invalid credentials |
+| FORBIDDEN | 403 | Insufficient permissions |
+| NOT_FOUND | 404 | Resource not found |
+| CONFLICT | 409 | Resource conflict |
+| WALLET_IN_USE | 400 | Wallet address already registered |
+| INTERNAL_ERROR | 500 | Server error |
 
-#### **🆕 NEW Error Codes for Admin & Refund Endpoints:**
+---
 
-| Error Code | HTTP Status | Description |
-|------------|-------------|-------------|
-| **ADMIN_UNAUTHORIZED** | 401 | Admin API key is missing or invalid |
-| **REFUND_ALREADY_PROCESSED** | 409 | User has already been refunded |
-| **REFUND_USER_NOT_FOUND** | 404 | No deposit found for the specified user address |
-| **REFUND_PROCESSING_FAILED** | 500 | Failed to process refund transaction |
-| **ADMIN_AUTO_VERIFY_FAILED** | 500 | Auto-verification process failed |
-| **ADMIN_MONITOR_FAILED** | 500 | Transaction monitoring failed |
-| **ADMIN_SIGNUP_PROCESSING_FAILED** | 500 | Signup processing failed |
-| **INVALID_USER_ADDRESS** | 400 | User address format is invalid |
-| **INVALID_WALLET_ADDRESS** | 400 | Wallet address format is invalid |
-
-## Public Endpoints
+## System Endpoints
 
 ### Health Check
 
-```
-GET /health
-```
+**Endpoint:** `GET /api/health`  
+**Authentication:** None  
+**Description:** Check system health status
 
-Returns the health status of the service.
-
-**Response:**
+**Response (200):**
 ```json
 {
   "success": true,
+  "message": "System is healthy",
   "data": {
     "status": "healthy",
-    "uptime": 123.45
-  },
-  "message": "Service is running",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
----
-
-## 🆕 **NEW API ENDPOINTS** 🆕
-
-### **🔧 Admin Endpoints**
-
-These are newly added administrative endpoints that require admin API key authentication.
-
-#### **📊 Get All Users (Admin)**
-
-```
-GET /api/admin/users
-```
-
-**🔑 Authentication Required:** Admin API Key
-
-**Headers:**
-```
-X-API-KEY: your_admin_api_key
-```
-
-Retrieves all user deposits and their status for administrative monitoring.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "users": [
-      {
-        "userAddress": "addr1...",
-        "userId": "user_12345",
-        "verified": true,
-        "signupCompleted": false,
-        "refunded": false,
-        "txHash": "abc123...",
-        "amount": "2.0",
-        "timestamp": "2023-06-01T12:34:56.789Z",
-        "verificationAttempts": 1
-      }
-    ],
-    "total": 1
-  },
-  "message": "Users retrieved"
-}
-```
-
-#### **✅ Auto-Verify Deposits (Admin)**
-
-```
-POST /api/admin/auto-verify
-```
-
-**🔑 Authentication Required:** Admin API Key
-
-**Headers:**
-```
-X-API-KEY: your_admin_api_key
-```
-
-Automatically verifies all unverified deposits in the system.
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Auto-verification completed"
-}
-```
-
-#### **📡 Monitor Transactions (Admin)**
-
-```
-GET /api/admin/monitor
-```
-
-**🔑 Authentication Required:** Admin API Key
-
-**Headers:**
-```
-X-API-KEY: your_admin_api_key
-```
-
-Triggers manual monitoring of incoming transactions.
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Transaction monitoring completed"
-}
-```
-
-#### **🚀 Process Signup (Admin)**
-
-```
-POST /api/admin/process-signup
-```
-
-**🔑 Authentication Required:** Admin API Key
-
-**Headers:**
-```
-X-API-KEY: your_admin_api_key
-```
-
-**Request Body:**
-```json
-{
-  "userAddress": "addr1qy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm"
-}
-```
-
-Processes signup completion for a specific user address.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "txHash": "abc123def456..."
-  },
-  "message": "Signup processed successfully"
-}
-```
-
-### **💰 Refund Endpoint**
-
-#### **⚡ Immediate Refund**
-
-```
-POST /api/refund
-```
-
-**🆕 NEW:** This endpoint allows immediate processing of refunds without waiting for the automatic refund monitor.
-
-**Request Body:**
-```json
-{
-  "userAddress": "addr1qy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm",
-  "walletAddress": "addr1qxyz..." // Optional: specific wallet to refund to
-}
-```
-
-Processes an immediate refund for the specified user address.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "txHash": "refund_transaction_hash_abc123..."
-  },
-  "message": "Refund processed successfully"
-}
-```
-
-**Error Response:**
-```json
-{
-  "success": false,
-  "error": "User not found or already refunded",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
----
-
-## User Authentication Endpoints
-
-### Phone-Based User Signup
-
-```
-POST /api/users/signup
-```
-
-Registers a new user with phone number, PIN, biometric data, and username.
-
-**Request Body:**
-```json
-{
-  "phoneNumber": "+1234567890",
-  "pin": "1234",
-  "biometricData": {
-    "type": "face_id",
-    "data": "base64encodedbiometricdata"
-  },
-  "username": "john_doe"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "userId": "user_12345",
-    "userNumber": "K33P001234",
-    "phoneNumber": "+1234567890",
-    "username": "john_doe",
-    "accessToken": "jwt_access_token",
-    "refreshToken": "jwt_refresh_token"
+    "timestamp": "2024-01-25T10:00:00Z",
+    "uptime": 86400
   }
 }
 ```
 
-### Request Login OTP
+### System Status
 
-```
-POST /api/users/login/request-otp
-```
+**Endpoint:** `GET /api/status`  
+**Authentication:** None  
+**Description:** Get system statistics
 
-Sends an OTP to the user's phone number for login.
-
-**Request Body:**
-```json
-{
-  "phoneNumber": "+1234567890"
-}
-```
-
-**Response:**
+**Response (200):**
 ```json
 {
   "success": true,
-  "message": "OTP sent successfully",
+  "message": "System status retrieved",
   "data": {
-    "otpSent": true,
-    "expiresIn": 300
+    "totalUsers": 1250,
+    "systemLoad": "normal",
+    "maintenanceMode": false
   }
 }
 ```
 
-### Verify Login OTP
+### API Version
 
-```
-POST /api/users/login/verify-otp
-```
+**Endpoint:** `GET /api/version`  
+**Authentication:** None  
+**Description:** Get API version information
 
-Verifies the OTP sent to the user's phone.
-
-**Request Body:**
-```json
-{
-  "phoneNumber": "+1234567890",
-  "otp": "123456"
-}
-```
-
-**Response:**
+**Response (200):**
 ```json
 {
   "success": true,
-  "message": "OTP verified successfully",
   "data": {
-    "otpVerified": true,
-    "userId": "user_12345",
-    "tempToken": "temporary_jwt_token"
-  }
-}
-```
-
-### PIN-Based Login
-
-```
-POST /api/users/login/pin
-```
-
-Completes login using PIN authentication.
-
-**Request Body:**
-```json
-{
-  "userId": "user_12345",
-  "pin": "1234"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "userId": "user_12345",
-    "username": "john_doe",
-    "accessToken": "jwt_access_token",
-    "refreshToken": "jwt_refresh_token"
-  }
-}
-```
-
-### Biometric Login
-
-```
-POST /api/users/login/face-id
-```
-
-Completes login using biometric authentication (Face ID, fingerprint, etc.).
-
-**Request Body:**
-```json
-{
-  "userId": "user_12345",
-  "biometricData": {
-    "type": "face_id",
-    "data": "base64encodedbiometricdata"
-  }
-}
-```
-
-**Supported Biometric Types:**
-- `face_id` - Face ID authentication
-- `fingerprint` - Fingerprint authentication
-- `voice` - Voice recognition
-- `iris` - Iris scanning
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Biometric login successful",
-  "data": {
-    "userId": "user_12345",
-    "username": "john_doe",
-    "accessToken": "jwt_access_token",
-    "refreshToken": "jwt_refresh_token"
-  }
-}
-```
-
-## User Profile Management Endpoints
-
-### Get User Data
-
-```
-GET /api/users/data/:userId
-```
-
-Retrieves comprehensive user data including profile and settings.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User data retrieved successfully",
-  "data": {
-    "userId": "user_12345",
-    "userNumber": "K33P001234",
-    "phoneNumber": "+1234567890",
-    "username": "john_doe",
-    "avatar": "https://example.com/avatar.jpg",
-    "accountStatus": "free",
-    "authMethods": ["pin", "face_id"],
-    "createdAt": "2023-06-01T12:34:56.789Z"
-  }
-}
-```
-
-### Update Username
-
-```
-PUT /api/users/username/:userId
-```
-
-Updates the user's username.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "username": "new_username"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Username updated successfully",
-  "data": {
-    "userId": "user_12345",
-    "username": "new_username"
-  }
-}
-```
-
-### Upload Avatar
-
-```
-POST /api/users/avatar/:userId
-```
-
-Uploads a new avatar image for the user.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-Content-Type: multipart/form-data
-```
-
-**Request Body:**
-- `avatar`: Image file (JPG, PNG, GIF, max 5MB)
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Avatar uploaded successfully",
-  "data": {
-    "userId": "user_12345",
-    "avatarUrl": "https://example.com/uploads/avatar_12345.jpg"
-  }
-}
-```
-
-## Wallet Management Endpoints
-
-### Add Wallet
-
-```
-POST /api/users/wallets/:userId
-```
-
-Adds a new wallet to the user's account.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "walletName": "My Bitcoin Wallet",
-  "walletType": "bitcoin",
-  "fileId": "file_abc123",
-  "seedPhraseAvailable": true
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Wallet added successfully",
-  "data": {
-    "walletId": "wallet_789",
-    "walletName": "My Bitcoin Wallet",
-    "walletType": "bitcoin",
-    "fileId": "file_abc123",
-    "createdAt": "2023-06-01T12:34:56.789Z"
-  }
-}
-```
-
-### Get User Wallets
-
-```
-GET /api/users/wallets/:userId
-```
-
-Retrieves all wallets associated with the user.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Wallets retrieved successfully",
-  "data": {
-    "wallets": [
-      {
-        "walletId": "wallet_789",
-        "walletName": "My Bitcoin Wallet",
-        "walletType": "bitcoin",
-        "fileId": "file_abc123",
-        "createdAt": "2023-06-01T12:34:56.789Z"
-      }
-    ],
-    "totalWallets": 1
-  }
-}
-```
-
-## Account Management Endpoints
-
-### Delete Account
-
-```
-DELETE /api/users/delete/:userId
-```
-
-Deletes the user's account permanently.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "confirmPin": "1234"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Account deleted successfully"
-}
-```
-
-### Get Account Status
-
-```
-GET /api/users/account-status/:userId
-```
-
-Retrieves the user's account status and available features.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Account status retrieved successfully",
-  "data": {
-    "userId": "user_12345",
-    "accountStatus": "free",
-    "features": [
-      "basic_wallet_management",
-      "standard_security"
-    ]
-  }
-}
-```
-
-### Update Account Status
-
-```
-PUT /api/users/account-status/:userId
-```
-
-Updates the user's account status.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "accountStatus": "premium"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Account status updated successfully",
-  "data": {
-    "userId": "user_12345",
-    "accountStatus": "premium"
-  }
-}
-```
-
-### Upgrade to Premium
-
-```
-POST /api/users/upgrade-pro/:userId
-```
-
-Upgrades the user's account to premium status.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "paymentMethod": "credit_card",
-  "paymentToken": "payment_token_123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Successfully upgraded to premium",
-  "data": {
-    "userId": "user_12345",
-    "accountStatus": "premium",
-    "features": [
-      "unlimited_wallets",
-      "advanced_security",
-      "priority_support",
-      "backup_recovery"
-    ]
-  }
-}
-```
-
-### Update Authentication Methods
-
-```
-PUT /api/users/auth-methods/:userId
-```
-
-Updates the user's authentication methods and preferences.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "authMethods": ["pin", "face_id"],
-  "newPin": "5678",
-  "biometricData": {
-    "type": "face_id",
-    "data": "base64encodedbiometricdata"
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Authentication methods updated successfully",
-  "data": {
-    "userId": "user_12345",
-    "authMethods": ["pin", "face_id"],
-    "hasBiometricData": true
-  }
-}
-```
-
-### Logout
-
-```
-POST /api/users/logout
-```
-
-Logs out the user and invalidates the refresh token.
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "refreshToken": "jwt_refresh_token"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Logged out successfully"
-}
-```
-
-### Refresh Token
-
-```
-POST /api/users/refresh-token
-```
-
-Refreshes the access token using a valid refresh token.
-
-**Request Body:**
-```json
-{
-  "refreshToken": "jwt_refresh_token"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Token refreshed successfully",
-  "data": {
-    "accessToken": "new_jwt_access_token",
-    "refreshToken": "new_jwt_refresh_token"
-  }
-}
-```
-
-## Legacy Authentication Endpoints
-
-*Note: These endpoints are maintained for backward compatibility but are deprecated in favor of the new phone-based authentication system.*
-
-### Legacy User Registration
-
-```
-POST /api/users/register
-```
-
-Registers a new user with email and password (Legacy).
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "securepassword123",
-  "firstName": "John",
-  "lastName": "Doe"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "userId": "user_12345",
-    "email": "user@example.com",
-    "accessToken": "jwt_access_token",
-    "refreshToken": "jwt_refresh_token"
-  }
-}
-```
-
-### Legacy Email Login
-
-```
-POST /api/users/login
-```
-
-Logs in a user with email and password (Legacy).
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "securepassword123"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "userId": "user_12345",
-    "email": "user@example.com",
-    "accessToken": "jwt_access_token",
-    "refreshToken": "jwt_refresh_token"
-  }
-}
-```
-
-### Legacy Profile Management
-
-```
-GET /api/users/profile/:userId
-```
-
-Retrieves user profile information (Legacy).
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Profile retrieved successfully",
-  "data": {
-    "userId": "user_12345",
-    "email": "user@example.com",
-    "firstName": "John",
-    "lastName": "Doe",
-    "createdAt": "2023-06-01T12:34:56.789Z"
-  }
-}
-```
-
-```
-PUT /api/users/profile/:userId
-```
-
-Updates user profile information (Legacy).
-
-**Headers:**
-```
-Authorization: Bearer jwt_access_token
-```
-
-**Request Body:**
-```json
-{
-  "firstName": "John",
-  "lastName": "Smith"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Profile updated successfully",
-  "data": {
-    "userId": "user_12345",
-    "firstName": "John",
-    "lastName": "Smith"
+    "version": "1.0.0",
+    "buildDate": "2024-01-25",
+    "environment": "production"
   }
 }
 ```
 
 ### Get Deposit Address
 
-```
-GET /deposit-address
-```
+**Endpoint:** `GET /api/deposit-address`  
+**Authentication:** None  
+**Description:** Get the deposit address for 2 ADA verification
 
-Returns the Cardano address where users should send their deposit.
-
-**Response:**
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "address": "addr_test1..."
+    "address": "addr_test1qztest123456789abcdef",
+    "network": "preprod"
   },
-  "message": "Deposit address retrieved",
-  "timestamp": "2023-06-01T12:34:56.789Z"
+  "message": "Deposit address retrieved"
 }
 ```
 
-### Record Signup
+---
 
-```
-POST /signup
-```
+## Authentication Endpoints
 
-Records a new user signup with transaction verification.
+### User Signup
+
+**Endpoint:** `POST /api/auth/signup`  
+**Authentication:** None  
+**Description:** Register a new user with ZK proof verification
 
 **Request Body:**
 ```json
 {
-  "userAddress": "addr_test1...",
-  "userId": "username123",
-  "phoneNumber": "1234567890",
-  "senderWalletAddress": "addr_test1...",
+  "phoneNumber": "+1234567890",
+  "userId": "user_12345",
+  "userAddress": "addr_test1qztest123456789abcdef",
+  "senderWalletAddress": "addr_test1qxyz...",
   "pin": "1234",
-  "biometricData": "base64encodedbiometricdata",
-  "verificationMethod": "biometric",
-  "biometricType": "fingerprint"
+  "biometricData": "biometric_hash",
+  "verificationMethod": "phone",
+  "biometricType": "fingerprint",
+  "passkey": "user_passkey"
 }
 ```
 
-**Request Parameters:**
+**Success Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "verified": false,
+    "userId": "user_12345",
+    "verificationMethod": "phone",
+    "message": "DID created successfully. Welcome to K33P!",
+    "depositAddress": "addr_test1qztest123456789abcdef"
+  },
+  "message": "DID created successfully. Welcome to K33P!",
+  "token": "jwt_token_here"
+}
+```
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| userAddress | string | Yes | User's wallet address |
-| userId | string | Yes | User's chosen ID (3-50 alphanumeric characters) |
-| phoneNumber | string | Yes | User's phone number (min 10 digits) |
-| senderWalletAddress | string | Yes | Wallet address that sent the deposit |
-| pin | string | No | 4-digit PIN for PIN verification method |
-| biometricData | string | No | Biometric data for biometric verification method |
-| verificationMethod | string | No | Verification method: 'phone', 'pin', or 'biometric' (default: 'phone') |
-| biometricType | string | No | The specific biometric method used. Can be 'fingerprint', 'faceid', 'voice', or 'iris'. Required when verificationMethod is 'biometric' |
-
-**Response:**
+**Existing User Response (200):**
 ```json
 {
   "success": true,
   "data": {
     "verified": true,
-    "userId": "username123",
-    "verificationMethod": "pin",
-    "message": "Signup verified successfully"
+    "userId": "existing_user_123",
+    "verificationMethod": "phone",
+    "message": "User account updated successfully. Your refund has been processed.",
+    "depositAddress": "addr_test1qztest123456789abcdef",
+    "isUpdate": true
   },
-  "message": "Signup processed successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
+  "message": "User account updated successfully. Your refund has been processed.",
+  "token": "jwt_token_here"
+}
+```
+
+**Wallet In Use Error (400):**
+```json
+{
+  "success": false,
+  "error": "This wallet address is already registered with another account. Please use a different wallet or contact support if this is your wallet.",
+  "code": "WALLET_IN_USE"
+}
+```
+
+### User Login
+
+**Endpoint:** `POST /api/auth/login`  
+**Authentication:** None  
+**Description:** Login with ZK proof verification
+
+**Request Body:**
+```json
+{
+  "walletAddress": "addr_test1qztest123456789abcdef",
+  "phone": "+1234567890",
+  "proof": "zk_proof_data",
+  "commitment": "zk_commitment_hash"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Login successful",
+  "token": "jwt_token_here",
+  "hasWallet": true
+}
+```
+
+### User Logout
+
+**Endpoint:** `POST /api/auth/logout`  
+**Authentication:** JWT Required  
+**Description:** Logout and invalidate session
+
+**Response (200):**
+```json
+{
+  "message": "Logout successful"
+}
+```
+
+### Get Current User
+
+**Endpoint:** `GET /api/auth/me`  
+**Authentication:** JWT Required  
+**Description:** Get current authenticated user information
+
+**Response (200):**
+```json
+{
+  "id": "user_123",
+  "walletAddress": "addr_test1qztest123456789abcdef",
+  "createdAt": "2024-01-25T10:00:00Z",
+  "updatedAt": "2024-01-25T12:00:00Z",
+  "storageUsed": "1.2MB"
+}
+```
+
+### Verify Wallet
+
+**Endpoint:** `POST /api/auth/verify-wallet`  
+**Authentication:** JWT Required  
+**Description:** Verify wallet address with 2 ADA transaction
+
+**Request Body:**
+```json
+{
+  "walletAddress": "addr_test1qztest123456789abcdef"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Wallet verified successfully"
+}
+```
+
+### Get Wallet Connection
+
+**Endpoint:** `GET /api/auth/wallet-connect`  
+**Authentication:** JWT Required  
+**Description:** Get user's connected wallet address
+
+**Response (200):**
+```json
+{
+  "walletAddress": "addr_test1qztest123456789abcdef",
+  "storageUsed": "1.2MB"
+}
+```
+
+### Verify Deposit
+
+**Endpoint:** `POST /api/auth/verify-deposit`  
+**Authentication:** JWT Required  
+**Description:** Verify 2 ADA deposit and initiate refund process
+
+**Request Body:**
+```json
+{
+  "senderWalletAddress": "addr_test1qztest123456789abcdef"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Deposit verified successfully. Refund will be processed automatically.",
+  "txHash": "transaction_hash_here",
+  "senderWalletAddress": "addr_test1qztest123456789abcdef"
+}
+```
+
+### Verify Token
+
+**Endpoint:** `POST /api/auth/verify`  
+**Authentication:** None  
+**Description:** Verify JWT token validity
+
+**Request Body:**
+```json
+{
+  "token": "jwt_token_to_verify"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Token is valid",
+  "user": {
+    "id": "user_123",
+    "walletAddress": "addr_test1qztest123456789abcdef",
+    "createdAt": "2024-01-25T10:00:00Z"
+  }
+}
+```
+
+---
+
+## User Management Endpoints
+
+### Create User Profile
+
+**Endpoint:** `POST /api/users`  
+**Authentication:** None  
+**Description:** Create a new user profile
+
+**Request Body:**
+```json
+{
+  "userId": "user_12345",
+  "email": "user@example.com",
+  "username": "john_doe",
+  "phoneNumber": "+1234567890",
+  "userAddress": "addr_test1qztest123456789abcdef",
+  "biometricType": "fingerprint",
+  "verificationMethod": "phone",
+  "pin": "1234"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "User profile created successfully",
+  "user": {
+    "id": "internal_id_123",
+    "userId": "user_12345",
+    "email": "user@example.com",
+    "username": "john_doe",
+    "createdAt": "2024-01-25T10:00:00Z"
+  }
+}
+```
+
+### Get User Profile
+
+**Endpoint:** `GET /api/users/:userId`  
+**Authentication:** None  
+**Description:** Get user profile by ID
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "user": {
+    "id": "internal_id_123",
+    "userId": "user_12345",
+    "email": "user@example.com",
+    "username": "john_doe",
+    "createdAt": "2024-01-25T10:00:00Z",
+    "updatedAt": "2024-01-25T12:00:00Z"
+  }
+}
+```
+
+### Delete User Data
+
+**Endpoint:** `DELETE /api/users/:userId`  
+**Authentication:** JWT Required  
+**Description:** Delete user profile and associated data
+
+**Query Parameters:**
+- `confirmDeletion=true` (required)
+- `deleteAllData=true` (optional, deletes seed phrases)
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "User data deleted successfully",
+  "deletedItems": {
+    "userProfile": true,
+    "deposits": true,
+    "zkProofs": true,
+    "seedPhrases": false,
+    "iagonStorage": true,
+    "sessions": true
+  }
+}
+```
+
+### Search Users
+
+**Endpoint:** `GET /api/users/search`  
+**Authentication:** JWT Required  
+**Description:** Search users by various criteria
+
+**Query Parameters:**
+- `email` (optional)
+- `username` (optional)
+- `phoneHash` (optional)
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "users": [
+    {
+      "id": "internal_id_123",
+      "userId": "user_12345",
+      "email": "user@example.com",
+      "username": "john_doe"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+## User Routes (Extended)
+
+### Phone Signup
+
+**Endpoint:** `POST /api/user/signup/phone`  
+**Authentication:** None  
+**Description:** Register with phone number and PIN
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "pin": "1234",
+  "userName": "john_doe",
+  "biometricData": "biometric_hash",
+  "biometricType": "fingerprint"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "User registered successfully",
+  "userId": "user_12345",
+  "token": "jwt_token_here"
+}
+```
+
+### Get User Profile (Extended)
+
+**Endpoint:** `GET /api/user/profile`  
+**Authentication:** JWT Required  
+**Description:** Get current user's profile
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "user": {
+    "id": "user_123",
+    "userName": "john_doe",
+    "phoneNumber": "+1234567890",
+    "email": "user@example.com",
+    "walletAddress": "addr_test1qztest123456789abcdef",
+    "verificationMethod": "phone",
+    "biometricType": "fingerprint",
+    "createdAt": "2024-01-25T10:00:00Z"
+  }
+}
+```
+
+### Update User Profile
+
+**Endpoint:** `POST /api/user/profile`  
+**Authentication:** JWT Required  
+**Description:** Update current user's profile
+
+**Request Body:**
+```json
+{
+  "userName": "new_username",
+  "email": "newemail@example.com",
+  "biometricType": "faceid"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Profile updated successfully",
+  "user": {
+    "id": "user_123",
+    "userName": "new_username",
+    "email": "newemail@example.com",
+    "updatedAt": "2024-01-25T12:00:00Z"
+  }
+}
+```
+
+### Upload Avatar
+
+**Endpoint:** `POST /api/user/avatar`  
+**Authentication:** JWT Required  
+**Description:** Upload user avatar image
+
+**Request:** Multipart form data with image file
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Avatar uploaded successfully",
+  "avatarUrl": "/uploads/avatars/avatar-user123-1234567890.jpg"
+}
+```
+
+---
+
+## Seed Phrase Management
+
+### Store Seed Phrase
+
+**Endpoint:** `POST /api/seed-phrases/store`  
+**Authentication:** JWT Required  
+**Description:** Store encrypted seed phrase on Iagon
+
+**Request Body:**
+```json
+{
+  "walletName": "My Cardano Wallet",
+  "walletType": "cardano",
+  "mnemonicType": "12-word",
+  "seedPhrase": "word1 word2 word3 ... word12",
+  "encryptionPassword": "strong_password_123",
+  "backupLocation": "iagon"
+}
+```
+
+**Response (201):**
+```json
+{
+  "success": true,
+  "message": "Seed phrase stored successfully",
+  "seedPhraseId": "sp_12345",
+  "storageLocation": "iagon",
+  "encryptionStatus": "encrypted"
+}
+```
+
+### Get Stored Seed Phrases
+
+**Endpoint:** `GET /api/seed-phrases`  
+**Authentication:** JWT Required  
+**Description:** Get list of user's stored seed phrases
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "seedPhrases": [
+    {
+      "id": "sp_12345",
+      "walletName": "My Cardano Wallet",
+      "walletType": "cardano",
+      "mnemonicType": "12-word",
+      "createdAt": "2024-01-25T10:00:00Z",
+      "storageLocation": "iagon"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+## OTP Management
+
+### Request OTP
+
+**Endpoint:** `POST /api/otp/request`  
+**Authentication:** None  
+**Description:** Request OTP for phone verification
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "purpose": "login"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "OTP sent successfully",
+  "otpId": "otp_12345",
+  "expiresIn": 300
+}
+```
+
+### Verify OTP
+
+**Endpoint:** `POST /api/otp/verify`  
+**Authentication:** None  
+**Description:** Verify OTP code
+
+**Request Body:**
+```json
+{
+  "otpId": "otp_12345",
+  "code": "123456",
+  "phoneNumber": "+1234567890"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully",
+  "verified": true
+}
+```
+
+---
+
+## ZK Proof Endpoints
+
+### Generate ZK Proof
+
+**Endpoint:** `POST /api/zk/generate`  
+**Authentication:** JWT Required  
+**Description:** Generate zero-knowledge proof
+
+**Request Body:**
+```json
+{
+  "data": {
+    "phoneHash": "hashed_phone_number",
+    "biometricHash": "hashed_biometric_data"
+  },
+  "commitment": "zk_commitment_hash"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "proof": "zk_proof_data",
+  "isValid": true
+}
+```
+
+### Verify ZK Proof
+
+**Endpoint:** `POST /api/zk/verify`  
+**Authentication:** None  
+**Description:** Verify zero-knowledge proof
+
+**Request Body:**
+```json
+{
+  "proof": "zk_proof_data",
+  "commitment": "zk_commitment_hash",
+  "publicInputs": ["input1", "input2"]
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "valid": true,
+  "message": "Proof verified successfully"
+}
+```
+
+---
+
+## UTXO Management
+
+### Get User Balance
+
+**Endpoint:** `GET /api/utxo/balance`  
+**Authentication:** JWT Required  
+**Description:** Get user's wallet balance
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "balance": {
+    "ada": "10.500000",
+    "lovelace": "10500000",
+    "assets": []
+  }
+}
+```
+
+### Get User UTXOs
+
+**Endpoint:** `GET /api/utxo/user`  
+**Authentication:** JWT Required  
+**Description:** Get user's UTXOs
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "utxos": [
+    {
+      "txHash": "abc123def456",
+      "outputIndex": 0,
+      "amount": "2000000",
+      "address": "addr_test1qztest123456789abcdef"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+## Phone Management
+
+### Verify Phone Number
+
+**Endpoint:** `POST /api/phone/verify`  
+**Authentication:** JWT Required  
+**Description:** Verify phone number with OTP
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "otpCode": "123456"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Phone number verified successfully",
+  "verified": true
+}
+```
+
+---
+
+## Account Recovery
+
+### Initiate Recovery
+
+**Endpoint:** `POST /api/recovery/initiate`  
+**Authentication:** None  
+**Description:** Initiate account recovery process
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "recoveryMethod": "phone"
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Recovery process initiated",
+  "recoveryId": "recovery_12345"
+}
+```
+
+---
+
+## Additional Endpoints
+
+### Get User Status by Address
+
+**Endpoint:** `GET /api/user/:address/status`  
+**Authentication:** None  
+**Description:** Get user status by wallet address
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "status": {
+    "exists": true,
+    "verified": true,
+    "signupCompleted": false,
+    "refunded": false
+  }
 }
 ```
 
 ### Retry Verification
 
-```
-POST /retry-verification
-```
-
-Retries verification for a user whose transaction was not initially verified.
+**Endpoint:** `POST /api/retry-verification`  
+**Authentication:** None  
+**Description:** Retry user verification process
 
 **Request Body:**
 ```json
 {
-  "userAddress": "addr_test1..."
+  "userAddress": "addr_test1qztest123456789abcdef"
 }
 ```
 
-**Response:**
+**Response (200):**
 ```json
 {
   "success": true,
-  "data": {
-    "verified": true
-  },
-  "message": "Verification successful",
-  "timestamp": "2023-06-01T12:34:56.789Z"
+  "message": "Verification retry initiated",
+  "verified": true
 }
 ```
 
-### Get User Status
+### Process Signup
 
-```
-GET /user/:address/status
-```
-
-Returns the status of a user's signup process.
-
-**Parameters:**
-- `address`: The Cardano address of the user
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "userAddress": "addr_test1...",
-    "userId": "username123",
-    "verified": true,
-    "signupCompleted": false,
-    "refunded": false,
-    "txHash": "e23affa659545e80ae1924d5c1c4781b54a744d91fbd29838dccd7b59d45ee65",
-    "amount": "2.000000",
-    "timestamp": "2023-06-01T12:34:56.789Z",
-    "verificationAttempts": 1
-  },
-  "message": "User status retrieved",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-## Admin Endpoints
-
-These endpoints require the `X-API-KEY` header.
-
-### Get All Users
-
-```
-GET /admin/users
-```
-
-Returns a list of all users in the system.
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "users": [
-      {
-        "userAddress": "addr_test1...",
-        "userId": "username123",
-        "verified": true,
-        "signupCompleted": false,
-        "refunded": false,
-        "txHash": "e23affa659545e80ae1924d5c1c4781b54a744d91fbd29838dccd7b59d45ee65",
-        "amount": "2.000000",
-        "timestamp": "2023-06-01T12:34:56.789Z",
-        "verificationAttempts": 1
-      }
-    ],
-    "total": 1
-  },
-  "message": "Users retrieved successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-## Firebase Authentication
-
-### Verify Firebase Token
-
-```
-POST /api/auth/verify-firebase-token
-```
-
-Verifies a Firebase ID token from a mobile app.
+**Endpoint:** `POST /api/process-signup`  
+**Authentication:** None  
+**Description:** Process signup completion
 
 **Request Body:**
 ```json
 {
-  "idToken": "firebase_id_token"
+  "userAddress": "addr_test1qztest123456789abcdef"
 }
 ```
 
-**Response:**
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "uid": "firebase_user_id",
-    "phoneNumber": "1234567890",
-    "verified": true
+    "txHash": "transaction_hash_here"
   },
-  "message": "Firebase token verified successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
+  "message": "Signup processed successfully"
 }
 ```
 
-## Zero-Knowledge Proof Endpoints
+### Immediate Refund
 
-### Generate ZK Commitment
-
-```
-POST /api/zk/commitment
-```
-
-Generates a Zero-Knowledge commitment from hashed values.
+**Endpoint:** `POST /api/refund`  
+**Authentication:** None  
+**Description:** Process immediate refund
 
 **Request Body:**
 ```json
 {
-  "phone": "1234567890",
-  "biometric": "base64encodedbiometricdata",
-  "passkey": "user_passkey"
+  "userAddress": "addr_test1qztest123456789abcdef",
+  "walletAddress": "addr_test1qxyz..." // Optional
 }
 ```
 
-**Request Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| phone | string | Yes | User's phone number |
-| biometric | string | Yes | User's biometric data (base64 encoded) |
-| passkey | string | Yes | User's passkey or password |
-
-**Response:**
+**Response (200):**
 ```json
 {
   "success": true,
   "data": {
-    "commitment": "zk_commitment_hash",
-    "hashes": {
-      "phoneHash": "hashed_phone",
-      "biometricHash": "hashed_biometric",
-      "passkeyHash": "hashed_passkey"
-    }
-  },
-  "message": "ZK commitment generated successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: If any required parameters are missing or invalid
-- `500 Internal Server Error`: If there's an error generating the commitment
-
-### Generate ZK Proof
-
-```
-POST /api/zk/proof
-```
-
-Generates a Zero-Knowledge proof.
-
-**Request Body:**
-```json
-{
-  "phone": "1234567890",
-  "biometric": "base64encodedbiometricdata",
-  "passkey": "user_passkey",
-  "commitment": "zk_commitment_hash"
-}
-```
-
-**Request Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| phone | string | Yes | User's phone number |
-| biometric | string | Yes | User's biometric data (base64 encoded) |
-| passkey | string | Yes | User's passkey or password |
-| commitment | string | Yes | The ZK commitment to prove against |
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "proof": "zk_proof_data",
-    "publicInputs": {
-      "commitment": "zk_commitment_hash"
-    },
-    "isValid": true
-  },
-  "message": "ZK proof generated successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: If any required parameters are missing or invalid
-- `401 Unauthorized`: If the generated proof is invalid
-- `500 Internal Server Error`: If there's an error generating the proof
-
-### Verify ZK Proof
-
-```
-POST /api/zk/verify
-```
-
-Verifies a Zero-Knowledge proof.
-
-**Request Body:**
-```json
-{
-  "proof": {
-    "proof": "zk_proof_data",
-    "publicInputs": {
-      "commitment": "zk_commitment_hash"
-    },
-    "isValid": true
-  },
-  "commitment": "zk_commitment_hash"
-}
-```
-
-**Request Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| proof | object | Yes | The ZK proof object |
-| proof.proof | string | Yes | The proof data |
-| proof.publicInputs | object | Yes | Public inputs for the proof |
-| proof.publicInputs.commitment | string | Yes | The commitment in the proof |
-| proof.isValid | boolean | Yes | Whether the proof is valid |
-| commitment | string | Yes | The ZK commitment to verify against |
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "isValid": true
-  },
-  "message": "ZK proof verified successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: If any required parameters are missing or invalid
-- `401 Unauthorized`: If the proof verification fails
-- `500 Internal Server Error`: If there's an error verifying the proof
-
-### ZK Login
-
-```
-POST /api/zk/login
-```
-
-Logs in a user using Zero-Knowledge proof.
-
-**Request Body:**
-```json
-{
-  "walletAddress": "addr_test1...",
-  "phone": "1234567890",
-  "proof": {
-    "proof": "zk_proof_data",
-    "publicInputs": {
-      "commitment": "zk_commitment_hash"
-    },
-    "isValid": true
-  },
-  "commitment": "zk_commitment_hash"
-}
-```
-
-**Request Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| walletAddress | string | No | User's wallet address (required if phone is not provided) |
-| phone | string | No | User's phone number (required if walletAddress is not provided) |
-| proof | object | Yes | The ZK proof object |
-| proof.proof | string | Yes | The proof data |
-| proof.publicInputs | object | Yes | Public inputs for the proof |
-| proof.publicInputs.commitment | string | Yes | The commitment in the proof |
-| proof.isValid | boolean | Yes | Whether the proof is valid |
-| commitment | string | Yes | The ZK commitment to verify against |
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "ZK login successful",
-    "userId": "user_id",
-    "token": "jwt_token"
-  },
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: If any required parameters are missing or invalid
-- `401 Unauthorized`: If the proof verification fails
-- `404 Not Found`: If the user is not found
-- `500 Internal Server Error`: If there's an error during login or if the Iagon API is unavailable
-
-## UTXO Management Endpoints
-
-### Fetch UTXOs by Phone Hash
-
-```
-GET /api/utxo/fetch/:phoneHash
-```
-
-Fetches UTXOs at the script address by phone hash.
-
-**Parameters:**
-- `phoneHash`: The hashed phone number
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "txHash": "transaction_hash",
-      "outputIndex": 0,
-      "amount": "2000000",
-      "datum": { ... }
-    }
-  ],
-  "message": "UTXOs retrieved successfully",
-  "timestamp": "2023-06-01T12:34:56.789Z"
-}
-```
-
-**Error Responses:**
-
-- `400 Bad Request`: If the phone hash is invalid
-- `404 Not Found`: If no UTXOs are found
-- `500 Internal Server Error`: If there's an error fetching UTXOs or if the Iagon API is unavailable
-
-### Issue Refund
-
-```
-POST /api/utxo/refund
-```
-
-Issues a refund for a UTXO.
-
-**Request Body:**
-```json
-{
-  "utxo": {
-    "txHash": "transaction_hash",
-    "outputIndex": 0
-  },
-  "ownerAddress": "addr_test1...",
-  "zkProof": {
-    "proof": "zk_proof_data",
-    "publicInputs": {
-      "commitment": "zk_commitment_hash"
-    },
-    "isValid": true
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "message": "Refund issued successfully",
     "txHash": "refund_transaction_hash"
   },
-  "timestamp": "2023-06-01T12:34:56.789Z"
+  "message": "Refund processed successfully"
 }
 ```
 
-## Iagon API Integration
+---
 
-The K33P backend integrates with the Iagon API for user management, session management, and UTxO tracking. The integration is designed to be fault-tolerant with the following features:
+## Rate Limiting & Security
 
-1. **Automatic Fallback to Mock Implementation**: If the Iagon API is unavailable or not configured, the system automatically falls back to a local mock implementation to ensure the application continues to function.
+The K33P API implements comprehensive rate limiting to ensure system stability and prevent abuse. Rate limits are applied per IP address and per authenticated user where applicable.
 
-2. **Robust Error Handling**: All API calls include comprehensive error handling to prevent API failures from breaking the application.
+### Authentication & Security Endpoints
 
-3. **Input Validation**: All inputs are validated before being sent to the Iagon API to prevent invalid requests.
+| Endpoint | Limit | Window | Description |
+|----------|-------|--------|-------------|
+| `/api/auth/signup` | 3 requests | 10 minutes | Prevents automated account creation |
+| `/api/auth/login` | 5 requests | 15 minutes | Protects against brute force attacks |
+| `/api/auth/verify-wallet` | 10 requests | 5 minutes | Allows reasonable verification attempts |
+| `/api/auth/verify-deposit` | 5 requests | 10 minutes | Prevents deposit verification spam |
+| `/api/otp/request` | 3 requests | 5 minutes | Limits OTP generation to prevent SMS abuse |
+| `/api/otp/verify` | 10 requests | 5 minutes | Allows multiple verification attempts |
 
-4. **Timeout Management**: API calls have configurable timeouts to prevent hanging requests.
+### User Management Endpoints
 
-5. **Logging**: Detailed logging of API interactions for debugging and monitoring.
+| Endpoint | Limit | Window | Description |
+|----------|-------|--------|-------------|
+| `/api/users` (POST) | 5 requests | 10 minutes | Limits user profile creation |
+| `/api/users/:userId` (DELETE) | 1 request | 1 hour | Prevents accidental data deletion |
+| `/api/user/profile` (POST) | 10 requests | 1 hour | Allows reasonable profile updates |
+| `/api/user/avatar` | 5 requests | 1 hour | Limits avatar upload frequency |
 
-The Iagon API integration is configured using the following environment variables:
+### Sensitive Operations
 
-- `IAGON_API_URL`: The base URL of the Iagon API (e.g., `https://api.iagon.com`)
-- `IAGON_API_KEY`: The API key for authenticating with the Iagon API
+| Endpoint | Limit | Window | Description |
+|----------|-------|--------|-------------|
+| `/api/seed-phrases/store` | 3 requests | 1 hour | Protects against seed phrase spam |
+| `/api/zk/generate` | 20 requests | 1 hour | Allows ZK proof generation |
+| `/api/zk/verify` | 50 requests | 1 hour | Supports verification workflows |
+| `/api/refund` | 2 requests | 1 hour | Prevents refund abuse |
 
-If these environment variables are not set or if the URL is invalid, the system will automatically use the mock implementation.
+### System & Public Endpoints
+
+| Endpoint | Limit | Window | Description |
+|----------|-------|--------|-------------|
+| `/api/health` | 100 requests | 1 minute | High limit for monitoring |
+| `/api/status` | 50 requests | 1 minute | Allows frequent status checks |
+| `/api/version` | 100 requests | 1 minute | Unrestricted version info |
+| `/api/deposit-address` | 20 requests | 1 minute | Supports wallet integrations |
+
+### Rate Limit Headers
+
+All API responses include rate limiting information in the headers:
+
+```
+X-RateLimit-Limit: 10
+X-RateLimit-Remaining: 7
+X-RateLimit-Reset: 1640995200
+X-RateLimit-Window: 300
+```
+
+### Rate Limit Exceeded Response
+
+When rate limits are exceeded, the API returns a `429 Too Many Requests` status:
+
+```json
+{
+  "success": false,
+  "error": "Rate limit exceeded. Please try again later.",
+  "code": "RATE_LIMIT_EXCEEDED",
+  "retryAfter": 300,
+  "timestamp": "2024-01-25T12:34:56.789Z"
+}
+```
+
+### Additional Security Measures
+
+- **IP-based blocking**: Automatic temporary blocking of IPs with suspicious activity
+- **Progressive delays**: Increasing delays for repeated failed authentication attempts
+- **Geolocation filtering**: Optional restriction based on geographic location
+- **Device fingerprinting**: Enhanced security for sensitive operations
+- **CAPTCHA integration**: Automatic CAPTCHA challenges for suspicious requests
+
+---
+
+## Security Features
+
+- **JWT Authentication**: Secure token-based authentication
+- **ZK Proof Verification**: Zero-knowledge proof validation
+- **Rate Limiting**: Protection against abuse
+- **Input Validation**: Comprehensive request validation
+- **CORS Protection**: Cross-origin request security
+- **Environment Variable Security**: No hardcoded secrets
+- **Biometric Authentication**: Multiple biometric verification methods
+- **PIN Protection**: 4-6 digit PIN security
+- **Session Management**: Secure session handling with Iagon
+
+---
+
+## Environment Variables Required
+
+```bash
+# Required for all operations
+BLOCKFROST_API_KEY=your_blockfrost_api_key
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRATION=24h
+
+# Database configuration
+POSTGRES_URL=your_postgres_connection_string
+
+# Blockchain configuration
+SCRIPT_ADDRESS=your_script_address
+SEED_PHRASE=your_wallet_seed_phrase
+
+# Optional features
+AUTO_REFUND_ENABLED=true
+NODE_ENV=production
+```
+
+---
+
+*Last updated: January 25, 2024*
+*API Version: 1.0.0*
