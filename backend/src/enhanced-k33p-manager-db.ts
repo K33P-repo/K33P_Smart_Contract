@@ -529,21 +529,24 @@ export class EnhancedK33PManagerDB {
     try {
       const currentDbService = this.getDbService();
       const deposit = await currentDbService.getDepositByUserAddress(userAddress);
-      if (!deposit) {
-        return {
-          success: false,
-          message: 'No deposit found for this address'
-        };
+      
+      console.log(`🔍 Processing refund for user: ${userAddress}`);
+      console.log(`📊 Deposit found: ${!!deposit}`);
+      if (deposit) {
+        console.log(`📊 Deposit refunded status: ${deposit.refunded}`);
       }
       
-      if (deposit.refunded) {
+      // Check if deposit exists and has already been refunded
+      if (deposit && deposit.refunded) {
+        console.log(`❌ Refund already processed for user: ${userAddress}`);
         return {
           success: false,
           message: 'Deposit has already been refunded'
         };
       }
       
-      const refundAddress = walletAddress || deposit.sender_wallet_address || userAddress;
+      // Determine refund address - prioritize walletAddress, then deposit sender, then userAddress
+      const refundAddress = walletAddress || (deposit?.sender_wallet_address) || userAddress;
       
       console.log(`💰 Processing refund to ${refundAddress}...`);
       
@@ -566,8 +569,70 @@ export class EnhancedK33PManagerDB {
         txHash = await signedTx.submit();
       }
       
-      // Mark as refunded in database
-      await currentDbService.markRefunded(userAddress, txHash);
+      // Generate ZK proof for refund operation
+      try {
+        const { ZKProofService } = await import('./services/zk-proof-service.js');
+        const userId = deposit?.user_id || `refund_${Date.now()}`;
+        
+        await ZKProofService.generateAndStoreDataZKProof(
+          userId,
+          'refund_operation',
+          {
+            userAddress,
+            refundAddress,
+            txHash,
+            amount: CONFIG.refundAmount,
+            timestamp: new Date().toISOString(),
+            depositExists: !!deposit
+          }
+        );
+        
+        console.log(`✅ ZK proof generated for refund operation: ${userId}`);
+      } catch (zkError) {
+        console.error('Failed to generate ZK proof for refund:', zkError);
+        // Don't fail the refund if ZK proof generation fails
+      }
+      
+      // If deposit exists, mark as refunded in database
+      if (deposit) {
+        await currentDbService.markRefunded(userAddress, txHash);
+        console.log(`✅ Marked existing deposit as refunded: ${userAddress}`);
+      } else {
+        // Create a new deposit record for tracking purposes if user doesn't exist
+        console.log(`📝 Creating new deposit record for refund tracking: ${userAddress}`);
+        const userId = `refund_${Date.now()}`;
+        
+        // Create user record first to avoid foreign key constraint error
+        try {
+          const existingUser = await currentDbService.getUserById(userId);
+          if (!existingUser) {
+            await currentDbService.createUser({
+              userId: userId,
+              walletAddress: userAddress,
+              name: 'Refund User',
+              email: undefined,
+              phoneHash: undefined,
+              zkCommitment: undefined
+            });
+            console.log(`✅ Created user record for refund: ${userId}`);
+          }
+        } catch (userError) {
+          console.error('Failed to create user record:', userError);
+          throw userError;
+        }
+        
+        await currentDbService.createDeposit({
+          userAddress: userAddress,
+          userId: userId,
+          phoneHash: '',
+          zkProof: '',
+          txHash: txHash,
+          amount: CONFIG.refundAmount,
+          senderWalletAddress: refundAddress,
+          verificationMethod: 'phone'
+        });
+        console.log(`✅ Created new deposit record for refund: ${userId}`);
+      }
       
       // Create refund transaction record
       await currentDbService.createTransaction({
@@ -592,7 +657,7 @@ export class EnhancedK33PManagerDB {
       console.error('Error processing refund:', error);
       return {
         success: false,
-        message: `Refund failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Refund processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       };
     }
   }

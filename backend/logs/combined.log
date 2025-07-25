@@ -887,114 +887,72 @@
 {"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-24T19:55:13.271Z"}
 {"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T19:55:13.274Z"}
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T19:55:13.275Z"}
-{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T21:16:52.062Z"}
-{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T21:16:52.135Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:16:55.261Z"}
-{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-24T21:16:55.377Z"}
-{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T21:16:55.383Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:16:57.296Z"}
-{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T21:16:57.302Z"}
-{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T21:16:59.605Z"}
-{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-24T21:16:59.606Z"}
-{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T21:16:59.616Z"}
-{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T21:16:59.618Z"}
-{"ip":"::1","level":"info","message":"POST /api/auth/login","service":"k33p-backend","timestamp":"2025-07-24T21:17:18.314Z","userAgent":"curl/8.9.1"}
-{"ip":"::1","level":"info","message":"POST /api/auth/login","service":"k33p-backend","timestamp":"2025-07-24T21:17:32.936Z","userAgent":"curl/8.9.1"}
-{"ip":"::1","level":"info","message":"POST /api/auth/login","service":"k33p-backend","timestamp":"2025-07-24T21:17:46.813Z","userAgent":"curl/8.9.1"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:17:57.953Z"}
-{"ip":"::1","level":"info","message":"POST /api/auth/login","service":"k33p-backend","timestamp":"2025-07-24T21:18:04.061Z","userAgent":"curl/8.9.1"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:18:59.589Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:19:01.604Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:20:03.139Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:20:05.157Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:20:58.601Z"}
-{"ip":"::1","level":"info","message":"POST /api/auth/login","service":"k33p-backend","timestamp":"2025-07-24T21:21:25.534Z","userAgent":"curl/8.9.1"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:21:58.723Z"}
-{"ip":"::1","level":"info","message":"POST /api/auth/login","service":"k33p-backend","timestamp":"2025-07-24T21:22:00.121Z","userAgent":"curl/8.9.1"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:22:00.741Z"}
-{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-24T21:22:24.445Z","userAgent":"curl/8.9.1"}
-{"ip":"::1","level":"info","message":"POST /api/users/login/pin","service":"k33p-backend","timestamp":"2025-07-24T21:22:41.870Z","userAgent":"curl/8.9.1"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:22:58.143Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:23:58.087Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:24:00.107Z"}
-{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-07-24T21:24:04.125Z","userAgent":"curl/8.9.1"}
-{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-07-24T21:24:23.957Z","userAgent":"curl/8.9.1"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:25:07.475Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:25:09.488Z"}
-{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-24T21:25:54.638Z","userAgent":"curl/8.9.1"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:25:58.693Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:26:00.854Z"}
-{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T21:26:12.612Z","userAgent":"curl/8.9.1"}
-{"attempt":1,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:26:12.629Z"}
-{"attempt":2,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:26:13.635Z"}
-{"attempt":3,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:26:15.672Z"}
-{"error":"Iagon storage requires userId for user lookup","level":"error","message":"Failed to find user","query":{"phoneHash":"14e692b5e95e403c33137793f882bc3b85a73daa186f8dedd25498721fe928dc"},"service":"storage-abstraction","storage":"iagon","timestamp":"2025-07-24T21:26:15.676Z"}
-{"fallbackStorage":"postgresql","level":"info","message":"User found using fallback storage","query":{"phoneHash":"14e692b5e95e403c33137793f882bc3b85a73daa186f8dedd25498721fe928dc"},"service":"storage-abstraction","timestamp":"2025-07-24T21:26:17.074Z"}
-{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-24T21:26:39.220Z","userAgent":"curl/8.9.1"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:26:59.681Z"}
-{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-07-24T21:27:18.212Z","userAgent":"curl/8.9.1"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:27:58.693Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:28:58.512Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:29:58.159Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:30:59.119Z"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:32:07.523Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:32:09.541Z"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:33:07.537Z"}
-{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:33:07.540Z"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:34:07.549Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:34:09.552Z"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:35:07.567Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:35:09.584Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:36:00.528Z"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:37:07.588Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:37:09.598Z"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:38:07.614Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:38:09.619Z"}
-{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T21:42:01.610Z"}
-{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-24T21:42:01.651Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:05.125Z"}
-{"level":"warn","message":"PostgreSQL connection failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-07-24T21:42:05.427Z"}
-{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T21:42:05.432Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:07.139Z"}
-{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-24T21:42:07.143Z"}
-{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-24T21:42:11.742Z"}
-{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-07-24T21:42:11.743Z"}
-{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-24T21:42:11.753Z"}
-{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-24T21:42:11.754Z"}
-{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T21:42:42.641Z","userAgent":"curl/8.9.1"}
-{"attempt":1,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:42.660Z"}
-{"attempt":2,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:43.663Z"}
-{"attempt":3,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:45.678Z"}
-{"error":"Iagon storage requires userId for user lookup","level":"error","message":"Failed to find user","query":{"phoneHash":"822097d3afa752db761be7c3930a00a13b5ffa001ca9eb261aa2024f1cae31a3"},"service":"storage-abstraction","storage":"iagon","timestamp":"2025-07-24T21:42:45.679Z"}
-{"error":"Connection terminated due to connection timeout","level":"error","message":"Fallback storage also failed","query":{"phoneHash":"822097d3afa752db761be7c3930a00a13b5ffa001ca9eb261aa2024f1cae31a3"},"service":"storage-abstraction","timestamp":"2025-07-24T21:42:47.694Z"}
-{"attempt":1,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:47.701Z"}
-{"attempt":2,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:48.712Z"}
-{"attempt":3,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:50.727Z"}
-{"error":"Iagon storage requires userId for user lookup","level":"error","message":"Failed to find user","query":{"walletAddress":"addr1qxy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm"},"service":"storage-abstraction","storage":"iagon","timestamp":"2025-07-24T21:42:50.728Z"}
-{"error":"Connection terminated due to connection timeout","level":"error","message":"Fallback storage also failed","query":{"walletAddress":"addr1qxy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm"},"service":"storage-abstraction","timestamp":"2025-07-24T21:42:52.742Z"}
-{"attempt":1,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:53.747Z"}
-{"attempt":2,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:55.008Z"}
-{"attempt":3,"error":"Request failed with status code 401","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:42:57.390Z"}
-{"error":"Request failed with status code 401","level":"error","message":"Failed to store user","service":"storage-abstraction","storage":"iagon","timestamp":"2025-07-24T21:42:57.393Z","userId":"0e1cb1e8-e7b4-42e7-871f-338204e608bf"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:08.077Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:10.089Z"}
-{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-24T21:43:29.876Z","userAgent":"curl/8.9.1"}
-{"attempt":1,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:29.887Z"}
-{"attempt":2,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:30.897Z"}
-{"attempt":3,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:32.904Z"}
-{"error":"Iagon storage requires userId for user lookup","level":"error","message":"Failed to find user","query":{"phoneHash":"822097d3afa752db761be7c3930a00a13b5ffa001ca9eb261aa2024f1cae31a3"},"service":"storage-abstraction","storage":"iagon","timestamp":"2025-07-24T21:43:32.916Z"}
-{"error":"Connection terminated due to connection timeout","level":"error","message":"Fallback storage also failed","query":{"phoneHash":"822097d3afa752db761be7c3930a00a13b5ffa001ca9eb261aa2024f1cae31a3"},"service":"storage-abstraction","timestamp":"2025-07-24T21:43:34.973Z"}
-{"attempt":1,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:34.979Z"}
-{"attempt":2,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:35.997Z"}
-{"attempt":3,"error":"Iagon storage requires userId for user lookup","level":"warn","maxAttempts":3,"message":"findUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:38.021Z"}
-{"error":"Iagon storage requires userId for user lookup","level":"error","message":"Failed to find user","query":{"walletAddress":"addr1qxy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm"},"service":"storage-abstraction","storage":"iagon","timestamp":"2025-07-24T21:43:38.031Z"}
-{"error":"Connection terminated due to connection timeout","level":"error","message":"Fallback storage also failed","query":{"walletAddress":"addr1qxy8ac7qqy0vtulyl7wntmsxc6wex80gvcyjy33qffrhm7sh927ysx5sftw0dlpzwjncxmfh780kdtp2f06lz0jy0lapmr5gwm"},"service":"storage-abstraction","timestamp":"2025-07-24T21:43:40.036Z"}
-{"attempt":1,"error":"timeout of 10000ms exceeded","level":"warn","maxAttempts":3,"message":"storeUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:43:50.064Z"}
-{"attempt":2,"error":"timeout of 10000ms exceeded","level":"warn","maxAttempts":3,"message":"storeUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:44:01.103Z"}
-{"attempt":3,"error":"timeout of 10000ms exceeded","level":"warn","maxAttempts":3,"message":"storeUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-07-24T21:44:13.125Z"}
-{"error":"timeout of 10000ms exceeded","level":"error","message":"Failed to store user","service":"storage-abstraction","storage":"iagon","timestamp":"2025-07-24T21:44:13.127Z","userId":"ae1736fd-63c4-491f-b70d-fb910dcbfe1a"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:44:17.185Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:44:19.201Z"}
-{"error":"timeout of 10000ms exceeded","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:45:17.187Z"}
-{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:45:19.199Z"}
-{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-24T21:46:07.784Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-25T12:59:19.752Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-25T12:59:19.758Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T12:59:21.349Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-25T12:59:22.409Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-25T12:59:25.249Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-25T12:59:26.723Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-25T12:59:26.746Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-25T12:59:26.797Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:00:23.098Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-25T13:00:57.315Z","userAgent":"curl/8.9.1"}
+{"level":"info","message":"User stored successfully","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-07-25T13:00:58.750Z","userId":"test123"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-25T13:01:10.333Z","userAgent":"curl/8.9.1"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:01:23.152Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-07-25T13:01:24.673Z","userAgent":"curl/8.9.1"}
+{"headers":{"content-type":"application/json","user-agent":"curl/8.9.1"},"level":"info","message":"🔄 Processing immediate refund request","requestBody":{"userAddress":"addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734"},"service":"k33p-backend","timestamp":"2025-07-25T13:01:24.680Z","userAddress":"addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734"}
+{"depositFound":false,"level":"info","message":"📊 User deposit lookup result","service":"k33p-backend","timestamp":"2025-07-25T13:01:24.835Z","userAddress":"addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734"}
+{"level":"info","message":"🔄 Calling k33pManager.processRefund","service":"k33p-backend","timestamp":"2025-07-25T13:01:24.840Z","userAddress":"addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734"}
+{"level":"info","message":"📊 Refund processing result Refund processing failed: null value in column \"user_address\" of relation \"user_deposits\" violates not-null constraint","service":"k33p-backend","success":false,"timestamp":"2025-07-25T13:01:27.218Z","userAddress":"addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734"}
+{"level":"error","message":"❌ Refund processing failed Refund processing failed: null value in column \"user_address\" of relation \"user_deposits\" violates not-null constraint","service":"k33p-backend","timestamp":"2025-07-25T13:01:27.219Z","userAddress":"addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:02:22.995Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:03:23.148Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-07-25T13:03:46.924Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-25T13:03:53.622Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-25T13:03:53.627Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:03:54.631Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-25T13:03:55.540Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-25T13:03:57.597Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-25T13:03:58.784Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-25T13:03:58.789Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-25T13:03:58.791Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-07-25T13:04:30.944Z","userAgent":"curl/8.9.1"}
+{"headers":{"content-type":"application/json","user-agent":"curl/8.9.1"},"level":"info","message":"🔄 Processing immediate refund request","requestBody":{"userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"},"service":"k33p-backend","timestamp":"2025-07-25T13:04:30.960Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"depositFound":false,"level":"info","message":"📊 User deposit lookup result","service":"k33p-backend","timestamp":"2025-07-25T13:04:32.189Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"info","message":"🔄 Calling k33pManager.processRefund","service":"k33p-backend","timestamp":"2025-07-25T13:04:32.196Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"info","message":"📊 Refund processing result Refund processing failed: insert or update on table \"user_deposits\" violates foreign key constraint \"user_deposits_user_id_fkey\"","service":"k33p-backend","success":false,"timestamp":"2025-07-25T13:04:34.477Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"error","message":"❌ Refund processing failed Refund processing failed: insert or update on table \"user_deposits\" violates foreign key constraint \"user_deposits_user_id_fkey\"","service":"k33p-backend","timestamp":"2025-07-25T13:04:34.478Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:04:56.512Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-07-25T13:05:46.838Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-25T13:06:42.393Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-07-25T13:06:42.400Z"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:06:44.142Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-07-25T13:06:45.394Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-07-25T13:06:51.260Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-07-25T13:06:53.474Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-07-25T13:06:53.482Z"}
+{"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-07-25T13:06:53.487Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-07-25T13:07:27.673Z","userAgent":"curl/8.9.1"}
+{"headers":{"content-type":"application/json","user-agent":"curl/8.9.1"},"level":"info","message":"🔄 Processing immediate refund request","requestBody":{"userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"},"service":"k33p-backend","timestamp":"2025-07-25T13:07:27.683Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"depositFound":false,"level":"info","message":"📊 User deposit lookup result","service":"k33p-backend","timestamp":"2025-07-25T13:07:29.126Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"info","message":"🔄 Calling k33pManager.processRefund","service":"k33p-backend","timestamp":"2025-07-25T13:07:29.129Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"info","message":"Generating ZK proof for user registration","service":"k33p-backend","timestamp":"2025-07-25T13:07:32.353Z","userId":"refund_1753448852001"}
+{"error":"Failed to generate ZK commitment: phoneHash is required","level":"error","message":"Failed to generate and store ZK proof","service":"k33p-backend","timestamp":"2025-07-25T13:07:32.362Z","userId":"refund_1753448852001"}
+{"dataType":"deposit_creation","level":"info","message":"Generating ZK proof for data entry","service":"k33p-backend","timestamp":"2025-07-25T13:07:32.572Z","userId":"refund_1753448852001"}
+{"commitment":"fd61a4c104f03862f9c6...","dataId":"6abe30fe-97af-4593-bc2d-0cb6054d2b2b","dataType":"deposit_creation","level":"info","message":"Data ZK proof generated and stored successfully","service":"k33p-backend","timestamp":"2025-07-25T13:07:32.748Z","userId":"refund_1753448852001"}
+{"dataType":"transaction_creation","level":"info","message":"Generating ZK proof for data entry","service":"k33p-backend","timestamp":"2025-07-25T13:07:32.912Z","userId":"tx_1753448852912"}
+{"dataType":"transaction_creation","error":"insert or update on table \"zk_proofs\" violates foreign key constraint \"zk_proofs_user_id_fkey\"","level":"error","message":"Failed to generate and store data ZK proof","service":"k33p-backend","timestamp":"2025-07-25T13:07:33.072Z","userId":"tx_1753448852912"}
+{"level":"info","message":"📊 Refund processing result Refund processed successfully","service":"k33p-backend","success":true,"timestamp":"2025-07-25T13:07:33.090Z","txHash":"1052c39936721bdd575e79e4a978e6eaadf8bb6c768f880c26f4436848d3b031","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"info","message":"✅ Refund processed successfully","service":"k33p-backend","timestamp":"2025-07-25T13:07:33.095Z","txHash":"1052c39936721bdd575e79e4a978e6eaadf8bb6c768f880c26f4436848d3b031","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:07:46.209Z"}
+{"ip":"::1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-07-25T13:07:48.132Z","userAgent":"curl/8.9.1"}
+{"headers":{"content-type":"application/json","user-agent":"curl/8.9.1"},"level":"info","message":"🔄 Processing immediate refund request","requestBody":{"userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"},"service":"k33p-backend","timestamp":"2025-07-25T13:07:48.134Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"depositFound":true,"depositRefunded":false,"depositVerified":false,"level":"info","message":"📊 User deposit lookup result","service":"k33p-backend","timestamp":"2025-07-25T13:07:48.266Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"info","message":"🔄 Calling k33pManager.processRefund","service":"k33p-backend","timestamp":"2025-07-25T13:07:48.267Z","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"dataType":"transaction_creation","level":"info","message":"Generating ZK proof for data entry","service":"k33p-backend","timestamp":"2025-07-25T13:07:51.158Z","userId":"tx_1753448871158"}
+{"dataType":"transaction_creation","error":"insert or update on table \"zk_proofs\" violates foreign key constraint \"zk_proofs_user_id_fkey\"","level":"error","message":"Failed to generate and store data ZK proof","service":"k33p-backend","timestamp":"2025-07-25T13:07:51.388Z","userId":"tx_1753448871158"}
+{"level":"info","message":"📊 Refund processing result Refund processed successfully","service":"k33p-backend","success":true,"timestamp":"2025-07-25T13:07:51.410Z","txHash":"82db3b2bc56efe9cfc6dc2ffb4788e850f5d7d3e81f24a0cd381d47939f6d3ac","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"level":"info","message":"✅ Refund processed successfully","service":"k33p-backend","timestamp":"2025-07-25T13:07:51.412Z","txHash":"82db3b2bc56efe9cfc6dc2ffb4788e850f5d7d3e81f24a0cd381d47939f6d3ac","userAddress":"addr_test1qp8cjjan499llrgw6tyyzclxg8gxjxc9mwc4w7rqcx8jrmwza2v0vp3dk3jcdq47teay45jqy5zqx47h6u4zar2f07lqd6f8py"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-07-25T13:08:06.404Z","userAgent":"curl/8.9.1"}
+{"error":"Request failed with status code 401","level":"warn","message":"Iagon storage health check failed","service":"storage-abstraction","timestamp":"2025-07-25T13:08:47.387Z"}

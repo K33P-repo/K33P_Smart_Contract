@@ -472,20 +472,71 @@ app.post('/api/refund', [
   try {
     const { userAddress, walletAddress } = req.body;
     
-    logger.info('Processing immediate refund request', { userAddress, walletAddress });
+    logger.info('🔄 Processing immediate refund request', { 
+      userAddress, 
+      walletAddress,
+      requestBody: req.body,
+      headers: {
+        'content-type': req.headers['content-type'],
+        'user-agent': req.headers['user-agent']
+      }
+    });
+    
+    // Validate input parameters
+    if (!userAddress || typeof userAddress !== 'string') {
+      logger.error('❌ Invalid userAddress provided', { userAddress });
+      return res.status(400).json(createResponse(false, undefined, undefined, 'Invalid or missing userAddress'));
+    }
+    
+    if (walletAddress && typeof walletAddress !== 'string') {
+      logger.error('❌ Invalid walletAddress provided', { walletAddress });
+      return res.status(400).json(createResponse(false, undefined, undefined, 'Invalid walletAddress format'));
+    }
+    
+    // Check if user exists in database
+    try {
+      const userDeposit = await dbService.getDepositByUserAddress(userAddress);
+      logger.info('📊 User deposit lookup result', { 
+        userAddress, 
+        depositFound: !!userDeposit,
+        depositRefunded: userDeposit?.refunded,
+        depositVerified: userDeposit?.verified
+      });
+    } catch (dbError) {
+      logger.error('❌ Database lookup error during refund', { userAddress, error: dbError });
+    }
     
     // Process the refund using the K33P manager
+    logger.info('🔄 Calling k33pManager.processRefund', { userAddress, walletAddress });
     const result = await k33pManager.processRefund(userAddress, walletAddress);
     
+    logger.info('📊 Refund processing result', { 
+      userAddress, 
+      success: result.success, 
+      message: result.message,
+      txHash: result.txHash
+    });
+    
     if (!result.success) {
+      logger.error('❌ Refund processing failed', { 
+        userAddress, 
+        walletAddress, 
+        message: result.message 
+      });
       return res.status(400).json(createResponse(false, undefined, undefined, result.message));
     }
     
     const txHash = result.txHash;
+    logger.info('✅ Refund processed successfully', { userAddress, txHash });
     
     res.json(createResponse(true, { txHash }, 'Refund processed successfully'));
   } catch (error) {
-    logger.error('Error processing refund:', error);
+    logger.error('❌ Unexpected error processing refund:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      userAddress: req.body?.userAddress,
+      walletAddress: req.body?.walletAddress
+    });
     res.status(500).json(createResponse(false, undefined, undefined, 
       error instanceof Error ? error.message : 'Failed to process refund'
     ));
