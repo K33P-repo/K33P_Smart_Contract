@@ -23,7 +23,8 @@ function initParams (uri, options, callback) {
     callback = options
   }
 
-  var params = {}
+  var params = {protocolVersion: 'http1'}
+
   if (options !== null && typeof options === 'object') {
     extend(params, options, {uri: uri})
   } else if (typeof uri === 'string') {
@@ -33,6 +34,23 @@ function initParams (uri, options, callback) {
   }
 
   params.callback = callback || params.callback
+
+  // Disable http/2 when using custom agents that don't handle different versions separately
+  if (params.agents && !(params.agents.http1 || params.agents.auto || params.agents.http2)) {
+    params.protocolVersion = 'http1'
+  }
+
+  // Disable http/2 when using proxy or tunnels
+  // TODO: Remove this when http2 supports proxy and tunneling
+  if (params.tunnel || params.proxy) {
+    params.protocolVersion = 'http1'
+  }
+
+  // Disable flow when running in browser
+  if (typeof window !== 'undefined' && window.XMLHttpRequest) {
+    params.protocolVersion = 'http1'
+  }
+
   return params
 }
 
