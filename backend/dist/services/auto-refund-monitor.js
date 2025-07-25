@@ -297,16 +297,27 @@ export class AutoRefundMonitor {
             const refundResult = await this.processAutomaticRefund(transaction);
             if (refundResult.success) {
                 logger.info(`✅ Automatic refund processed successfully: ${refundResult.txHash}`);
-                // Log the refund transaction
-                await dbService.createTransaction({
-                    txHash: refundResult.txHash,
-                    fromAddress: this.depositAddress,
-                    toAddress: transaction.fromAddress,
-                    amount: CONFIG.requiredAmount,
-                    confirmations: 0,
-                    transactionType: 'refund',
-                    status: 'pending'
-                });
+                // Log the refund transaction (check for duplicates first)
+                try {
+                    await dbService.createTransaction({
+                        txHash: refundResult.txHash,
+                        fromAddress: this.depositAddress,
+                        toAddress: transaction.fromAddress,
+                        amount: CONFIG.requiredAmount,
+                        confirmations: 0,
+                        transactionType: 'refund',
+                        status: 'pending'
+                    });
+                }
+                catch (dbError) {
+                    // Handle duplicate key constraint violation
+                    if (dbError.code === '23505' && dbError.constraint === 'transactions_tx_hash_key') {
+                        logger.warn(`⚠️ Transaction ${refundResult.txHash} already exists in database, skipping duplicate insert`);
+                    }
+                    else {
+                        throw dbError; // Re-throw if it's a different error
+                    }
+                }
             }
             else if (refundResult.alreadyProcessed) {
                 logger.info(`ℹ️  Refund already processed for ${transaction.fromAddress}`);

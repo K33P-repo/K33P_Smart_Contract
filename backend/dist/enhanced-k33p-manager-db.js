@@ -440,7 +440,7 @@ export class EnhancedK33PManagerDB {
             }
             // Generate ZK proof for refund operation
             try {
-                const { ZKProofService } = await import('./services/zk-proof-service.js.js');
+                const { ZKProofService } = await import('./services/zk-proof-service.js');
                 const userId = deposit?.user_id || `refund_${Date.now()}`;
                 await ZKProofService.generateAndStoreDataZKProof(userId, 'refund_operation', {
                     userAddress,
