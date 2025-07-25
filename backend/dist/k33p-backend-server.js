@@ -12,7 +12,7 @@ import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
 // Import routes
 // @ts-ignore
-import zkRoutes from './routes/zk.js';
+import zkRoutes from './routes/zk-postgres.js';
 // @ts-ignore
 import utxoRoutes from './routes/utxo.js';
 // @ts-ignore

@@ -17,7 +17,7 @@ const CONFIG = {
     blockfrostApiKey: process.env.BLOCKFROST_API_KEY || "preprod3W1XBWtJSpHSjqlHcrxuPo3uv2Q5BOFM",
     blockfrostUrl: "https://cardano-preprod.blockfrost.io/api/v0",
     autoRefundEnabled: process.env.AUTO_REFUND_ENABLED === 'true',
-    maxTransactionAge: 300, // 5 minutes - only process recent transactions
+    maxTransactionAge: 3600, // 1 hour - only process recent transactions
 };
 // Logger setup
 const logger = winston.createLogger({
