@@ -12,6 +12,7 @@ import { storageService } from '../services/storage-abstraction.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+import { sendOtp, verifyOtp } from '../utils/firebase.js';
 const router = express.Router();
 // Rate limiters for auth routes
 const signupLimiter = createRateLimiter({
@@ -25,11 +26,607 @@ const loginLimiter = createRateLimiter({
     message: 'Too many login attempts, please try again later'
 });
 /**
+ * @route POST /api/auth/signup/phone
+ * @desc Register a new user with phone verification
+ * @access Public
+ */
+router.post('/signup/phone', signupLimiter, async (req, res) => {
+    return handleSignup(req, res, 'phone');
+});
+/**
+ * @route POST /api/auth/signup/pin
+ * @desc Register a new user with PIN verification
+ * @access Public
+ */
+router.post('/signup/pin', signupLimiter, async (req, res) => {
+    return handleSignup(req, res, 'pin');
+});
+/**
+ * @route POST /api/auth/signup/fingerprint
+ * @desc Register a new user with fingerprint verification
+ * @access Public
+ */
+router.post('/signup/fingerprint', signupLimiter, async (req, res) => {
+    return handleSignup(req, res, 'biometric', 'fingerprint');
+});
+/**
+ * @route POST /api/auth/signup/faceid
+ * @desc Register a new user with Face ID verification
+ * @access Public
+ */
+router.post('/signup/faceid', signupLimiter, async (req, res) => {
+    return handleSignup(req, res, 'biometric', 'faceid');
+});
+/**
+ * @route POST /api/auth/signup/voice
+ * @desc Register a new user with voice verification
+ * @access Public
+ */
+router.post('/signup/voice', signupLimiter, async (req, res) => {
+    return handleSignup(req, res, 'biometric', 'voice');
+});
+/**
+ * @route POST /api/auth/signup/iris
+ * @desc Register a new user with iris verification
+ * @access Public
+ */
+router.post('/signup/iris', signupLimiter, async (req, res) => {
+    return handleSignup(req, res, 'biometric', 'iris');
+});
+/**
+ * @route POST /api/auth/signup/passkey
+ * @desc Register a new user with passkey verification
+ * @access Public
+ */
+router.post('/signup/passkey', signupLimiter, async (req, res) => {
+    return handleSignup(req, res, 'passkey');
+});
+/**
  * @route POST /api/auth/signup
- * @desc Register a new user with verification
+ * @desc Register a new user with verification (legacy endpoint)
  * @access Public
  */
 router.post('/signup', signupLimiter, async (req, res) => {
+    return handleSignup(req, res);
+});
+/**
+ * @route POST /api/auth/send-otp
+ * @desc Send OTP to phone number during signup
+ * @access Public
+ */
+router.post('/send-otp', createRateLimiter({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 3, // 3 OTP requests per 5 minutes
+    message: 'Too many OTP requests, please try again later'
+}), async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+        if (!phoneNumber) {
+            return res.status(400).json({
+                success: false,
+                error: 'Phone number is required'
+            });
+        }
+        console.log(`Sending OTP to ${phoneNumber}`);
+        const result = await sendOtp(phoneNumber);
+        if (result.success) {
+            res.json({
+                success: true,
+                message: 'OTP sent successfully',
+                data: {
+                    requestId: result.requestId,
+                    expiresIn: 300 // 5 minutes
+                }
+            });
+        }
+        else {
+            res.status(400).json({
+                success: false,
+                error: result.error || 'Failed to send OTP'
+            });
+        }
+    }
+    catch (error) {
+        console.error('Error sending OTP:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to send OTP'
+        });
+    }
+});
+// Session storage for signup flow (in production, use Redis)
+const signupSessions = new NodeCache({ stdTTL: 1800 }); // 30 minutes
+/**
+ * @route POST /api/auth/setup-pin
+ * @desc Step 4: Setup 4-digit PIN after OTP verification
+ * @access Public
+ */
+router.post('/setup-pin', createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per 15 minutes
+    message: 'Too many PIN setup attempts, please try again later'
+}), async (req, res) => {
+    try {
+        const { phoneNumber, pin, sessionId } = req.body;
+        // Validate required fields
+        if (!phoneNumber || !pin) {
+            return res.status(400).json({
+                success: false,
+                error: 'Phone number and PIN are required'
+            });
+        }
+        // Validate PIN format
+        if (!/^\d{4}$/.test(pin)) {
+            return res.status(400).json({
+                success: false,
+                error: 'PIN must be exactly 4 digits'
+            });
+        }
+        // Create or update session
+        const sessionKey = sessionId || `signup_${crypto.randomUUID()}`;
+        const sessionData = signupSessions.get(sessionKey) || {};
+        // Store PIN setup data
+        sessionData.phoneNumber = phoneNumber;
+        sessionData.pin = pin;
+        sessionData.step = 'pin_setup';
+        sessionData.timestamp = new Date();
+        signupSessions.set(sessionKey, sessionData);
+        console.log(`PIN setup completed for session: ${sessionKey}`);
+        res.json({
+            success: true,
+            message: 'PIN setup completed successfully',
+            data: {
+                sessionId: sessionKey,
+                step: 'pin_setup',
+                nextStep: 'pin_confirmation'
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error setting up PIN:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to setup PIN'
+        });
+    }
+});
+/**
+ * @route POST /api/auth/confirm-pin
+ * @desc Step 5: Confirm 4-digit PIN during signup
+ * @access Public
+ */
+router.post('/confirm-pin', createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per 15 minutes
+    message: 'Too many PIN confirmation attempts, please try again later'
+}), async (req, res) => {
+    try {
+        const { sessionId, pin } = req.body;
+        // Validate required fields
+        if (!sessionId || !pin) {
+            return res.status(400).json({
+                success: false,
+                error: 'Session ID and PIN are required'
+            });
+        }
+        // Get session data
+        const sessionData = signupSessions.get(sessionId);
+        if (!sessionData) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid or expired session'
+            });
+        }
+        // Verify PIN matches
+        if (sessionData.pin !== pin) {
+            return res.status(400).json({
+                success: false,
+                error: 'PIN confirmation does not match. Please try again.'
+            });
+        }
+        // Update session
+        sessionData.pinConfirmed = true;
+        sessionData.step = 'pin_confirmed';
+        sessionData.timestamp = new Date();
+        signupSessions.set(sessionId, sessionData);
+        console.log(`PIN confirmed for session: ${sessionId}`);
+        res.json({
+            success: true,
+            message: 'PIN confirmed successfully',
+            data: {
+                sessionId,
+                step: 'pin_confirmed',
+                nextStep: 'biometric_setup'
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error confirming PIN:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to confirm PIN'
+        });
+    }
+});
+/**
+ * @route POST /api/auth/setup-biometric
+ * @desc Step 6: Setup biometric authentication (Face ID, Fingerprint, Voice ID, Iris Scan)
+ * @access Public
+ */
+router.post('/setup-biometric', createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per 15 minutes
+    message: 'Too many biometric setup attempts, please try again later'
+}), async (req, res) => {
+    try {
+        const { sessionId, biometricType, biometricData } = req.body;
+        // Validate required fields
+        if (!sessionId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Session ID is required'
+            });
+        }
+        // Get session data
+        const sessionData = signupSessions.get(sessionId);
+        if (!sessionData) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid or expired session'
+            });
+        }
+        // Verify PIN was confirmed
+        if (!sessionData.pinConfirmed) {
+            return res.status(400).json({
+                success: false,
+                error: 'PIN must be confirmed before setting up biometric authentication'
+            });
+        }
+        // Validate biometric data if provided
+        if (biometricType && biometricData) {
+            if (!['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Biometric type must be one of: fingerprint, faceid, voice, iris'
+                });
+            }
+        }
+        // Update session with biometric data
+        sessionData.biometricType = biometricType || null;
+        sessionData.biometricData = biometricData || null;
+        sessionData.step = 'biometric_setup';
+        sessionData.timestamp = new Date();
+        signupSessions.set(sessionId, sessionData);
+        console.log(`Biometric setup completed for session: ${sessionId}`);
+        res.json({
+            success: true,
+            message: biometricType ? `${biometricType} setup completed successfully` : 'Biometric setup skipped',
+            data: {
+                sessionId,
+                step: 'biometric_setup',
+                biometricType: biometricType || null,
+                nextStep: 'did_creation'
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error setting up biometric:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to setup biometric authentication'
+        });
+    }
+});
+/**
+ * @route POST /api/auth/complete-signup
+ * @desc Step 7: Complete signup with DID creation and ZK proof generation
+ * @access Public
+ */
+router.post('/complete-signup', createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 attempts per 15 minutes
+    message: 'Too many signup completion attempts, please try again later'
+}), async (req, res) => {
+    try {
+        const { sessionId } = req.body;
+        // Validate required fields
+        if (!sessionId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Session ID is required'
+            });
+        }
+        // Get session data
+        const sessionData = signupSessions.get(sessionId);
+        if (!sessionData) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid or expired session'
+            });
+        }
+        // Verify biometric setup was completed
+        if (sessionData.step !== 'biometric_setup') {
+            return res.status(400).json({
+                success: false,
+                error: 'Biometric setup must be completed before finalizing signup'
+            });
+        }
+        // Prepare user data for signup
+        const userData = {
+            phoneNumber: sessionData.phoneNumber,
+            pin: sessionData.pin,
+            biometricType: sessionData.biometricType,
+            biometricData: sessionData.biometricData,
+            verificationMethod: 'pin' // Default verification method
+        };
+        // Use existing handleSignup function to complete the process
+        const mockReq = {
+            body: userData,
+            ip: req.ip,
+            headers: req.headers
+        };
+        const mockRes = {
+            status: (code) => ({
+                json: (data) => {
+                    if (code === 200 || code === 201) {
+                        // Success - update session and return response
+                        sessionData.step = 'signup_completed';
+                        sessionData.userId = data.data?.userId;
+                        sessionData.walletAddress = data.data?.walletAddress;
+                        sessionData.timestamp = new Date();
+                        signupSessions.set(sessionId, sessionData);
+                        res.status(code).json({
+                            ...data,
+                            sessionId,
+                            nextStep: 'username_setup'
+                        });
+                    }
+                    else {
+                        // Error - forward the error response
+                        res.status(code).json(data);
+                    }
+                }
+            }),
+            json: (data) => {
+                // Success case (status 200 by default)
+                sessionData.step = 'signup_completed';
+                sessionData.userId = data.data?.userId;
+                sessionData.walletAddress = data.data?.walletAddress;
+                sessionData.timestamp = new Date();
+                signupSessions.set(sessionId, sessionData);
+                res.json({
+                    ...data,
+                    sessionId,
+                    nextStep: 'username_setup'
+                });
+            }
+        };
+        // Call the existing handleSignup function
+        await handleSignup(mockReq, mockRes, 'pin', sessionData.biometricType);
+    }
+    catch (error) {
+        console.error('Error completing signup:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to complete signup'
+        });
+    }
+});
+/**
+ * @route POST /api/auth/setup-username
+ * @desc Step 8: Setup username after DID creation
+ * @access Public
+ */
+router.post('/setup-username', createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10, // 10 attempts per 15 minutes
+    message: 'Too many username setup attempts, please try again later'
+}), async (req, res) => {
+    try {
+        const { sessionId, username, userId } = req.body;
+        // Validate required fields
+        if (!sessionId || !username) {
+            return res.status(400).json({
+                success: false,
+                error: 'Session ID and username are required'
+            });
+        }
+        // Validate username format
+        if (username.length < 3 || username.length > 30) {
+            return res.status(400).json({
+                success: false,
+                error: 'Username must be between 3 and 30 characters'
+            });
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            return res.status(400).json({
+                success: false,
+                error: 'Username can only contain letters, numbers, and underscores'
+            });
+        }
+        // Get session data
+        const sessionData = signupSessions.get(sessionId);
+        if (!sessionData) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid or expired session'
+            });
+        }
+        // Verify signup was completed
+        if (sessionData.step !== 'signup_completed') {
+            return res.status(400).json({
+                success: false,
+                error: 'Signup must be completed before setting up username'
+            });
+        }
+        // Check if username is already taken
+        try {
+            const existingUserResult = await storageService.findUser({ username });
+            if (existingUserResult.success && existingUserResult.data) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Username is already taken. Please choose a different username.'
+                });
+            }
+        }
+        catch (error) {
+            console.log('Error checking username availability:', error);
+        }
+        // Update user with username
+        const userIdToUpdate = userId || sessionData.userId;
+        if (userIdToUpdate) {
+            try {
+                const updateResult = await storageService.updateUser(userIdToUpdate, { username });
+                if (!updateResult.success) {
+                    console.log('Failed to update user with username:', updateResult.error);
+                    return res.status(500).json({
+                        success: false,
+                        error: 'Failed to save username'
+                    });
+                }
+            }
+            catch (error) {
+                console.log('Error updating user with username:', error);
+                return res.status(500).json({
+                    success: false,
+                    error: 'Failed to save username'
+                });
+            }
+        }
+        // Update session
+        sessionData.username = username;
+        sessionData.step = 'username_setup';
+        sessionData.completed = true;
+        sessionData.timestamp = new Date();
+        signupSessions.set(sessionId, sessionData);
+        console.log(`Username setup completed for session: ${sessionId}`);
+        // Generate JWT token for completed signup
+        const token = jwt.sign({
+            id: userIdToUpdate || crypto.randomUUID(),
+            phoneNumber: sessionData.phoneNumber,
+            username,
+            walletAddress: sessionData.walletAddress
+        }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+        res.json({
+            success: true,
+            message: 'Username setup completed successfully. Welcome to K33P!',
+            data: {
+                sessionId,
+                step: 'username_setup',
+                username,
+                userId: userIdToUpdate,
+                walletAddress: sessionData.walletAddress,
+                completed: true
+            },
+            token
+        });
+        // Clean up session after successful completion
+        setTimeout(() => {
+            signupSessions.del(sessionId);
+        }, 5000);
+    }
+    catch (error) {
+        console.error('Error setting up username:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to setup username'
+        });
+    }
+});
+/**
+ * @route GET /api/auth/session-status/:sessionId
+ * @desc Get current status of signup session
+ * @access Public
+ */
+router.get('/session-status/:sessionId', createRateLimiter({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 20, // 20 requests per 5 minutes
+    message: 'Too many session status requests, please try again later'
+}), async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        if (!sessionId) {
+            return res.status(400).json({
+                success: false,
+                error: 'Session ID is required'
+            });
+        }
+        const sessionData = signupSessions.get(sessionId);
+        if (!sessionData) {
+            return res.status(404).json({
+                success: false,
+                error: 'Session not found or expired'
+            });
+        }
+        // Return session status without sensitive data
+        res.json({
+            success: true,
+            data: {
+                sessionId,
+                step: sessionData.step,
+                phoneNumber: sessionData.phoneNumber ? sessionData.phoneNumber.replace(/.(?=.{4})/g, '*') : null,
+                pinConfirmed: sessionData.pinConfirmed || false,
+                biometricType: sessionData.biometricType || null,
+                username: sessionData.username || null,
+                completed: sessionData.completed || false,
+                timestamp: sessionData.timestamp
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error getting session status:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get session status'
+        });
+    }
+});
+/**
+ * @route POST /api/auth/verify-otp
+ * @desc Verify OTP code during signup
+ * @access Public
+ */
+router.post('/verify-otp', createRateLimiter({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 10, // 10 verification attempts per 5 minutes
+    message: 'Too many verification attempts, please try again later'
+}), async (req, res) => {
+    try {
+        const { requestId, code } = req.body;
+        if (!requestId || !code) {
+            return res.status(400).json({
+                success: false,
+                error: 'Request ID and verification code are required'
+            });
+        }
+        console.log(`Verifying OTP for request ${requestId}`);
+        const result = await verifyOtp(requestId, code);
+        if (result.success) {
+            res.json({
+                success: true,
+                message: 'Phone number verified successfully',
+                data: { verified: true }
+            });
+        }
+        else {
+            res.status(400).json({
+                success: false,
+                error: result.error || 'Invalid or expired OTP'
+            });
+        }
+    }
+    catch (error) {
+        console.error('Error verifying OTP:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to verify OTP'
+        });
+    }
+});
+/**
+ * Handle signup logic for all authentication methods
+ */
+async function handleSignup(req, res, defaultVerificationMethod = null, defaultBiometricType = null) {
     try {
         console.log('=== SIGNUP DEBUG START ===');
         console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -38,7 +635,7 @@ router.post('/signup', signupLimiter, async (req, res) => {
         console.log('- JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
         console.log('- JWT_EXPIRATION:', process.env.JWT_EXPIRATION || 'NOT SET (using default)');
         console.log('- BLOCKFROST_API_KEY:', process.env.BLOCKFROST_API_KEY ? 'SET' : 'NOT SET');
-        const { userAddress, userId, phoneNumber, senderWalletAddress, pin, biometricData, verificationMethod = 'phone', biometricType, 
+        const { userAddress, userId, phoneNumber, username, senderWalletAddress, pin, biometricData, verificationMethod = defaultVerificationMethod || 'phone', biometricType = defaultBiometricType, 
         // Legacy fields for backward compatibility
         walletAddress, phone, biometric, passkey } = req.body;
         console.log('Extracted fields:', {
@@ -71,6 +668,39 @@ router.post('/signup', signupLimiter, async (req, res) => {
         if (!userId && !passkey) {
             console.log('Validation failed: User ID or passkey is required');
             return res.status(400).json({ error: 'User ID or passkey is required' });
+        }
+        if (username && (username.length < 3 || username.length > 30)) {
+            console.log('Validation failed: Username must be 3-30 characters');
+            return res.status(400).json({ error: 'Username must be between 3 and 30 characters' });
+        }
+        if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
+            console.log('Validation failed: Username contains invalid characters');
+            return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
+        }
+        // Validate verification method specific requirements
+        if (verificationMethod === 'pin' && !pin) {
+            console.log('Validation failed: PIN is required for PIN verification');
+            return res.status(400).json({ error: 'PIN is required for PIN verification method' });
+        }
+        if (verificationMethod === 'pin' && !/^\d{4}$/.test(pin)) {
+            console.log('Validation failed: PIN must be 4 digits');
+            return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+        }
+        if (verificationMethod === 'biometric' && !finalBiometricData) {
+            console.log('Validation failed: Biometric data is required for biometric verification');
+            return res.status(400).json({ error: 'Biometric data is required for biometric verification method' });
+        }
+        if (verificationMethod === 'biometric' && !biometricType) {
+            console.log('Validation failed: Biometric type is required for biometric verification');
+            return res.status(400).json({ error: 'Biometric type is required for biometric verification method' });
+        }
+        if (verificationMethod === 'biometric' && !['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
+            console.log('Validation failed: Invalid biometric type');
+            return res.status(400).json({ error: 'Biometric type must be one of: fingerprint, faceid, voice, iris' });
+        }
+        if (verificationMethod === 'passkey' && !passkey) {
+            console.log('Validation failed: Passkey is required for passkey verification');
+            return res.status(400).json({ error: 'Passkey is required for passkey verification method' });
         }
         console.log('Step 1: Hashing phone...');
         const phoneHash = hashPhone(finalPhoneNumber);
@@ -115,6 +745,7 @@ router.post('/signup', signupLimiter, async (req, res) => {
                 verificationMethod,
                 biometricType: biometricType || null,
                 senderWalletAddress: senderWalletAddress || null,
+                phoneNumber: finalPhoneNumber, // Update actual phone number
                 updatedAt: new Date()
             };
             if (biometricHash)
@@ -125,6 +756,8 @@ router.post('/signup', signupLimiter, async (req, res) => {
                 updateData.pin = pin;
             if (finalUserAddress)
                 updateData.walletAddress = finalUserAddress;
+            if (username)
+                updateData.username = username; // Update username if provided
             const updateResult = await storageService.updateUser(existingUser.id, updateData);
             if (!updateResult.success) {
                 console.log('Failed to update existing user:', updateResult.error);
@@ -239,6 +872,8 @@ router.post('/signup', signupLimiter, async (req, res) => {
         const userData = {
             walletAddress: finalUserAddress || null,
             phoneHash,
+            phoneNumber: finalPhoneNumber, // Store actual phone number
+            username: username || null, // Store username
             zkCommitment,
             userId: userId || crypto.randomUUID(),
             verificationMethod,
@@ -322,7 +957,7 @@ router.post('/signup', signupLimiter, async (req, res) => {
             timestamp: new Date().toISOString()
         });
     }
-});
+}
 /**
  * @route POST /api/auth/login
  * @desc Login a user with ZK proof
@@ -330,13 +965,28 @@ router.post('/signup', signupLimiter, async (req, res) => {
  */
 router.post('/login', loginLimiter, verifyZkProof, async (req, res) => {
     try {
-        const { walletAddress, phone, proof, commitment } = req.body;
-        if (!phone || !proof || !commitment) {
-            return res.status(400).json({ error: 'Missing required fields: phone, proof, and commitment are required' });
+        const { walletAddress, phone, username, proof, commitment } = req.body;
+        // At least one identifier is required
+        if (!phone && !username && !walletAddress) {
+            return res.status(400).json({ error: 'At least one identifier is required: phone, username, or walletAddress' });
         }
-        // Find user by phone hash first (primary identifier), then by wallet address if provided
-        let userResult = await storageService.findUser({ phoneHash: hashPhone(phone) });
-        let user = userResult.success ? userResult.data : null;
+        if (!proof || !commitment) {
+            return res.status(400).json({ error: 'Missing required fields: proof and commitment are required' });
+        }
+        // Find user by multiple identifiers (priority: phone > username > wallet address)
+        let userResult = null;
+        let user = null;
+        // Try phone first (if provided)
+        if (phone) {
+            userResult = await storageService.findUser({ phoneHash: hashPhone(phone) });
+            user = userResult.success ? userResult.data : null;
+        }
+        // Try username if phone lookup failed or wasn't provided
+        if (!user && username) {
+            userResult = await storageService.findUser({ username });
+            user = userResult.success ? userResult.data : null;
+        }
+        // Try wallet address if both phone and username lookup failed
         if (!user && walletAddress) {
             userResult = await storageService.findUser({ walletAddress });
             user = userResult.success ? userResult.data : null;
@@ -357,6 +1007,147 @@ router.post('/login', loginLimiter, verifyZkProof, async (req, res) => {
     catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Failed to login' });
+    }
+});
+/**
+ * @route POST /api/auth/signin
+ * @desc Sign in with phone number, OTP, and PIN
+ * @access Public
+ */
+router.post('/signin', loginLimiter, async (req, res) => {
+    try {
+        const { phoneNumber, otpRequestId, otpCode, pin } = req.body;
+        console.log('=== SIGNIN DEBUG START ===');
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+        // Validate required fields
+        if (!phoneNumber) {
+            console.log('Validation failed: Phone number is required');
+            return res.status(400).json({
+                success: false,
+                error: 'Phone number is required'
+            });
+        }
+        if (!otpRequestId) {
+            console.log('Validation failed: OTP request ID is required');
+            return res.status(400).json({
+                success: false,
+                error: 'OTP request ID is required'
+            });
+        }
+        if (!otpCode) {
+            console.log('Validation failed: OTP code is required');
+            return res.status(400).json({
+                success: false,
+                error: 'OTP code is required'
+            });
+        }
+        if (!pin) {
+            console.log('Validation failed: PIN is required');
+            return res.status(400).json({
+                success: false,
+                error: 'PIN is required'
+            });
+        }
+        // Validate PIN format (4 digits)
+        if (!/^\d{4}$/.test(pin)) {
+            console.log('Validation failed: PIN must be 4 digits');
+            return res.status(400).json({
+                success: false,
+                error: 'PIN must be exactly 4 digits'
+            });
+        }
+        // Validate OTP code format (5 digits)
+        if (!/^\d{5}$/.test(otpCode)) {
+            console.log('Validation failed: OTP code must be 5 digits');
+            return res.status(400).json({
+                success: false,
+                error: 'OTP code must be exactly 5 digits'
+            });
+        }
+        console.log('Step 1: Verifying OTP...');
+        const otpVerification = await verifyOtp(otpRequestId, otpCode);
+        if (!otpVerification.success) {
+            console.log('OTP verification failed:', otpVerification.error);
+            return res.status(400).json({
+                success: false,
+                error: otpVerification.error || 'Invalid or expired OTP'
+            });
+        }
+        console.log('OTP verified successfully');
+        console.log('Step 2: Hashing phone number...');
+        const phoneHash = hashPhone(phoneNumber);
+        console.log('Phone hash created successfully');
+        console.log('Step 3: Finding user by phone hash...');
+        const userResult = await storageService.findUser({ phoneHash });
+        if (!userResult.success || !userResult.data) {
+            console.log('User not found with this phone number');
+            return res.status(404).json({
+                success: false,
+                error: 'User not found with this phone number'
+            });
+        }
+        const user = userResult.data;
+        console.log('User found:', user.id);
+        // Check if user has a PIN stored
+        if (!user.pin) {
+            console.log('User does not have a PIN set');
+            return res.status(400).json({
+                success: false,
+                error: 'No PIN found for this user. Please contact support.'
+            });
+        }
+        console.log('Step 4: Verifying PIN...');
+        // Verify PIN (direct comparison since it's stored as plain text during signup)
+        if (user.pin !== pin) {
+            console.log('PIN verification failed');
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid PIN. Please try again.'
+            });
+        }
+        console.log('PIN verified successfully');
+        console.log('Step 5: Generating JWT token...');
+        const token = jwt.sign({
+            id: user.id,
+            walletAddress: user.walletAddress,
+            phoneNumber: user.phoneNumber,
+            userId: user.userId
+        }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+        console.log('JWT token generated successfully');
+        console.log('Step 6: Creating session...');
+        await iagon.createSession({
+            userId: user.id,
+            token,
+            expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000)
+        });
+        console.log('Session created successfully');
+        console.log('=== SIGNIN DEBUG END ===');
+        res.status(200).json({
+            success: true,
+            message: 'Sign in successful',
+            data: {
+                userId: user.userId || user.id,
+                phoneNumber: user.phoneNumber,
+                username: user.username,
+                walletAddress: user.walletAddress,
+                verificationMethod: user.verificationMethod
+            },
+            token
+        });
+    }
+    catch (error) {
+        console.error('=== SIGNIN ERROR ===');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        console.error('=== END SIGNIN ERROR ===');
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: error.message,
+            debug: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+            timestamp: new Date().toISOString()
+        });
     }
 });
 /**

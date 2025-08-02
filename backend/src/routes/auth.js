@@ -150,6 +150,508 @@ router.post('/send-otp', createRateLimiter({
   }
 });
 
+// Session storage for signup flow (in production, use Redis)
+const signupSessions = new NodeCache({ stdTTL: 1800 }); // 30 minutes
+
+/**
+ * @route POST /api/auth/setup-pin
+ * @desc Step 4: Setup 4-digit PIN after OTP verification
+ * @access Public
+ */
+router.post('/setup-pin', createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per 15 minutes
+  message: 'Too many PIN setup attempts, please try again later'
+}), async (req, res) => {
+  try {
+    const { phoneNumber, pin, sessionId } = req.body;
+    
+    // Validate required fields
+    if (!phoneNumber || !pin) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Phone number and PIN are required' 
+      });
+    }
+    
+    // Validate PIN format
+    if (!/^\d{4}$/.test(pin)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'PIN must be exactly 4 digits' 
+      });
+    }
+    
+    // Create or update session
+    const sessionKey = sessionId || `signup_${crypto.randomUUID()}`;
+    const sessionData = signupSessions.get(sessionKey) || {};
+    
+    // Store PIN setup data
+    sessionData.phoneNumber = phoneNumber;
+    sessionData.pin = pin;
+    sessionData.step = 'pin_setup';
+    sessionData.timestamp = new Date();
+    
+    signupSessions.set(sessionKey, sessionData);
+    
+    console.log(`PIN setup completed for session: ${sessionKey}`);
+    
+    res.json({
+      success: true,
+      message: 'PIN setup completed successfully',
+      data: {
+        sessionId: sessionKey,
+        step: 'pin_setup',
+        nextStep: 'pin_confirmation'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error setting up PIN:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to setup PIN' 
+    });
+  }
+});
+
+/**
+ * @route POST /api/auth/confirm-pin
+ * @desc Step 5: Confirm 4-digit PIN during signup
+ * @access Public
+ */
+router.post('/confirm-pin', createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per 15 minutes
+  message: 'Too many PIN confirmation attempts, please try again later'
+}), async (req, res) => {
+  try {
+    const { sessionId, pin } = req.body;
+    
+    // Validate required fields
+    if (!sessionId || !pin) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Session ID and PIN are required' 
+      });
+    }
+    
+    // Get session data
+    const sessionData = signupSessions.get(sessionId);
+    if (!sessionData) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid or expired session' 
+      });
+    }
+    
+    // Verify PIN matches
+    if (sessionData.pin !== pin) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'PIN confirmation does not match. Please try again.' 
+      });
+    }
+    
+    // Update session
+    sessionData.pinConfirmed = true;
+    sessionData.step = 'pin_confirmed';
+    sessionData.timestamp = new Date();
+    
+    signupSessions.set(sessionId, sessionData);
+    
+    console.log(`PIN confirmed for session: ${sessionId}`);
+    
+    res.json({
+      success: true,
+      message: 'PIN confirmed successfully',
+      data: {
+        sessionId,
+        step: 'pin_confirmed',
+        nextStep: 'biometric_setup'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error confirming PIN:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to confirm PIN' 
+    });
+  }
+});
+
+/**
+ * @route POST /api/auth/setup-biometric
+ * @desc Step 6: Setup biometric authentication (Face ID, Fingerprint, Voice ID, Iris Scan)
+ * @access Public
+ */
+router.post('/setup-biometric', createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per 15 minutes
+  message: 'Too many biometric setup attempts, please try again later'
+}), async (req, res) => {
+  try {
+    const { sessionId, biometricType, biometricData } = req.body;
+    
+    // Validate required fields
+    if (!sessionId) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Session ID is required' 
+      });
+    }
+    
+    // Get session data
+    const sessionData = signupSessions.get(sessionId);
+    if (!sessionData) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid or expired session' 
+      });
+    }
+    
+    // Verify PIN was confirmed
+    if (!sessionData.pinConfirmed) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'PIN must be confirmed before setting up biometric authentication' 
+      });
+    }
+    
+    // Validate biometric data if provided
+    if (biometricType && biometricData) {
+      if (!['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Biometric type must be one of: fingerprint, faceid, voice, iris' 
+        });
+      }
+    }
+    
+    // Update session with biometric data
+    sessionData.biometricType = biometricType || null;
+    sessionData.biometricData = biometricData || null;
+    sessionData.step = 'biometric_setup';
+    sessionData.timestamp = new Date();
+    
+    signupSessions.set(sessionId, sessionData);
+    
+    console.log(`Biometric setup completed for session: ${sessionId}`);
+    
+    res.json({
+      success: true,
+      message: biometricType ? `${biometricType} setup completed successfully` : 'Biometric setup skipped',
+      data: {
+        sessionId,
+        step: 'biometric_setup',
+        biometricType: biometricType || null,
+        nextStep: 'did_creation'
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error setting up biometric:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to setup biometric authentication' 
+    });
+  }
+});
+
+/**
+ * @route POST /api/auth/complete-signup
+ * @desc Step 7: Complete signup with DID creation and ZK proof generation
+ * @access Public
+ */
+router.post('/complete-signup', createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 attempts per 15 minutes
+  message: 'Too many signup completion attempts, please try again later'
+}), async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    
+    // Validate required fields
+    if (!sessionId) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Session ID is required' 
+      });
+    }
+    
+    // Get session data
+    const sessionData = signupSessions.get(sessionId);
+    if (!sessionData) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid or expired session' 
+      });
+    }
+    
+    // Verify biometric setup was completed
+    if (sessionData.step !== 'biometric_setup') {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Biometric setup must be completed before finalizing signup' 
+      });
+    }
+    
+    // Prepare user data for signup
+    const userData = {
+      phoneNumber: sessionData.phoneNumber,
+      pin: sessionData.pin,
+      biometricType: sessionData.biometricType,
+      biometricData: sessionData.biometricData,
+      verificationMethod: 'pin' // Default verification method
+    };
+    
+    // Use existing handleSignup function to complete the process
+    const mockReq = {
+      body: userData,
+      ip: req.ip,
+      headers: req.headers
+    };
+    
+    const mockRes = {
+      status: (code) => ({
+        json: (data) => {
+          if (code === 200 || code === 201) {
+            // Success - update session and return response
+            sessionData.step = 'signup_completed';
+            sessionData.userId = data.data?.userId;
+            sessionData.walletAddress = data.data?.walletAddress;
+            sessionData.timestamp = new Date();
+            signupSessions.set(sessionId, sessionData);
+            
+            res.status(code).json({
+              ...data,
+              sessionId,
+              nextStep: 'username_setup'
+            });
+          } else {
+            // Error - forward the error response
+            res.status(code).json(data);
+          }
+        }
+      }),
+      json: (data) => {
+        // Success case (status 200 by default)
+        sessionData.step = 'signup_completed';
+        sessionData.userId = data.data?.userId;
+        sessionData.walletAddress = data.data?.walletAddress;
+        sessionData.timestamp = new Date();
+        signupSessions.set(sessionId, sessionData);
+        
+        res.json({
+          ...data,
+          sessionId,
+          nextStep: 'username_setup'
+        });
+      }
+    };
+    
+    // Call the existing handleSignup function
+    await handleSignup(mockReq, mockRes, 'pin', sessionData.biometricType);
+    
+  } catch (error) {
+    console.error('Error completing signup:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to complete signup' 
+    });
+  }
+});
+
+/**
+ * @route POST /api/auth/setup-username
+ * @desc Step 8: Setup username after DID creation
+ * @access Public
+ */
+router.post('/setup-username', createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // 10 attempts per 15 minutes
+  message: 'Too many username setup attempts, please try again later'
+}), async (req, res) => {
+  try {
+    const { sessionId, username, userId } = req.body;
+    
+    // Validate required fields
+    if (!sessionId || !username) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Session ID and username are required' 
+      });
+    }
+    
+    // Validate username format
+    if (username.length < 3 || username.length > 30) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Username must be between 3 and 30 characters' 
+      });
+    }
+    
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Username can only contain letters, numbers, and underscores' 
+      });
+    }
+    
+    // Get session data
+    const sessionData = signupSessions.get(sessionId);
+    if (!sessionData) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Invalid or expired session' 
+      });
+    }
+    
+    // Verify signup was completed
+    if (sessionData.step !== 'signup_completed') {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Signup must be completed before setting up username' 
+      });
+    }
+    
+    // Check if username is already taken
+    try {
+      const existingUserResult = await storageService.findUser({ username });
+      if (existingUserResult.success && existingUserResult.data) {
+        return res.status(400).json({ 
+          success: false,
+          error: 'Username is already taken. Please choose a different username.' 
+        });
+      }
+    } catch (error) {
+      console.log('Error checking username availability:', error);
+    }
+    
+    // Update user with username
+    const userIdToUpdate = userId || sessionData.userId;
+    if (userIdToUpdate) {
+      try {
+        const updateResult = await storageService.updateUser(userIdToUpdate, { username });
+        if (!updateResult.success) {
+          console.log('Failed to update user with username:', updateResult.error);
+          return res.status(500).json({ 
+            success: false,
+            error: 'Failed to save username' 
+          });
+        }
+      } catch (error) {
+        console.log('Error updating user with username:', error);
+        return res.status(500).json({ 
+          success: false,
+          error: 'Failed to save username' 
+        });
+      }
+    }
+    
+    // Update session
+    sessionData.username = username;
+    sessionData.step = 'username_setup';
+    sessionData.completed = true;
+    sessionData.timestamp = new Date();
+    
+    signupSessions.set(sessionId, sessionData);
+    
+    console.log(`Username setup completed for session: ${sessionId}`);
+    
+    // Generate JWT token for completed signup
+    const token = jwt.sign(
+      { 
+        id: userIdToUpdate || crypto.randomUUID(),
+        phoneNumber: sessionData.phoneNumber,
+        username,
+        walletAddress: sessionData.walletAddress
+      },
+      process.env.JWT_SECRET || 'default-secret',
+      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+    );
+    
+    res.json({
+      success: true,
+      message: 'Username setup completed successfully. Welcome to K33P!',
+      data: {
+        sessionId,
+        step: 'username_setup',
+        username,
+        userId: userIdToUpdate,
+        walletAddress: sessionData.walletAddress,
+        completed: true
+      },
+      token
+    });
+    
+    // Clean up session after successful completion
+    setTimeout(() => {
+      signupSessions.del(sessionId);
+    }, 5000);
+    
+  } catch (error) {
+    console.error('Error setting up username:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to setup username' 
+    });
+  }
+});
+
+/**
+ * @route GET /api/auth/session-status/:sessionId
+ * @desc Get current status of signup session
+ * @access Public
+ */
+router.get('/session-status/:sessionId', createRateLimiter({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 20, // 20 requests per 5 minutes
+  message: 'Too many session status requests, please try again later'
+}), async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    
+    if (!sessionId) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Session ID is required' 
+      });
+    }
+    
+    const sessionData = signupSessions.get(sessionId);
+    if (!sessionData) {
+      return res.status(404).json({ 
+        success: false,
+        error: 'Session not found or expired' 
+      });
+    }
+    
+    // Return session status without sensitive data
+    res.json({
+      success: true,
+      data: {
+        sessionId,
+        step: sessionData.step,
+        phoneNumber: sessionData.phoneNumber ? sessionData.phoneNumber.replace(/.(?=.{4})/g, '*') : null,
+        pinConfirmed: sessionData.pinConfirmed || false,
+        biometricType: sessionData.biometricType || null,
+        username: sessionData.username || null,
+        completed: sessionData.completed || false,
+        timestamp: sessionData.timestamp
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error getting session status:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to get session status' 
+    });
+  }
+});
+
 /**
  * @route POST /api/auth/verify-otp
  * @desc Verify OTP code during signup

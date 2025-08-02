@@ -340,6 +340,305 @@ All API endpoints follow a consistent error handling pattern:
 }
 ```
 
+## New Signup Flow Endpoints
+
+### Step 4: Setup PIN
+
+**Endpoint:** `POST /api/auth/setup-pin`  
+**Authentication:** None  
+**Description:** Setup 4-digit PIN after OTP verification (Step 4 of 8-step signup flow)
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "pin": "1234",
+  "sessionId": "signup_uuid" // Optional, will be generated if not provided
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "PIN setup completed successfully",
+  "data": {
+    "sessionId": "signup_uuid",
+    "step": "pin_setup",
+    "nextStep": "pin_confirmation"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "error": "PIN must be exactly 4 digits"
+}
+```
+
+### Step 5: Confirm PIN
+
+**Endpoint:** `POST /api/auth/confirm-pin`  
+**Authentication:** None  
+**Description:** Confirm 4-digit PIN by re-entering it (Step 5 of 8-step signup flow)
+
+**Request Body:**
+```json
+{
+  "sessionId": "signup_uuid",
+  "pin": "1234"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "PIN confirmed successfully",
+  "data": {
+    "sessionId": "signup_uuid",
+    "step": "pin_confirmed",
+    "nextStep": "biometric_setup"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "error": "PIN confirmation does not match. Please try again."
+}
+```
+
+### Step 6: Setup Biometric
+
+**Endpoint:** `POST /api/auth/setup-biometric`  
+**Authentication:** None  
+**Description:** Setup biometric authentication - optional step (Step 6 of 8-step signup flow)
+
+**Request Body:**
+```json
+{
+  "sessionId": "signup_uuid",
+  "biometricType": "fingerprint", // Optional: "fingerprint", "faceid", "voice", "iris"
+  "biometricData": "base64_encoded_data" // Optional: biometric template data
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "fingerprint setup completed successfully",
+  "data": {
+    "sessionId": "signup_uuid",
+    "step": "biometric_setup",
+    "biometricType": "fingerprint",
+    "nextStep": "did_creation"
+  }
+}
+```
+
+**Skip Biometric Response (200):**
+```json
+{
+  "success": true,
+  "message": "Biometric setup skipped",
+  "data": {
+    "sessionId": "signup_uuid",
+    "step": "biometric_setup",
+    "biometricType": null,
+    "nextStep": "did_creation"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "error": "PIN must be confirmed before setting up biometric authentication"
+}
+```
+
+### Step 7: Complete Signup
+
+**Endpoint:** `POST /api/auth/complete-signup`  
+**Authentication:** None  
+**Description:** Complete signup with DID creation and ZK proof generation (Step 7 of 8-step signup flow)
+
+**Request Body:**
+```json
+{
+  "sessionId": "signup_uuid"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Signup completed successfully",
+  "data": {
+    "userId": "user_uuid",
+    "walletAddress": "addr1...",
+    "zkCommitment": "zk_commitment_hash",
+    "sessionId": "signup_uuid",
+    "nextStep": "username_setup"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "error": "Biometric setup must be completed before finalizing signup"
+}
+```
+
+### Step 8: Setup Username
+
+**Endpoint:** `POST /api/auth/setup-username`  
+**Authentication:** None  
+**Description:** Setup username after DID creation (Step 8 of 8-step signup flow)
+
+**Request Body:**
+```json
+{
+  "sessionId": "signup_uuid",
+  "username": "myusername",
+  "userId": "user_uuid" // Optional, will use session userId if not provided
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Username setup completed successfully. Welcome to K33P!",
+  "data": {
+    "sessionId": "signup_uuid",
+    "step": "username_setup",
+    "username": "myusername",
+    "userId": "user_uuid",
+    "walletAddress": "addr1...",
+    "completed": true
+  },
+  "token": "jwt_token_here"
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "error": "Username is already taken. Please choose a different username."
+}
+```
+
+### Session Status Helper
+
+**Endpoint:** `GET /api/auth/session-status/:sessionId`  
+**Authentication:** None  
+**Description:** Get current status of signup session
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "sessionId": "signup_uuid",
+    "step": "pin_confirmed",
+    "phoneNumber": "***-***-7890", // Masked for privacy
+    "pinConfirmed": true,
+    "biometricType": "fingerprint",
+    "username": null,
+    "completed": false,
+    "timestamp": "2024-01-01T12:00:00.000Z"
+  }
+}
+```
+
+**Error Response (404):**
+```json
+{
+  "success": false,
+  "error": "Session not found or expired"
+}
+```
+
+### Send OTP
+
+**Endpoint:** `POST /api/auth/send-otp`  
+**Authentication:** None  
+**Description:** Send OTP to phone number during signup (Steps 1-3 of signup flow)
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "OTP sent successfully",
+  "data": {
+    "requestId": "firebase_request_id",
+    "expiresIn": 300
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "error": "Phone number is required"
+}
+```
+
+### Verify OTP
+
+**Endpoint:** `POST /api/auth/verify-otp`  
+**Authentication:** None  
+**Description:** Verify OTP code during signup (Step 3 of signup flow)
+
+**Request Body:**
+```json
+{
+  "phoneNumber": "+1234567890",
+  "otp": "123456",
+  "requestId": "firebase_request_id"
+}
+```
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully",
+  "data": {
+    "verified": true,
+    "phoneNumber": "+1234567890"
+  }
+}
+```
+
+**Error Response (400):**
+```json
+{
+  "success": false,
+  "error": "Invalid OTP code"
+}
+```
+
 ---
 
 ## User Management Endpoints
