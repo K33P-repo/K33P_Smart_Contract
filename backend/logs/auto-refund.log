@@ -267,3 +267,5 @@
 {"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-02T20:10:29.374Z"}
 {"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:11:48.313Z"}
 {"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-02T20:11:49.807Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for 8248bcdee021b07be23344a762dfbda2d62c01d021870fa56c2b52217675d117 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:18:45.879Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for c2bcf546e62062907dc555ef1000405bcfe4843c387b516dc3562ae1c8c67034 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:18:53.626Z"}
