@@ -12,6 +12,7 @@ import { storageService } from '../services/storage-abstraction.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+import { sendOtp, verifyOtp } from '../utils/firebase.js';
 
 const router = express.Router();
 
@@ -31,11 +32,172 @@ const loginLimiter = createRateLimiter({
 
 
 /**
+ * @route POST /api/auth/signup/phone
+ * @desc Register a new user with phone verification
+ * @access Public
+ */
+router.post('/signup/phone', signupLimiter, async (req, res) => {
+  return handleSignup(req, res, 'phone');
+});
+
+/**
+ * @route POST /api/auth/signup/pin
+ * @desc Register a new user with PIN verification
+ * @access Public
+ */
+router.post('/signup/pin', signupLimiter, async (req, res) => {
+  return handleSignup(req, res, 'pin');
+});
+
+/**
+ * @route POST /api/auth/signup/fingerprint
+ * @desc Register a new user with fingerprint verification
+ * @access Public
+ */
+router.post('/signup/fingerprint', signupLimiter, async (req, res) => {
+  return handleSignup(req, res, 'biometric', 'fingerprint');
+});
+
+/**
+ * @route POST /api/auth/signup/faceid
+ * @desc Register a new user with Face ID verification
+ * @access Public
+ */
+router.post('/signup/faceid', signupLimiter, async (req, res) => {
+  return handleSignup(req, res, 'biometric', 'faceid');
+});
+
+/**
+ * @route POST /api/auth/signup/voice
+ * @desc Register a new user with voice verification
+ * @access Public
+ */
+router.post('/signup/voice', signupLimiter, async (req, res) => {
+  return handleSignup(req, res, 'biometric', 'voice');
+});
+
+/**
+ * @route POST /api/auth/signup/iris
+ * @desc Register a new user with iris verification
+ * @access Public
+ */
+router.post('/signup/iris', signupLimiter, async (req, res) => {
+  return handleSignup(req, res, 'biometric', 'iris');
+});
+
+/**
+ * @route POST /api/auth/signup/passkey
+ * @desc Register a new user with passkey verification
+ * @access Public
+ */
+router.post('/signup/passkey', signupLimiter, async (req, res) => {
+  return handleSignup(req, res, 'passkey');
+});
+
+/**
  * @route POST /api/auth/signup
- * @desc Register a new user with verification
+ * @desc Register a new user with verification (legacy endpoint)
  * @access Public
  */
 router.post('/signup', signupLimiter, async (req, res) => {
+  return handleSignup(req, res);
+});
+
+/**
+ * @route POST /api/auth/send-otp
+ * @desc Send OTP to phone number during signup
+ * @access Public
+ */
+router.post('/send-otp', createRateLimiter({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 3, // 3 OTP requests per 5 minutes
+  message: 'Too many OTP requests, please try again later'
+}), async (req, res) => {
+  try {
+    const { phoneNumber } = req.body;
+    
+    if (!phoneNumber) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Phone number is required' 
+      });
+    }
+    
+    console.log(`Sending OTP to ${phoneNumber}`);
+    const result = await sendOtp(phoneNumber);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'OTP sent successfully',
+        data: { 
+          requestId: result.requestId,
+          expiresIn: 300 // 5 minutes
+        }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error || 'Failed to send OTP'
+      });
+    }
+  } catch (error) {
+    console.error('Error sending OTP:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to send OTP' 
+    });
+  }
+});
+
+/**
+ * @route POST /api/auth/verify-otp
+ * @desc Verify OTP code during signup
+ * @access Public
+ */
+router.post('/verify-otp', createRateLimiter({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 10, // 10 verification attempts per 5 minutes
+  message: 'Too many verification attempts, please try again later'
+}), async (req, res) => {
+  try {
+    const { requestId, code } = req.body;
+    
+    if (!requestId || !code) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Request ID and verification code are required' 
+      });
+    }
+    
+    console.log(`Verifying OTP for request ${requestId}`);
+    const result = await verifyOtp(requestId, code);
+    
+    if (result.success) {
+      res.json({
+        success: true,
+        message: 'Phone number verified successfully',
+        data: { verified: true }
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: result.error || 'Invalid or expired OTP'
+      });
+    }
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    res.status(500).json({ 
+      success: false,
+      error: 'Failed to verify OTP' 
+    });
+  }
+});
+
+/**
+ * Handle signup logic for all authentication methods
+ */
+async function handleSignup(req, res, defaultVerificationMethod = null, defaultBiometricType = null) {
   try {
     console.log('=== SIGNUP DEBUG START ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -49,11 +211,12 @@ router.post('/signup', signupLimiter, async (req, res) => {
       userAddress, 
       userId, 
       phoneNumber, 
+      username,
       senderWalletAddress, 
       pin, 
       biometricData, 
-      verificationMethod = 'phone', 
-      biometricType,
+      verificationMethod = defaultVerificationMethod || 'phone', 
+      biometricType = defaultBiometricType,
       // Legacy fields for backward compatibility
       walletAddress, 
       phone, 
@@ -94,6 +257,40 @@ router.post('/signup', signupLimiter, async (req, res) => {
     if (!userId && !passkey) {
       console.log('Validation failed: User ID or passkey is required');
       return res.status(400).json({ error: 'User ID or passkey is required' });
+    }
+    if (username && (username.length < 3 || username.length > 30)) {
+      console.log('Validation failed: Username must be 3-30 characters');
+      return res.status(400).json({ error: 'Username must be between 3 and 30 characters' });
+    }
+    if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
+      console.log('Validation failed: Username contains invalid characters');
+      return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
+    }
+    
+    // Validate verification method specific requirements
+    if (verificationMethod === 'pin' && !pin) {
+      console.log('Validation failed: PIN is required for PIN verification');
+      return res.status(400).json({ error: 'PIN is required for PIN verification method' });
+    }
+    if (verificationMethod === 'pin' && !/^\d{4}$/.test(pin)) {
+      console.log('Validation failed: PIN must be 4 digits');
+      return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+    }
+    if (verificationMethod === 'biometric' && !finalBiometricData) {
+      console.log('Validation failed: Biometric data is required for biometric verification');
+      return res.status(400).json({ error: 'Biometric data is required for biometric verification method' });
+    }
+    if (verificationMethod === 'biometric' && !biometricType) {
+      console.log('Validation failed: Biometric type is required for biometric verification');
+      return res.status(400).json({ error: 'Biometric type is required for biometric verification method' });
+    }
+    if (verificationMethod === 'biometric' && !['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
+      console.log('Validation failed: Invalid biometric type');
+      return res.status(400).json({ error: 'Biometric type must be one of: fingerprint, faceid, voice, iris' });
+    }
+    if (verificationMethod === 'passkey' && !passkey) {
+      console.log('Validation failed: Passkey is required for passkey verification');
+      return res.status(400).json({ error: 'Passkey is required for passkey verification method' });
     }
 
     console.log('Step 1: Hashing phone...');
@@ -146,6 +343,7 @@ router.post('/signup', signupLimiter, async (req, res) => {
         verificationMethod,
         biometricType: biometricType || null,
         senderWalletAddress: senderWalletAddress || null,
+        phoneNumber: finalPhoneNumber, // Update actual phone number
         updatedAt: new Date()
       };
       
@@ -153,6 +351,7 @@ router.post('/signup', signupLimiter, async (req, res) => {
       if (passkeyHash) updateData.passkeyHash = passkeyHash;
       if (pin) updateData.pin = pin;
       if (finalUserAddress) updateData.walletAddress = finalUserAddress;
+      if (username) updateData.username = username; // Update username if provided
 
       const updateResult = await storageService.updateUser(existingUser.id, updateData);
       if (!updateResult.success) {
@@ -283,6 +482,8 @@ router.post('/signup', signupLimiter, async (req, res) => {
     const userData = {
       walletAddress: finalUserAddress || null,
       phoneHash,
+      phoneNumber: finalPhoneNumber, // Store actual phone number
+      username: username || null, // Store username
       zkCommitment,
       userId: userId || crypto.randomUUID(),
       verificationMethod,
@@ -376,7 +577,9 @@ router.post('/signup', signupLimiter, async (req, res) => {
       timestamp: new Date().toISOString()
     });
   }
-});
+}
+
+
 
 /**
  * @route POST /api/auth/login
@@ -385,14 +588,34 @@ router.post('/signup', signupLimiter, async (req, res) => {
  */
 router.post('/login', loginLimiter, verifyZkProof, async (req, res) => {
   try {
-    const { walletAddress, phone, proof, commitment } = req.body;
-    if (!phone || !proof || !commitment) {
-      return res.status(400).json({ error: 'Missing required fields: phone, proof, and commitment are required' });
-    }
-    // Find user by phone hash first (primary identifier), then by wallet address if provided
-    let userResult = await storageService.findUser({ phoneHash: hashPhone(phone) });
-    let user = userResult.success ? userResult.data : null;
+    const { walletAddress, phone, username, proof, commitment } = req.body;
     
+    // At least one identifier is required
+    if (!phone && !username && !walletAddress) {
+      return res.status(400).json({ error: 'At least one identifier is required: phone, username, or walletAddress' });
+    }
+    
+    if (!proof || !commitment) {
+      return res.status(400).json({ error: 'Missing required fields: proof and commitment are required' });
+    }
+    
+    // Find user by multiple identifiers (priority: phone > username > wallet address)
+    let userResult = null;
+    let user = null;
+    
+    // Try phone first (if provided)
+    if (phone) {
+      userResult = await storageService.findUser({ phoneHash: hashPhone(phone) });
+      user = userResult.success ? userResult.data : null;
+    }
+    
+    // Try username if phone lookup failed or wasn't provided
+    if (!user && username) {
+      userResult = await storageService.findUser({ username });
+      user = userResult.success ? userResult.data : null;
+    }
+    
+    // Try wallet address if both phone and username lookup failed
     if (!user && walletAddress) {
       userResult = await storageService.findUser({ walletAddress });
       user = userResult.success ? userResult.data : null;
@@ -417,6 +640,174 @@ router.post('/login', loginLimiter, verifyZkProof, async (req, res) => {
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Failed to login' });
+  }
+});
+
+/**
+ * @route POST /api/auth/signin
+ * @desc Sign in with phone number, OTP, and PIN
+ * @access Public
+ */
+router.post('/signin', loginLimiter, async (req, res) => {
+  try {
+    const { phoneNumber, otpRequestId, otpCode, pin } = req.body;
+    
+    console.log('=== SIGNIN DEBUG START ===');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
+    // Validate required fields
+    if (!phoneNumber) {
+      console.log('Validation failed: Phone number is required');
+      return res.status(400).json({ 
+        success: false,
+        error: 'Phone number is required' 
+      });
+    }
+    
+    if (!otpRequestId) {
+      console.log('Validation failed: OTP request ID is required');
+      return res.status(400).json({ 
+        success: false,
+        error: 'OTP request ID is required' 
+      });
+    }
+    
+    if (!otpCode) {
+      console.log('Validation failed: OTP code is required');
+      return res.status(400).json({ 
+        success: false,
+        error: 'OTP code is required' 
+      });
+    }
+    
+    if (!pin) {
+      console.log('Validation failed: PIN is required');
+      return res.status(400).json({ 
+        success: false,
+        error: 'PIN is required' 
+      });
+    }
+    
+    // Validate PIN format (4 digits)
+    if (!/^\d{4}$/.test(pin)) {
+      console.log('Validation failed: PIN must be 4 digits');
+      return res.status(400).json({ 
+        success: false,
+        error: 'PIN must be exactly 4 digits' 
+      });
+    }
+    
+    // Validate OTP code format (5 digits)
+    if (!/^\d{5}$/.test(otpCode)) {
+      console.log('Validation failed: OTP code must be 5 digits');
+      return res.status(400).json({ 
+        success: false,
+        error: 'OTP code must be exactly 5 digits' 
+      });
+    }
+    
+    console.log('Step 1: Verifying OTP...');
+    const otpVerification = await verifyOtp(otpRequestId, otpCode);
+    
+    if (!otpVerification.success) {
+      console.log('OTP verification failed:', otpVerification.error);
+      return res.status(400).json({ 
+        success: false,
+        error: otpVerification.error || 'Invalid or expired OTP' 
+      });
+    }
+    
+    console.log('OTP verified successfully');
+    
+    console.log('Step 2: Hashing phone number...');
+    const phoneHash = hashPhone(phoneNumber);
+    console.log('Phone hash created successfully');
+    
+    console.log('Step 3: Finding user by phone hash...');
+    const userResult = await storageService.findUser({ phoneHash });
+    
+    if (!userResult.success || !userResult.data) {
+      console.log('User not found with this phone number');
+      return res.status(404).json({ 
+        success: false,
+        error: 'User not found with this phone number' 
+      });
+    }
+    
+    const user = userResult.data;
+    console.log('User found:', user.id);
+    
+    // Check if user has a PIN stored
+    if (!user.pin) {
+      console.log('User does not have a PIN set');
+      return res.status(400).json({ 
+        success: false,
+        error: 'No PIN found for this user. Please contact support.' 
+      });
+    }
+    
+    console.log('Step 4: Verifying PIN...');
+    // Verify PIN (direct comparison since it's stored as plain text during signup)
+    if (user.pin !== pin) {
+      console.log('PIN verification failed');
+      return res.status(401).json({ 
+        success: false,
+        error: 'Invalid PIN. Please try again.' 
+      });
+    }
+    
+    console.log('PIN verified successfully');
+    
+    console.log('Step 5: Generating JWT token...');
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        walletAddress: user.walletAddress,
+        phoneNumber: user.phoneNumber,
+        userId: user.userId 
+      },
+      process.env.JWT_SECRET || 'default-secret',
+      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+    );
+    console.log('JWT token generated successfully');
+    
+    console.log('Step 6: Creating session...');
+    await iagon.createSession({ 
+      userId: user.id, 
+      token, 
+      expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) 
+    });
+    console.log('Session created successfully');
+    
+    console.log('=== SIGNIN DEBUG END ===');
+    
+    res.status(200).json({
+      success: true,
+      message: 'Sign in successful',
+      data: {
+        userId: user.userId || user.id,
+        phoneNumber: user.phoneNumber,
+        username: user.username,
+        walletAddress: user.walletAddress,
+        verificationMethod: user.verificationMethod
+      },
+      token
+    });
+    
+  } catch (error) {
+    console.error('=== SIGNIN ERROR ===');
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('=== END SIGNIN ERROR ===');
+    
+    res.status(500).json({ 
+      success: false,
+      error: 'Internal server error',
+      message: error.message,
+      debug: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 

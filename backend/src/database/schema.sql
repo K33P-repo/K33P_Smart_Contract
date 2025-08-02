@@ -10,8 +10,10 @@ CREATE TABLE IF NOT EXISTS users (
     user_id VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255),
     name VARCHAR(255),
+    username VARCHAR(30), -- Added username field
     wallet_address TEXT,
     phone_hash VARCHAR(128),
+    phone_number VARCHAR(20), -- Added actual phone number field
     zk_commitment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -180,6 +182,8 @@ CREATE TABLE IF NOT EXISTS account_activity (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number);
 CREATE INDEX IF NOT EXISTS idx_user_deposits_user_address ON user_deposits(user_address);
 CREATE INDEX IF NOT EXISTS idx_user_deposits_user_id ON user_deposits(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_deposits_tx_hash ON user_deposits(tx_hash);
