@@ -1013,3 +1013,4 @@
 {"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-02T20:11:44.016Z"}
 {"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-02T20:11:48.312Z"}
 {"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-02T20:11:49.817Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-02T20:34:35.045Z"}

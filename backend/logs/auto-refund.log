@@ -269,3 +269,5 @@
 {"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-02T20:11:49.807Z"}
 {"level":"warn","message":"⚠️ Transaction details fetch failed for 8248bcdee021b07be23344a762dfbda2d62c01d021870fa56c2b52217675d117 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:18:45.879Z"}
 {"level":"warn","message":"⚠️ Transaction details fetch failed for c2bcf546e62062907dc555ef1000405bcfe4843c387b516dc3562ae1c8c67034 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:18:53.626Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for 20890178defac8832e32f2ea454a72023da163c6af06961ce7b69573e8827588 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:22:45.639Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for 50e855e6cb6e02de84bfb96747e283a72d75e262c2cb157a291503b42fdc2977 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:32:43.961Z"}
