@@ -271,3 +271,26 @@
 {"level":"warn","message":"⚠️ Transaction details fetch failed for c2bcf546e62062907dc555ef1000405bcfe4843c387b516dc3562ae1c8c67034 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:18:53.626Z"}
 {"level":"warn","message":"⚠️ Transaction details fetch failed for 20890178defac8832e32f2ea454a72023da163c6af06961ce7b69573e8827588 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:22:45.639Z"}
 {"level":"warn","message":"⚠️ Transaction details fetch failed for 50e855e6cb6e02de84bfb96747e283a72d75e262c2cb157a291503b42fdc2977 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:32:43.961Z"}
+{"level":"warn","message":"⚠️ Fetch failed (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:38:42.139Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for c2bcf546e62062907dc555ef1000405bcfe4843c387b516dc3562ae1c8c67034 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:40:48.160Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for b360f7c5e8aaa827f4b3aa6e362719417a7abbca8943d7a7e6fec5daa10117ff (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:44:45.255Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:46:47.389Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-02T20:46:48.410Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for e566140726bc469d04b552a26e3b3379a6ad74a626cf305039cec0161e2fcab2 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:48:47.484Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:49:30.170Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-02T20:49:32.094Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-02T20:49:32.096Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 120000ms","service":"auto-refund-monitor","timestamp":"2025-08-02T20:49:32.097Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:49:32.099Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 120000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-02T20:49:32.100Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:52:47.339Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-02T20:52:48.415Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-02T20:52:48.416Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 120000ms","service":"auto-refund-monitor","timestamp":"2025-08-02T20:52:48.417Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:52:48.419Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 120000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-02T20:52:48.421Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for 50e855e6cb6e02de84bfb96747e283a72d75e262c2cb157a291503b42fdc2977 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T20:54:50.918Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for f6f37ce0adf008a89806321dd052f45e91652755b57f7e7515df5958ca669ab6 (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T21:02:53.338Z"}
+{"level":"warn","message":"⚠️ Transaction details fetch failed for 40c722fc562fd2e50655637757e65920d8645c05c523b85a3eaa2f5d5f46be6c (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T21:04:43.529Z"}
+{"level":"warn","message":"⚠️ Fetch failed (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T21:06:42.462Z"}
+{"level":"warn","message":"⚠️ Fetch failed (attempt 1/3), retrying in 2000ms...","service":"auto-refund-monitor","timestamp":"2025-08-02T21:08:49.003Z"}

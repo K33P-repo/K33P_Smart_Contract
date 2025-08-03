@@ -9,10 +9,10 @@ const dbConfig = {
     database: process.env.DB_NAME || 'k33p_database',
     password: process.env.DB_PASSWORD || 'password',
     port: parseInt(process.env.DB_PORT || '5432'),
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    ssl: process.env.DB_HOST?.includes('render.com') ? { rejectUnauthorized: false } : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false),
     max: 20, // Maximum number of clients in the pool
     idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-    connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+    connectionTimeoutMillis: 15000, // Return an error after 15 seconds if connection could not be established
 };
 // Create a new pool instance
 const pool = new Pool(dbConfig);
