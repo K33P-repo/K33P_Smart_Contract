@@ -12,10 +12,11 @@ This document provides a comprehensive guide to the K33P Smart Contract authenti
 4. [Wallet Management](#wallet-management)
 5. [Zero-Knowledge (ZK) Proof System](#zero-knowledge-zk-proof-system)
 6. [Refund System](#refund-system)
-7. [Session Management](#session-management)
-8. [Error Handling](#error-handling)
-9. [Security Features](#security-features)
-10. [Environment Configuration](#environment-configuration)
+7. [Auto-Refund Monitor System](#auto-refund-monitor-system)
+8. [Session Management](#session-management)
+9. [Error Handling](#error-handling)
+10. [Security Features](#security-features)
+11. [Environment Configuration](#environment-configuration)
 
 ---
 
@@ -534,6 +535,225 @@ The system includes automatic refund monitoring that:
 - `processIncomingTransaction()`: Monitors and processes new deposits
 - `processAutomaticRefund()`: Handles automatic refund logic
 - Database integration for tracking deposit states
+
+---
+
+## Auto-Refund Monitor System
+
+The Auto-Refund Monitor System provides real-time monitoring of 2 ADA deposits with automatic refund processing, push notifications, and comprehensive health monitoring. This system operates independently from the manual refund endpoints and provides enhanced monitoring capabilities.
+
+### Key Differences Between Refund Systems
+
+#### Manual Refund (`/api/refund`)
+- **Purpose**: On-demand, manual refund processing
+- **Trigger**: User or admin initiated
+- **Process**: Immediate processing when called
+- **Use Case**: Manual intervention, specific user requests
+- **Authentication**: None required
+
+#### Auto-Refund Monitor (`/api/auto-refund/*`)
+- **Purpose**: Continuous monitoring and automatic processing
+- **Trigger**: Automatic detection of 2 ADA deposits
+- **Process**: Background service with adaptive polling
+- **Use Case**: Real-time monitoring, push notifications, health tracking
+- **Authentication**: Admin API Key required for control endpoints
+
+### Health Check
+
+#### Endpoint: `GET /api/auto-refund/health`
+
+**Description:** Get health status of the auto-refund monitor
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "isRunning": true,
+    "lastActivity": "2025-08-10T19:26:19.025Z",
+    "errorCount": 0,
+    "uptime": 3600
+  },
+  "message": "Auto-refund monitor health status"
+}
+```
+
+### Monitor Status
+
+#### Endpoint: `GET /api/auto-refund/status`
+
+**Description:** Get detailed status and statistics of the auto-refund monitor
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "isRunning": true,
+    "currentPollingInterval": 120000,
+    "lastSeenTxHash": "abc123...",
+    "webhookListenerCount": 2,
+    "statistics": {
+      "totalPolls": 1250,
+      "totalTransactionsProcessed": 45,
+      "totalBlockfrostApiCalls": 1300,
+      "lastPollTime": "2025-08-10T19:26:19.025Z",
+      "averagePollingInterval": 118500,
+      "uptime": 3600
+    }
+  },
+  "message": "Auto-refund monitor status"
+}
+```
+
+### Control Operations
+
+#### Start Monitor
+**Endpoint:** `POST /api/auto-refund/start`  
+**Authentication:** Admin API Key
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Auto-refund monitor started successfully"
+}
+```
+
+#### Stop Monitor
+**Endpoint:** `POST /api/auto-refund/stop`  
+**Authentication:** Admin API Key
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Auto-refund monitor stopped successfully"
+}
+```
+
+#### Trigger Manual Check
+**Endpoint:** `POST /api/auto-refund/trigger`  
+**Authentication:** Admin API Key
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "transactionsFound": 2,
+    "transactionsProcessed": 1
+  },
+  "message": "Manual check completed"
+}
+```
+
+#### Reset Statistics
+**Endpoint:** `POST /api/auto-refund/reset-stats`  
+**Authentication:** Admin API Key
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Statistics reset successfully"
+}
+```
+
+### Webhook System
+
+#### Test Webhook
+**Endpoint:** `POST /api/auto-refund/webhook/test`  
+**Authentication:** Admin API Key
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "webhooksSent": 2,
+    "testPayload": {
+      "type": "test",
+      "timestamp": "2025-08-10T19:26:19.025Z",
+      "message": "Test webhook notification"
+    }
+  },
+  "message": "Test webhook sent successfully"
+}
+```
+
+#### Register Webhook
+**Endpoint:** `POST /api/auto-refund/webhook/register`  
+**Authentication:** Admin API Key
+
+**Request Body:**
+```json
+{
+  "url": "https://your-app.com/webhook",
+  "events": ["transaction_detected", "refund_processed"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "webhookId": "webhook_123",
+    "url": "https://your-app.com/webhook",
+    "events": ["transaction_detected", "refund_processed"]
+  },
+  "message": "Webhook registered successfully"
+}
+```
+
+### Auto-Refund Monitor Features
+
+#### Adaptive Polling
+- **Dynamic Intervals**: Adjusts polling frequency based on network activity
+- **Efficient Resource Usage**: Reduces API calls during low activity periods
+- **Real-time Response**: Increases frequency when transactions are detected
+
+#### Push Notifications
+- **Webhook Integration**: Real-time notifications for external systems
+- **Event Types**: Transaction detection, refund processing, system health
+- **Reliable Delivery**: Retry mechanisms for failed webhook deliveries
+
+#### Health Monitoring
+- **System Status**: Continuous health checks and status reporting
+- **Performance Metrics**: Detailed statistics and performance tracking
+- **Error Handling**: Comprehensive error tracking and recovery
+
+#### Integration Example
+
+```javascript
+// Check monitor health
+const healthResponse = await fetch('/api/auto-refund/health');
+const health = await healthResponse.json();
+
+if (health.data.status === 'healthy') {
+  // Get detailed status
+  const statusResponse = await fetch('/api/auto-refund/status');
+  const status = await statusResponse.json();
+  
+  console.log(`Monitor running: ${status.data.isRunning}`);
+  console.log(`Transactions processed: ${status.data.statistics.totalTransactionsProcessed}`);
+}
+
+// Register webhook for notifications
+const webhookResponse = await fetch('/api/auto-refund/webhook/register', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-API-Key': 'your-admin-api-key'
+  },
+  body: JSON.stringify({
+    url: 'https://your-app.com/webhook',
+    events: ['transaction_detected', 'refund_processed']
+  })
+});
+```
 
 ---
 

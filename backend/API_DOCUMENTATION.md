@@ -1,5 +1,17 @@
 # K33P Backend API Documentation
 
+## 📋 Changelog
+
+### Latest Updates (August 2025)
+- ✅ **NEW**: Auto-Refund Monitor endpoints added (`/api/auto-refund/*`)
+- ✅ **NEW**: Push mechanism integration with webhook support
+- ✅ **NEW**: Health monitoring and statistics tracking
+- ✅ **NEW**: Adaptive polling system to reduce API calls
+- ✅ **FIXED**: TypeScript compilation errors resolved
+- ✅ **IMPROVED**: Real-time transaction monitoring capabilities
+
+---
+
 This document provides comprehensive information about the available API endpoints for the K33P Identity System backend server.
 
 ## Base URL
@@ -132,6 +144,170 @@ All API endpoints follow a consistent error handling pattern:
     "network": "preprod"
   },
   "message": "Deposit address retrieved"
+}
+```
+
+---
+
+## Auto-Refund Monitor Endpoints
+
+The Auto-Refund Monitor provides real-time monitoring of 2 ADA deposits with automatic refund processing, push notifications, and comprehensive health monitoring.
+
+### Health Check
+
+**Endpoint:** `GET /api/auto-refund/health`  
+**Authentication:** None  
+**Description:** Get health status of the auto-refund monitor
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "status": "healthy",
+    "isRunning": true,
+    "lastActivity": "2025-08-10T19:26:19.025Z",
+    "errorCount": 0,
+    "uptime": 3600
+  },
+  "message": "Auto-refund monitor health status"
+}
+```
+
+### Monitor Status
+
+**Endpoint:** `GET /api/auto-refund/status`  
+**Authentication:** None  
+**Description:** Get detailed status and statistics of the auto-refund monitor
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "isRunning": true,
+    "currentPollingInterval": 120000,
+    "lastSeenTxHash": "abc123...",
+    "webhookListenerCount": 2,
+    "statistics": {
+      "totalPolls": 1250,
+      "totalTransactionsProcessed": 45,
+      "totalBlockfrostApiCalls": 1300,
+      "lastPollTime": "2025-08-10T19:26:19.025Z",
+      "averagePollingInterval": 118500,
+      "uptime": 3600
+    }
+  },
+  "message": "Auto-refund monitor status"
+}
+```
+
+### Start Monitor
+
+**Endpoint:** `POST /api/auto-refund/start`  
+**Authentication:** Admin API Key  
+**Description:** Start the auto-refund monitor
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Auto-refund monitor started successfully"
+}
+```
+
+### Stop Monitor
+
+**Endpoint:** `POST /api/auto-refund/stop`  
+**Authentication:** Admin API Key  
+**Description:** Stop the auto-refund monitor
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Auto-refund monitor stopped successfully"
+}
+```
+
+### Trigger Manual Check
+
+**Endpoint:** `POST /api/auto-refund/trigger`  
+**Authentication:** Admin API Key  
+**Description:** Manually trigger a transaction check
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "transactionsFound": 2,
+    "transactionsProcessed": 1
+  },
+  "message": "Manual check completed"
+}
+```
+
+### Reset Statistics
+
+**Endpoint:** `POST /api/auto-refund/reset-stats`  
+**Authentication:** Admin API Key  
+**Description:** Reset monitoring statistics
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "message": "Statistics reset successfully"
+}
+```
+
+### Test Webhook
+
+**Endpoint:** `POST /api/auto-refund/webhook/test`  
+**Authentication:** Admin API Key  
+**Description:** Send a test webhook notification
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "webhooksSent": 2,
+    "testPayload": {
+      "type": "test",
+      "timestamp": "2025-08-10T19:26:19.025Z",
+      "message": "Test webhook notification"
+    }
+  },
+  "message": "Test webhook sent successfully"
+}
+```
+
+### Register Webhook
+
+**Endpoint:** `POST /api/auto-refund/webhook/register`  
+**Authentication:** Admin API Key  
+**Description:** Register a webhook listener for push notifications
+
+**Request Body:**
+```json
+{
+  "url": "https://your-app.com/webhook",
+  "events": ["transaction_detected", "refund_processed"]
+}
+```
+
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "webhookId": "webhook_123",
+    "url": "https://your-app.com/webhook",
+    "events": ["transaction_detected", "refund_processed"]
+  },
+  "message": "Webhook registered successfully"
 }
 ```
 

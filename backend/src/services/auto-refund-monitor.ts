@@ -25,6 +25,12 @@ const CONFIG = {
   maxTransactionAge: 3600, // 1 hour - only process recent transactions
   disableOnPaymentError: true, // Disable monitoring when payment is required
   paymentErrorCooldown: 300000, // 5 minutes cooldown after payment error
+  // Limit number of tx hashes fetched per poll to reduce API usage
+  txFetchCount: parseInt(process.env.AUTO_REFUND_TX_FETCH_COUNT || '5'),
+  // Adaptive polling to reduce API usage when idle
+  adaptivePollingEnabled: process.env.AUTO_REFUND_ADAPTIVE === 'true',
+  minPollingInterval: parseInt(process.env.AUTO_REFUND_MIN_INTERVAL || '30000'),
+  maxPollingInterval: parseInt(process.env.AUTO_REFUND_MAX_INTERVAL || '300000'),
 };
 
 // Logger setup
@@ -70,6 +76,20 @@ export class AutoRefundMonitor {
   private processedTransactions: Set<string> = new Set();
   private paymentErrorOccurred: boolean = false;
   private lastPaymentError?: Date;
+  // Track the most recent seen tx hash to avoid redundant per-tx lookups
+  private lastSeenTxHash?: string;
+  // Adaptive polling: current interval that can back off when idle
+  private currentPollingInterval: number = CONFIG.pollingInterval;
+  // Webhook/event listeners for push notifications
+  private webhookListeners: Set<(transaction: IncomingTransaction) => void> = new Set();
+  // Monitoring statistics
+  private stats = {
+    totalPolls: 0,
+    totalTransactionsProcessed: 0,
+    blockfrostApiCalls: 0,
+    lastPollTime: 0,
+    averagePollingInterval: CONFIG.pollingInterval
+  };
 
   constructor() {
     this.k33pManager = new EnhancedK33PManagerDB();
@@ -121,9 +141,9 @@ export class AutoRefundMonitor {
       } catch (error) {
         logger.error('❌ Error in monitoring loop:', error);
       }
-    }, CONFIG.pollingInterval);
+    }, this.currentPollingInterval);
 
-    logger.info(`✅ Auto-Refund Monitor started with ${CONFIG.pollingInterval}ms interval`);
+    logger.info(`✅ Auto-Refund Monitor started with ${this.currentPollingInterval}ms interval`);
   }
 
   /**
@@ -164,6 +184,8 @@ export class AutoRefundMonitor {
       
       if (incomingTransactions.length === 0) {
         logger.debug('📭 No new transactions found');
+        // Adjust polling interval for idle period
+        this.adjustPollingInterval(false);
         return;
       }
 
@@ -172,10 +194,17 @@ export class AutoRefundMonitor {
       // Process each transaction
       for (const transaction of incomingTransactions) {
         await this.processIncomingTransaction(transaction);
+        this.stats.totalTransactionsProcessed++;
+        
+        // Trigger webhook listeners for push notifications
+        this.notifyWebhookListeners(transaction);
         
         // Small delay between processing to avoid overwhelming the system
         await this.delay(1000);
       }
+      
+      // Activity detected: reset/backoff accordingly
+        this.adjustPollingInterval(true);
       
     } catch (error) {
       logger.error('❌ Error in monitor and process refunds:', error);
@@ -192,7 +221,7 @@ export class AutoRefundMonitor {
     while (retryCount < maxRetries) {
       try {
         const response = await fetch(
-           `${CONFIG.blockfrostUrl}/addresses/${this.depositAddress}/transactions?order=desc&count=20`,
+           `${CONFIG.blockfrostUrl}/addresses/${this.depositAddress}/transactions?order=desc&count=${CONFIG.txFetchCount}`,
            {
              headers: { 'project_id': CONFIG.blockfrostApiKey }
            }
@@ -217,19 +246,32 @@ export class AutoRefundMonitor {
           throw new Error(`Blockfrost API error: ${response.statusText}`);
         }
 
-        const transactions = await response.json();
+        const transactions: any[] = await response.json();
         const incomingTxs: IncomingTransaction[] = [];
         const currentTime = Math.floor(Date.now() / 1000);
 
+        // If no new head tx since last poll, skip further work
+        if (this.lastSeenTxHash && transactions.length > 0 && transactions[0].tx_hash === this.lastSeenTxHash) {
+          return [];
+        }
+
+        // Increment API call counter
+        this.stats.blockfrostApiCalls++;
+
         for (const tx of transactions) {
+          // Stop when we reach already-seen tx
+          if (this.lastSeenTxHash && tx.tx_hash === this.lastSeenTxHash) {
+            break;
+          }
+
           // Skip if already processed
           if (this.processedTransactions.has(tx.tx_hash)) {
             continue;
           }
 
-          // Get transaction details
-          const txDetails = await this.getTransactionDetails(tx.tx_hash);
-        if (!txDetails) continue;
+          // Get transaction details using only UTXOs; pass known block metadata when available to avoid extra call
+          const txDetails = await this.getTransactionDetails(tx.tx_hash, tx.block_time, tx.block_height);
+          if (!txDetails) continue;
 
           // Check if transaction is recent enough
           if (currentTime - txDetails.timestamp > CONFIG.maxTransactionAge) {
@@ -241,6 +283,18 @@ export class AutoRefundMonitor {
             incomingTxs.push(txDetails);
           }
         }
+
+        // Update last seen head tx for next poll (even if no qualifying tx found)
+        if (transactions.length > 0) {
+          const newLastSeenTxHash = transactions[0].tx_hash;
+          this.lastSeenTxHash = newLastSeenTxHash;
+          // persist to DB to resume on restart
+          await this.saveLastSeenTxHash(newLastSeenTxHash);
+        }
+
+        // Update polling statistics
+        this.stats.totalPolls++;
+        this.stats.lastPollTime = Date.now();
 
         return incomingTxs;
         
@@ -274,32 +328,17 @@ export class AutoRefundMonitor {
   /**
    * Get detailed transaction information with retry logic
    */
-  private async getTransactionDetails(txHash: string): Promise<IncomingTransaction | null> {
+  private async getTransactionDetails(txHash: string, knownBlockTime?: number, knownBlockHeight?: number): Promise<IncomingTransaction | null> {
     const maxRetries = 3;
     let retryCount = 0;
     
     while (retryCount < maxRetries) {
       try {
-        // Get transaction info
-        const txResponse = await fetch(
-           `${CONFIG.blockfrostUrl}/txs/${txHash}`,
-           { 
-             headers: { 'project_id': CONFIG.blockfrostApiKey }
-           }
-         );
+        // Avoid extra /txs call: if time/height unknown, default to now and 0 respectively
+        const blockTime = (knownBlockTime == null) ? Math.floor(Date.now() / 1000) : knownBlockTime;
+        const blockHeight = (knownBlockHeight == null) ? 0 : knownBlockHeight;
 
-        if (!txResponse.ok) {
-          if (txResponse.status === 402) {
-            this.paymentErrorOccurred = true;
-            this.lastPaymentError = new Date();
-            logger.warn('⚠️ Blockfrost API quota exceeded for transaction details.');
-            return null;
-          }
-          throw new Error(`Transaction API error: ${txResponse.statusText}`);
-        }
-        const txData = await txResponse.json();
-
-        // Get UTXOs
+        // Get UTXOs (single call per tx)
         const utxosResponse = await fetch(
            `${CONFIG.blockfrostUrl}/txs/${txHash}/utxos`,
            { 
@@ -339,8 +378,8 @@ export class AutoRefundMonitor {
           fromAddress: senderAddress,
           toAddress: this.depositAddress,
           amount,
-          timestamp: txData.block_time,
-          blockHeight: txData.block_height
+          timestamp: blockTime,
+          blockHeight: blockHeight
         };
         
       } catch (error) {
@@ -512,10 +551,38 @@ export class AutoRefundMonitor {
         }
       }
       
+      // Load the last seen transaction hash from database to resume from where we left off
+      const lastSeenRecord = allTransactions.find((tx: any) => tx.from_address === 'auto_refund_monitor_state' && tx.to_address === 'last_seen_tx');
+      if (lastSeenRecord) {
+        // stored as last_seen_${hash} to avoid unique collisions with real tx records
+        this.lastSeenTxHash = String(lastSeenRecord.tx_hash).replace(/^last_seen_/, '');
+        logger.info(`🔄 Resuming monitoring from last seen transaction: ${this.lastSeenTxHash.substring(0, 16)}...`);
+      }
+      
       logger.info(`📚 Loaded ${this.processedTransactions.size} previously processed transactions`);
       
     } catch (error) {
       logger.error('❌ Error loading processed transactions:', error);
+    }
+  }
+
+  /**
+   * Save last seen transaction hash to prevent re-processing old transactions on restart
+   */
+  private async saveLastSeenTxHash(txHash: string): Promise<void> {
+    try {
+      // Create/update state record with the latest seen tx hash
+      await dbService.createTransaction({
+        txHash: `last_seen_${txHash}`,
+        fromAddress: 'auto_refund_monitor_state',
+        toAddress: 'last_seen_tx',
+        amount: 0n,
+        confirmations: 1,
+        transactionType: 'refund',
+        status: 'confirmed'
+      });
+    } catch (error) {
+      logger.debug('Note: Could not save last seen tx hash:', error);
     }
   }
 
@@ -539,12 +606,97 @@ export class AutoRefundMonitor {
     }
   }
 
+  /**
+   * Adjust polling interval based on activity (adaptive polling)
+   */
+  private adjustPollingInterval(activityDetected: boolean): void {
+    if (!CONFIG.adaptivePollingEnabled) {
+      return;
+    }
 
+    const oldInterval = this.currentPollingInterval;
+    
+    if (activityDetected) {
+      // Reset to minimum interval when activity is detected
+      this.currentPollingInterval = CONFIG.minPollingInterval;
+    } else {
+      // Gradually increase interval when idle (exponential backoff)
+      this.currentPollingInterval = Math.min(
+        this.currentPollingInterval * 1.5,
+        CONFIG.maxPollingInterval
+      );
+    }
+
+    // Update average polling interval for statistics
+    this.stats.averagePollingInterval = 
+      (this.stats.averagePollingInterval + this.currentPollingInterval) / 2;
+
+    // Restart interval if it changed significantly
+    if (Math.abs(oldInterval - this.currentPollingInterval) > 5000 && this.intervalId) {
+      clearInterval(this.intervalId);
+      this.intervalId = setInterval(async () => {
+        try {
+          await this.monitorAndProcessRefunds();
+        } catch (error) {
+          logger.error('❌ Error in monitoring loop:', error);
+        }
+      }, this.currentPollingInterval);
+      
+      logger.debug(`🔄 Polling interval adjusted: ${oldInterval}ms → ${this.currentPollingInterval}ms`);
+    }
+  }
 
   /**
-   * Get monitoring status
+   * Notify webhook listeners about new transactions (push mechanism)
    */
-  getStatus(): { isRunning: boolean; processedCount: number; depositAddress: string; paymentErrorStatus?: { occurred: boolean; lastError?: Date; inCooldown: boolean } } {
+  private notifyWebhookListeners(transaction: IncomingTransaction): void {
+    this.webhookListeners.forEach(listener => {
+      try {
+        listener(transaction);
+      } catch (error) {
+        logger.error('❌ Error in webhook listener:', error);
+      }
+    });
+  }
+
+  /**
+   * Register a webhook listener for push notifications
+   */
+  public registerWebhookListener(listener: (transaction: IncomingTransaction) => void): () => void {
+    this.webhookListeners.add(listener);
+    logger.info('📡 Webhook listener registered');
+    
+    // Return unsubscribe function
+    return () => {
+      this.webhookListeners.delete(listener);
+      logger.info('📡 Webhook listener unregistered');
+    };
+  }
+
+  /**
+   * Get comprehensive monitoring status and health information
+   */
+  getStatus(): {
+    isRunning: boolean;
+    processedCount: number;
+    depositAddress: string;
+    currentPollingInterval: number;
+    lastSeenTxHash: string | null;
+    webhookListenerCount: number;
+    statistics: {
+      totalPolls: number;
+      totalTransactionsProcessed: number;
+      blockfrostApiCalls: number;
+      lastPollTime: number;
+      averagePollingInterval: number;
+      uptime: number;
+    };
+    paymentErrorStatus?: {
+      occurred: boolean;
+      lastError?: Date;
+      inCooldown: boolean;
+    };
+  } {
     const inCooldown: boolean = !!(this.paymentErrorOccurred && this.lastPaymentError && 
       (Date.now() - this.lastPaymentError.getTime()) < CONFIG.paymentErrorCooldown);
     
@@ -552,6 +704,13 @@ export class AutoRefundMonitor {
       isRunning: this.isRunning,
       processedCount: this.processedTransactions.size,
       depositAddress: this.depositAddress,
+      currentPollingInterval: this.currentPollingInterval,
+      lastSeenTxHash: this.lastSeenTxHash || null,
+      webhookListenerCount: this.webhookListeners.size,
+      statistics: {
+        ...this.stats,
+        uptime: this.isRunning ? Date.now() - (this.stats.lastPollTime || Date.now()) : 0
+      },
       paymentErrorStatus: {
         occurred: this.paymentErrorOccurred,
         lastError: this.lastPaymentError,
@@ -566,6 +725,80 @@ export class AutoRefundMonitor {
   async triggerManualCheck(): Promise<void> {
     logger.info('🔧 Manual trigger activated');
     await this.monitorAndProcessRefunds();
+  }
+
+  /**
+   * Reset statistics (useful for monitoring)
+   */
+  public resetStatistics(): void {
+    this.stats = {
+      totalPolls: 0,
+      totalTransactionsProcessed: 0,
+      blockfrostApiCalls: 0,
+      lastPollTime: 0,
+      averagePollingInterval: CONFIG.pollingInterval
+    };
+    logger.info('📊 Statistics reset');
+  }
+
+  /**
+   * Get health check information for monitoring endpoints
+   */
+  public getHealthCheck(): {
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    timestamp: number;
+    uptime: number;
+    lastActivity: number;
+    errors: string[];
+  } {
+    const now = Date.now();
+    const timeSinceLastPoll = now - this.stats.lastPollTime;
+    const errors: string[] = [];
+    
+    let status: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+    
+    // Check if monitoring is running
+    if (!this.isRunning) {
+      errors.push('Monitor is not running');
+      status = 'unhealthy';
+    }
+    
+    // Check if there are payment errors
+    if (this.paymentErrorOccurred) {
+      errors.push('Blockfrost API payment error occurred');
+      status = 'degraded';
+    }
+    
+    // Check if polling is stalled (no polls in last 10 minutes)
+    if (this.isRunning && timeSinceLastPoll > 600000) {
+      errors.push('Polling appears to be stalled');
+      status = 'unhealthy';
+    }
+    
+    return {
+      status,
+      timestamp: now,
+      uptime: this.isRunning ? timeSinceLastPoll : 0,
+      lastActivity: this.stats.lastPollTime,
+      errors
+    };
+  }
+
+  /**
+   * Trigger immediate webhook notification (for testing)
+   */
+  public triggerWebhookTest(testTransaction?: Partial<IncomingTransaction>): void {
+    const mockTransaction: IncomingTransaction = {
+      txHash: testTransaction?.txHash || 'test_tx_hash_' + Date.now(),
+      fromAddress: testTransaction?.fromAddress || 'test_sender_address',
+      toAddress: testTransaction?.toAddress || this.depositAddress,
+      amount: testTransaction?.amount || CONFIG.requiredAmount,
+      timestamp: testTransaction?.timestamp || Math.floor(Date.now() / 1000),
+      blockHeight: testTransaction?.blockHeight || 0
+    };
+    
+    logger.info('🧪 Triggering webhook test with mock transaction');
+    this.notifyWebhookListeners(mockTransaction);
   }
 }
 

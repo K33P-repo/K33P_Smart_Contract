@@ -395,6 +395,174 @@ export class TransactionModel {
 }
 
 // ============================================================================
+// AUTH DATA MODEL
+// ============================================================================
+
+export class AuthDataModel {
+  static async create(authData: Omit<AuthData, 'id' | 'created_at'>): Promise<AuthData> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        INSERT INTO auth_data (user_id, auth_type, auth_hash, salt, metadata, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `;
+      const values = [
+        authData.user_id, 
+        authData.auth_type, 
+        authData.auth_hash, 
+        authData.salt, 
+        JSON.stringify(authData.metadata), 
+        authData.is_active
+      ];
+      const result = await client.query(query, values);
+      const row = result.rows[0];
+      return {
+        ...row,
+        metadata: row.metadata ? JSON.parse(row.metadata) : null
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findByUserIdAndType(userId: string, authType: 'phone' | 'pin' | 'biometric' | 'passkey'): Promise<AuthData | null> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM auth_data WHERE user_id = $1 AND auth_type = $2 AND is_active = true ORDER BY created_at DESC LIMIT 1';
+      const result = await client.query(query, [userId, authType]);
+      if (result.rows.length === 0) return null;
+      
+      const row = result.rows[0];
+      return {
+        ...row,
+        metadata: row.metadata ? JSON.parse(row.metadata) : null
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findByUserId(userId: string): Promise<AuthData[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM auth_data WHERE user_id = $1 AND is_active = true ORDER BY created_at DESC';
+      const result = await client.query(query, [userId]);
+      return result.rows.map(row => ({
+        ...row,
+        metadata: row.metadata ? JSON.parse(row.metadata) : null
+      }));
+    } finally {
+      client.release();
+    }
+  }
+
+  static async update(userId: string, authType: 'phone' | 'pin' | 'biometric' | 'passkey', updates: Partial<AuthData>): Promise<AuthData | null> {
+    const client = await pool.connect();
+    try {
+      const setClause = Object.keys(updates)
+        .filter(key => key !== 'id' && key !== 'user_id' && key !== 'auth_type' && key !== 'created_at')
+        .map((key, index) => `${key} = $${index + 3}`)
+        .join(', ');
+      
+      if (!setClause) return null;
+      
+      const query = `
+        UPDATE auth_data 
+        SET ${setClause}, last_used = CURRENT_TIMESTAMP
+        WHERE user_id = $1 AND auth_type = $2 AND is_active = true
+        RETURNING *
+      `;
+      
+      const values = [userId, authType, ...Object.values(updates).filter((_, index) => {
+        const key = Object.keys(updates)[index];
+        return key !== 'id' && key !== 'user_id' && key !== 'auth_type' && key !== 'created_at';
+      }).map((value, index) => {
+        const key = Object.keys(updates).filter(k => k !== 'id' && k !== 'user_id' && k !== 'auth_type' && k !== 'created_at')[index];
+        if (key === 'metadata') {
+          return JSON.stringify(value);
+        }
+        return value;
+      })];
+      
+      const result = await client.query(query, values);
+      if (result.rows.length === 0) return null;
+      
+      const row = result.rows[0];
+      return {
+        ...row,
+        metadata: row.metadata ? JSON.parse(row.metadata) : null
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  static async upsert(authData: Omit<AuthData, 'id' | 'created_at'>): Promise<AuthData> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        INSERT INTO auth_data (user_id, auth_type, auth_hash, salt, metadata, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (user_id, auth_type) 
+        DO UPDATE SET 
+          auth_hash = EXCLUDED.auth_hash,
+          salt = EXCLUDED.salt,
+          metadata = EXCLUDED.metadata,
+          is_active = EXCLUDED.is_active,
+          last_used = CURRENT_TIMESTAMP
+        RETURNING *
+      `;
+      const values = [
+        authData.user_id, 
+        authData.auth_type, 
+        authData.auth_hash, 
+        authData.salt, 
+        JSON.stringify(authData.metadata), 
+        authData.is_active
+      ];
+      const result = await client.query(query, values);
+      const row = result.rows[0];
+      return {
+        ...row,
+        metadata: row.metadata ? JSON.parse(row.metadata) : null
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  static async deactivate(userId: string, authType: 'phone' | 'pin' | 'biometric' | 'passkey'): Promise<boolean> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        UPDATE auth_data 
+        SET is_active = false, last_used = CURRENT_TIMESTAMP
+        WHERE user_id = $1 AND auth_type = $2
+      `;
+      const result = await client.query(query, [userId, authType]);
+      return (result.rowCount ?? 0) > 0;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getAll(): Promise<AuthData[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM auth_data WHERE is_active = true ORDER BY created_at DESC';
+      const result = await client.query(query);
+      return result.rows.map(row => ({
+        ...row,
+        metadata: row.metadata ? JSON.parse(row.metadata) : null
+      }));
+    } finally {
+      client.release();
+    }
+  }
+}
+
+// ============================================================================
 // DATABASE MIGRATION AND INITIALIZATION
 // ============================================================================
 
