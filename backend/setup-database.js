@@ -4,10 +4,10 @@
  * This script helps users set up PostgreSQL database for the project
  */
 
-const { execSync } = require('child_process');
-const fs = require('fs');
-const path = require('path');
-const readline = require('readline');
+import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import readline from 'readline';
 
 // Colors for console output
 const colors = {

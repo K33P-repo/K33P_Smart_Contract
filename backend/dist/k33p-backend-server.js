@@ -30,6 +30,8 @@ import otpRoutes from './routes/otp.js';
 import seedPhraseRoutes from './routes/seed-phrase-routes.js';
 // @ts-ignore
 import userRoutes from './routes/user-routes.js';
+// @ts-ignore
+import autoRefundRoutes from './routes/auto-refund-routes.js';
 // Load environment variables
 dotenv.config();
 // Constants
@@ -107,6 +109,7 @@ app.use('/api/recovery', recoveryRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/seed-phrases', seedPhraseRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/auto-refund', autoRefundRoutes);
 // Validation error handler
 const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
@@ -238,7 +241,8 @@ app.get('/', (req, res) => {
             '/api/users/*',
             '/api/phone/*',
             '/api/recovery/*',
-            '/api/user/profile'
+            '/api/user/profile',
+            '/api/auto-refund/*'
         ]
     }, undefined, 'Welcome to K33P Backend API'));
 });

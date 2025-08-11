@@ -8,10 +8,11 @@ import { body, param, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 import { authenticateToken } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rate-limiter.js';
-// NOK service imports removed
 import { logger } from '../utils/logger.js';
 import { Pool } from 'pg';
 import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db.js';
+import { AuthDataModel } from '../database/models.js';
+import { hashBiometric } from '../utils/hash.js';
 import crypto from 'crypto';
 import multer from 'multer';
 import path from 'path';
@@ -480,52 +481,91 @@ router.post('/login/face-id', body('phoneNumber').isMobilePhone('any').withMessa
     const { phoneNumber, biometricData, biometricType } = req.body;
     try {
         logger.info(`${biometricType} authentication for: ${phoneNumber}`);
-        // Get user
-        // TODO: Implement getUserByPhone method in NOKService
-        const user = {
-            id: 'temp-user-id',
-            phone_number: phoneNumber,
-            user_name: 'Test User',
-            biometric_data: {
-                face_id: 'stored-face-data',
-                fingerprint: 'stored-fingerprint-data',
-                voice: 'stored-voice-data',
-                iris: 'stored-iris-data'
-            },
-            auth_methods: ['face_id', 'fingerprint', 'voice', 'iris'],
-            account_status: 'premium'
-        };
-        // Verify biometric data based on type
-        const storedBiometricData = user.biometric_data?.[biometricType];
-        if (!storedBiometricData) {
+        // Look up user by phone hash
+        const client = await pool.connect();
+        let user = null;
+        try {
+            const phoneHash = crypto.createHash('sha256').update(phoneNumber).digest('hex');
+            const result = await client.query('SELECT * FROM users WHERE phone_hash = $1', [phoneHash]);
+            if (result.rows.length > 0) {
+                user = result.rows[0];
+            }
+        }
+        finally {
+            client.release();
+        }
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found with this phone number',
+                error: 'USER_NOT_FOUND'
+            });
+        }
+        if (user.is_active === false) {
+            return res.status(401).json({
+                success: false,
+                message: 'Account is deactivated',
+                error: 'ACCOUNT_DEACTIVATED'
+            });
+        }
+        const userId = user.user_id || user.id;
+        // Retrieve active biometric auth data for the user
+        const authRecord = await AuthDataModel.findByUserIdAndType(userId, 'biometric');
+        if (!authRecord || !authRecord.auth_hash) {
             return res.status(400).json({
                 success: false,
-                message: `${biometricType} not enrolled for this user`,
+                message: 'Biometric authentication not enrolled for this user',
                 error: 'BIOMETRIC_NOT_ENROLLED'
             });
         }
-        // TODO: Implement proper biometric verification algorithm
-        const isBiometricValid = biometricData[biometricType] === storedBiometricData;
-        if (!isBiometricValid) {
+        // Compute provided biometric hash using existing util (namespaced format)
+        const providedRaw = biometricData[biometricType];
+        if (!providedRaw) {
+            return res.status(400).json({
+                success: false,
+                message: 'Provided biometric data is missing for the specified type',
+                error: 'MISSING_BIOMETRIC'
+            });
+        }
+        const providedHash = hashBiometric ? hashBiometric(providedRaw) : crypto.createHash('sha256').update(`biometric:${providedRaw}`).digest('hex');
+        const storedHash = authRecord.auth_hash;
+        if (providedHash !== storedHash) {
             return res.status(401).json({
                 success: false,
                 message: `${biometricType} verification failed`,
                 error: 'BIOMETRIC_VERIFICATION_FAILED'
             });
         }
+        // Simulate face analysis metadata and update auth_data metadata/last_used
+        const prevMeta = (authRecord.metadata || {});
+        const newMeta = {
+            ...prevMeta,
+            last_biometric_type: biometricType,
+            last_device: req.headers['user-agent'] || 'unknown',
+            last_ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown',
+            last_confidence: 0.99,
+            last_attempt_at: new Date().toISOString()
+        };
+        await AuthDataModel.update(userId, 'biometric', { metadata: newMeta });
         // Generate tokens
-        const { accessToken, refreshToken } = generateTokens(user.id);
-        // Log activity
-        // User activity logging removed
+        const { accessToken, refreshToken } = generateTokens(userId);
+        // Update last login timestamp
+        const updateClient = await pool.connect();
+        try {
+            await updateClient.query('UPDATE users SET last_login_at = CURRENT_TIMESTAMP WHERE user_id = $1', [userId]);
+        }
+        finally {
+            updateClient.release();
+        }
         res.json({
             success: true,
             message: `${biometricType} login successful`,
             data: {
                 user: {
-                    id: user.id,
-                    phoneNumber: user.phone_number,
-                    userName: user.user_name,
-                    accountStatus: user.account_status
+                    id: userId,
+                    phoneNumber: phoneNumber,
+                    userName: user.user_name || user.name,
+                    accountStatus: user.subscription_tier || 'freemium'
                 },
                 tokens: {
                     accessToken,

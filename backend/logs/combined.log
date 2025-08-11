@@ -1069,3 +1069,21 @@
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-08-10T19:26:19.025Z"}
 {"ip":"::1","level":"info","message":"GET /api/health?ide_webview_request_time=1754856549577","service":"k33p-backend","timestamp":"2025-08-10T20:09:09.605Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
 {"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-08-10T20:09:10.132Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:00:04.545Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:00:04.548Z"}
+{"error":"","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-11T21:00:04.757Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-11T21:00:04.765Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:00:33.792Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:00:33.807Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-11T21:00:36.647Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:01:26.384Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:01:26.386Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-11T21:01:29.037Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-11T21:01:32.766Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-11T21:01:35.192Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-08-11T21:01:35.209Z"}
+{"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-11T21:01:35.215Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-08-11T21:02:10.067Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:02:58.499Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-11T21:02:58.514Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-11T21:03:01.256Z"}

@@ -88,6 +88,15 @@ export declare class TransactionModel {
     static updateStatus(txHash: string, status: 'pending' | 'confirmed' | 'failed', confirmations?: number): Promise<Transaction | null>;
     static getAll(): Promise<Transaction[]>;
 }
+export declare class AuthDataModel {
+    static create(authData: Omit<AuthData, 'id' | 'created_at'>): Promise<AuthData>;
+    static findByUserIdAndType(userId: string, authType: 'phone' | 'pin' | 'biometric' | 'passkey'): Promise<AuthData | null>;
+    static findByUserId(userId: string): Promise<AuthData[]>;
+    static update(userId: string, authType: 'phone' | 'pin' | 'biometric' | 'passkey', updates: Partial<AuthData>): Promise<AuthData | null>;
+    static upsert(authData: Omit<AuthData, 'id' | 'created_at'>): Promise<AuthData>;
+    static deactivate(userId: string, authType: 'phone' | 'pin' | 'biometric' | 'passkey'): Promise<boolean>;
+    static getAll(): Promise<AuthData[]>;
+}
 export declare class DatabaseManager {
     static initializeDatabase(): Promise<void>;
     static migrateFromJSON(): Promise<void>;
