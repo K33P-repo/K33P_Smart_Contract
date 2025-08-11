@@ -3,6 +3,7 @@ import express from 'express';
 import { poseidonHash, generateZkCommitment, generateZkProof, verifyZkProof } from '../utils/zk.js';
 import { findUser } from '../utils/iagon.js';
 import { verifyToken } from '../middleware/auth.js';
+import pool from '../database/config.js';
 
 const router = express.Router();
 
@@ -205,38 +206,51 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Find the user by wallet address or phone hash
+    // Find the user by wallet address or phone hash using PostgreSQL
     let user;
+    const client = await pool.connect();
+    
     try {
+      let userQuery;
+      let queryParams;
+      
       if (walletAddress) {
-        user = await findUser({ walletAddress });
+        userQuery = 'SELECT user_id, wallet_address, phone_hash, zk_commitment FROM users WHERE wallet_address = $1';
+        queryParams = [walletAddress];
       } else if (phone) {
         const phoneHash = poseidonHash([phone]);
-        user = await findUser({ phoneHash });
+        userQuery = 'SELECT user_id, wallet_address, phone_hash, zk_commitment FROM users WHERE phone_hash = $1';
+        queryParams = [phoneHash];
       }
+      
+      const result = await client.query(userQuery, queryParams);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'User not found'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      user = result.rows[0];
+      
     } catch (error) {
-      console.error('Error finding user:', error);
+      console.error('Error finding user in PostgreSQL:', error);
       return res.status(500).json({
         success: false,
         error: {
-          code: 'SERVICE_UNAVAILABLE',
-          message: 'Failed to find user, Iagon API may be unavailable',
+          code: 'DATABASE_ERROR',
+          message: 'Failed to find user in database',
           details: error.message
         },
         timestamp: new Date().toISOString()
       });
-    }
-    
-    // Check if the user exists
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: 'User not found'
-        },
-        timestamp: new Date().toISOString()
-      });
+    } finally {
+      client.release();
     }
     
     // Verify the ZK proof
@@ -254,7 +268,7 @@ router.post('/login', async (req, res) => {
     }
     
     // Check if the commitment matches the user's commitment
-    if (user.zkCommitment !== commitment) {
+    if (user.zk_commitment !== commitment) {
       return res.status(401).json({
         success: false,
         error: {
@@ -265,13 +279,23 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Login successful
+    // Generate a JWT token for the authenticated user
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { 
+        userId: user.user_id,
+        walletAddress: user.wallet_address 
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '1h' }
+    );
+
     return res.status(200).json({
       success: true,
       data: {
         message: 'ZK login successful',
-        userId: user.userId,
-        token: 'jwt_token_would_be_generated_here'
+        userId: user.user_id,
+        token
       },
       timestamp: new Date().toISOString()
     });
@@ -309,45 +333,51 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
       });
     }
     
-    // Find the user by userId
-    let user;
+    // Find the user by ID using PostgreSQL
+    const client = await pool.connect();
+    
     try {
-      user = await findUser({ userId });
+      const userQuery = 'SELECT user_id, wallet_address, phone_hash, zk_commitment FROM users WHERE user_id = $1';
+      const result = await client.query(userQuery, [userId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'NOT_FOUND',
+            message: 'User not found'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      const user = result.rows[0];
+      
+      // Return the user's ZK commitment
+      return res.status(200).json({
+        success: true,
+        data: {
+          userId: user.user_id,
+          zkCommitment: user.zk_commitment
+        },
+        message: 'User ZK commitment retrieved successfully',
+        timestamp: new Date().toISOString()
+      });
+      
     } catch (error) {
-      console.error('Error finding user:', error);
+      console.error('Error finding user in PostgreSQL:', error);
       return res.status(500).json({
         success: false,
         error: {
-          code: 'SERVICE_UNAVAILABLE',
-          message: 'Failed to find user, Iagon API may be unavailable',
+          code: 'DATABASE_ERROR',
+          message: 'Failed to find user in database',
           details: error.message
         },
         timestamp: new Date().toISOString()
       });
+    } finally {
+      client.release();
     }
-    
-    // Check if the user exists
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'NOT_FOUND',
-          message: 'User not found'
-        },
-        timestamp: new Date().toISOString()
-      });
-    }
-    
-    // Return the user's ZK commitment
-    return res.status(200).json({
-      success: true,
-      data: {
-        userId: user.userId,
-        zkCommitment: user.zkCommitment
-      },
-      message: 'User ZK commitment retrieved successfully',
-      timestamp: new Date().toISOString()
-    });
   } catch (error) {
     console.error('Error retrieving user ZK commitment:', error);
     return res.status(500).json({

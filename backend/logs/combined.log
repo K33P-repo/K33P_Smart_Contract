@@ -1067,3 +1067,5 @@
 {"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-10T19:26:19.012Z"}
 {"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-08-10T19:26:19.020Z"}
 {"level":"info","message":"Health check: http://localhost:3001/api/health","service":"k33p-backend","timestamp":"2025-08-10T19:26:19.025Z"}
+{"ip":"::1","level":"info","message":"GET /api/health?ide_webview_request_time=1754856549577","service":"k33p-backend","timestamp":"2025-08-10T20:09:09.605Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
+{"ip":"::1","level":"info","message":"GET /@vite/client","service":"k33p-backend","timestamp":"2025-08-10T20:09:10.132Z","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Trae/1.100.3 Chrome/132.0.6834.210 Electron/34.5.1 Safari/537.36"}
