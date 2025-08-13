@@ -1,5 +1,6 @@
 // Zero-Knowledge Proof routes for K33P Identity System (PostgreSQL Version)
 import express from 'express';
+import jwt from 'jsonwebtoken';
 import { poseidonHash, generateZkCommitment, generateZkProof, verifyZkProof } from '../utils/zk.js';
 import { verifyToken } from '../middleware/auth.js';
 import pool from '../database/config.js';
@@ -297,13 +298,23 @@ router.post('/login', async (req, res) => {
       });
     }
     
+    // Generate a JWT token for the authenticated user
+    const token = jwt.sign(
+      { 
+        userId: user.userId,
+        walletAddress: user.walletAddress 
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '1h' }
+    );
+
     // Login successful
     return res.status(200).json({
       success: true,
       data: {
         message: 'ZK login successful',
         userId: user.userId,
-        token: 'jwt_token_would_be_generated_here'
+        token
       },
       timestamp: new Date().toISOString()
     });

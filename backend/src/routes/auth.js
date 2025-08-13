@@ -36,7 +36,7 @@ const loginLimiter = createRateLimiter({
  * @desc Register a new user with phone verification
  * @access Public
  */
-router.post('/signup/phone', signupLimiter, async (req, res) => {
+router.post('/signup/phone', async (req, res) => {
   return handleSignup(req, res, 'phone');
 });
 
@@ -45,7 +45,7 @@ router.post('/signup/phone', signupLimiter, async (req, res) => {
  * @desc Register a new user with PIN verification
  * @access Public
  */
-router.post('/signup/pin', signupLimiter, async (req, res) => {
+router.post('/signup/pin', async (req, res) => {
   return handleSignup(req, res, 'pin');
 });
 
@@ -54,7 +54,7 @@ router.post('/signup/pin', signupLimiter, async (req, res) => {
  * @desc Register a new user with fingerprint verification
  * @access Public
  */
-router.post('/signup/fingerprint', signupLimiter, async (req, res) => {
+router.post('/signup/fingerprint', async (req, res) => {
   return handleSignup(req, res, 'biometric', 'fingerprint');
 });
 
@@ -63,7 +63,7 @@ router.post('/signup/fingerprint', signupLimiter, async (req, res) => {
  * @desc Register a new user with Face ID verification
  * @access Public
  */
-router.post('/signup/faceid', signupLimiter, async (req, res) => {
+router.post('/signup/faceid', async (req, res) => {
   return handleSignup(req, res, 'biometric', 'faceid');
 });
 
@@ -72,7 +72,7 @@ router.post('/signup/faceid', signupLimiter, async (req, res) => {
  * @desc Register a new user with voice verification
  * @access Public
  */
-router.post('/signup/voice', signupLimiter, async (req, res) => {
+router.post('/signup/voice', async (req, res) => {
   return handleSignup(req, res, 'biometric', 'voice');
 });
 
@@ -81,7 +81,7 @@ router.post('/signup/voice', signupLimiter, async (req, res) => {
  * @desc Register a new user with iris verification
  * @access Public
  */
-router.post('/signup/iris', signupLimiter, async (req, res) => {
+router.post('/signup/iris', async (req, res) => {
   return handleSignup(req, res, 'biometric', 'iris');
 });
 
@@ -90,7 +90,7 @@ router.post('/signup/iris', signupLimiter, async (req, res) => {
  * @desc Register a new user with passkey verification
  * @access Public
  */
-router.post('/signup/passkey', signupLimiter, async (req, res) => {
+router.post('/signup/passkey', async (req, res) => {
   return handleSignup(req, res, 'passkey');
 });
 
@@ -99,7 +99,7 @@ router.post('/signup/passkey', signupLimiter, async (req, res) => {
  * @desc Register a new user with verification (legacy endpoint)
  * @access Public
  */
-router.post('/signup', signupLimiter, async (req, res) => {
+router.post('/signup', async (req, res) => {
   return handleSignup(req, res);
 });
 
@@ -1088,7 +1088,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
  * @desc Login a user with ZK proof
  * @access Public
  */
-router.post('/login', loginLimiter, verifyZkProof, async (req, res) => {
+router.post('/login', verifyZkProof, async (req, res) => {
   try {
     const { walletAddress, phone, username, proof, commitment } = req.body;
     
@@ -1150,7 +1150,7 @@ router.post('/login', loginLimiter, verifyZkProof, async (req, res) => {
  * @desc Sign in with phone number, OTP, and PIN
  * @access Public
  */
-router.post('/signin', loginLimiter, async (req, res) => {
+router.post('/signin', async (req, res) => {
   try {
     const { phoneNumber, otpRequestId, otpCode, pin } = req.body;
     
