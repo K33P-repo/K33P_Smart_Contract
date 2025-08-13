@@ -52,6 +52,7 @@ export interface UserData {
   name?: string;
   walletAddress: string;
   phoneHash: string;
+  phoneNumber?: string;
   zkCommitment?: string;
   senderWalletAddress?: string;
   txHash?: string;
@@ -252,8 +253,8 @@ export class StorageAbstractionService {
       
       if (tableName === 'users') {
         query = `
-          INSERT INTO users (user_id, email, name, wallet_address, phone_hash, zk_commitment)
-          VALUES ($1, $2, $3, $4, $5, $6)
+          INSERT INTO users (user_id, email, name, wallet_address, phone_hash, phone_number, zk_commitment)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
           RETURNING id
         `;
         values = [
@@ -262,6 +263,7 @@ export class StorageAbstractionService {
           data.name,
           data.walletAddress,
           data.phoneHash,
+          data.phoneNumber,
           data.zkCommitment
         ];
       } else if (tableName === 'user_deposits') {
@@ -386,6 +388,10 @@ export class StorageAbstractionService {
         if (data.phoneHash !== undefined) {
           updates.push(`phone_hash = $${paramIndex++}`);
           params.push(data.phoneHash);
+        }
+        if (data.phoneNumber !== undefined) {
+          updates.push(`phone_number = $${paramIndex++}`);
+          params.push(data.phoneNumber);
         }
         if (data.zkCommitment !== undefined) {
           updates.push(`zk_commitment = $${paramIndex++}`);
