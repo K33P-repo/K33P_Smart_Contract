@@ -39,6 +39,9 @@ export interface UserData {
     name?: string;
     walletAddress: string;
     phoneHash: string;
+    phoneNumber?: string;
+    pin?: string;
+    pinHash?: string;
     zkCommitment?: string;
     senderWalletAddress?: string;
     txHash?: string;
@@ -51,6 +54,7 @@ export interface UserDeposit {
     userAddress: string;
     userId: string;
     phoneHash: string;
+    phoneNumber?: string;
     zkProof?: string;
     zkCommitment?: string;
     txHash?: string;

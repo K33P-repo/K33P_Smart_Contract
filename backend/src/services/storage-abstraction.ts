@@ -53,6 +53,8 @@ export interface UserData {
   walletAddress: string;
   phoneHash: string;
   phoneNumber?: string;
+  pin?: string;
+  pinHash?: string;
   zkCommitment?: string;
   senderWalletAddress?: string;
   txHash?: string;
@@ -66,6 +68,7 @@ export interface UserDeposit {
   userAddress: string;
   userId: string;
   phoneHash: string;
+  phoneNumber?: string;
   zkProof?: string;
   zkCommitment?: string;
   txHash?: string;
@@ -253,8 +256,8 @@ export class StorageAbstractionService {
       
       if (tableName === 'users') {
         query = `
-          INSERT INTO users (user_id, email, name, wallet_address, phone_hash, phone_number, zk_commitment)
-          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          INSERT INTO users (user_id, email, name, wallet_address, phone_hash, phone_number, pin, pin_hash, zk_commitment)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING id
         `;
         values = [
@@ -264,22 +267,25 @@ export class StorageAbstractionService {
           data.walletAddress,
           data.phoneHash,
           data.phoneNumber,
+          data.pin,
+          data.pinHash,
           data.zkCommitment
         ];
       } else if (tableName === 'user_deposits') {
         query = `
           INSERT INTO user_deposits (
-            user_address, user_id, phone_hash, zk_proof, zk_commitment, tx_hash, amount,
+            user_address, user_id, phone_hash, phone_number, zk_proof, zk_commitment, tx_hash, amount,
             refunded, signup_completed, verified, verification_attempts, pin_hash,
             biometric_hash, biometric_type, verification_method, sender_wallet_address
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
           RETURNING id
         `;
         values = [
           data.userAddress,
           data.userId,
           data.phoneHash,
+          data.phoneNumber,
           data.zkProof,
           data.zkCommitment,
           data.txHash,
@@ -392,6 +398,14 @@ export class StorageAbstractionService {
         if (data.phoneNumber !== undefined) {
           updates.push(`phone_number = $${paramIndex++}`);
           params.push(data.phoneNumber);
+        }
+        if (data.pin !== undefined) {
+          updates.push(`pin = $${paramIndex++}`);
+          params.push(data.pin);
+        }
+        if (data.pinHash !== undefined) {
+          updates.push(`pin_hash = $${paramIndex++}`);
+          params.push(data.pinHash);
         }
         if (data.zkCommitment !== undefined) {
           updates.push(`zk_commitment = $${paramIndex++}`);

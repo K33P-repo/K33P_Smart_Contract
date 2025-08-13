@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS users (
     wallet_address TEXT,
     phone_hash VARCHAR(128),
     phone_number VARCHAR(20), -- Added actual phone number field
+    pin VARCHAR(10), -- Added PIN field
+    pin_hash VARCHAR(128), -- Added PIN hash field
     zk_commitment TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -25,6 +27,7 @@ CREATE TABLE IF NOT EXISTS user_deposits (
     user_address TEXT NOT NULL,
     user_id VARCHAR(50) NOT NULL,
     phone_hash VARCHAR(128) NOT NULL,
+    phone_number VARCHAR(20), -- Added actual phone number field
     zk_proof TEXT,
     zk_commitment TEXT,
     tx_hash VARCHAR(128),
