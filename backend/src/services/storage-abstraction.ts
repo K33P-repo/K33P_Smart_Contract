@@ -362,7 +362,46 @@ export class StorageAbstractionService {
       }
 
       const result = await client.query(sqlQuery, values);
-      return result.rows;
+      
+      // Map snake_case database columns to camelCase properties
+      return result.rows.map(row => {
+        if (tableName === 'users') {
+          return {
+            ...row,
+            userId: row.user_id,
+            walletAddress: row.wallet_address,
+            phoneHash: row.phone_hash,
+            phoneNumber: row.phone_number,
+            pinHash: row.pin_hash,
+            zkCommitment: row.zk_commitment,
+            createdAt: row.created_at,
+            updatedAt: row.updated_at
+          };
+        } else if (tableName === 'user_deposits') {
+          return {
+            ...row,
+            userId: row.user_id,
+            userAddress: row.user_address,
+            phoneHash: row.phone_hash,
+            phoneNumber: row.phone_number,
+            zkProof: row.zk_proof,
+            zkCommitment: row.zk_commitment,
+            txHash: row.tx_hash,
+            pinHash: row.pin_hash,
+            biometricHash: row.biometric_hash,
+            biometricType: row.biometric_type,
+            verificationMethod: row.verification_method,
+            verificationAttempts: row.verification_attempts,
+            lastVerificationAttempt: row.last_verification_attempt,
+            signupCompleted: row.signup_completed,
+            refundTxHash: row.refund_tx_hash,
+            refundTimestamp: row.refund_timestamp,
+            senderWalletAddress: row.sender_wallet_address,
+            createdAt: row.created_at
+          };
+        }
+        return row;
+      });
     } finally {
       client.release();
     }
