@@ -2,6 +2,7 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { poseidonHash, generateZkCommitment, generateZkProof, verifyZkProof } from '../utils/zk.js';
+import { hashPhone } from '../utils/hash.js';
 import { verifyToken } from '../middleware/auth.js';
 import pool from '../database/config.js';
 
@@ -244,7 +245,7 @@ router.post('/login', async (req, res) => {
       if (walletAddress) {
         user = await findUserInPostgres({ walletAddress });
       } else if (phone) {
-        const phoneHash = poseidonHash([phone]);
+        const phoneHash = hashPhone(phone);
         user = await findUserInPostgres({ phoneHash });
       }
     } catch (error) {
