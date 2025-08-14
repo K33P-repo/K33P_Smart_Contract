@@ -1137,3 +1137,5 @@
 {"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-14T11:43:29.030Z"}
 {"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-08-14T11:43:29.078Z"}
 {"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-14T11:43:29.080Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-08-14T11:43:45.611Z","userAgent":"curl/8.9.1"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-08-14T11:43:57.050Z","userAgent":"curl/8.9.1"}
