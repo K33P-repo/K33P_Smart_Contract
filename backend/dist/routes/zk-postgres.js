@@ -260,7 +260,10 @@ router.post('/login', async (req, res) => {
             });
         }
         // Check if the commitment matches the user's commitment
-        if (user.zkCommitment !== commitment) {
+        // Handle the case where stored commitment has a suffix (e.g., "commitment-12345678")
+        const storedCommitment = user.zkCommitment;
+        const baseStoredCommitment = storedCommitment.includes('-') ? storedCommitment.split('-')[0] : storedCommitment;
+        if (baseStoredCommitment !== commitment) {
             return res.status(401).json({
                 success: false,
                 error: {

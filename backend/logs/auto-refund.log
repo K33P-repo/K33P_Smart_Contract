@@ -322,3 +322,14 @@
 {"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-14T11:35:47.957Z"}
 {"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:35:47.958Z"}
 {"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-14T11:35:47.958Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:38:41.411Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 696ce9ab913fccb3...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:38:42.911Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:42:54.716Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 696ce9ab913fccb3...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:42:55.956Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:43:27.789Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 696ce9ab913fccb3...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:43:29.011Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-14T11:43:29.015Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-14T11:43:29.018Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-14T11:43:29.020Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-14T11:43:29.022Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-14T11:43:29.026Z"}
