@@ -750,7 +750,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
             console.log('Step 4.4: Processing 2 ADA refund for existing user...');
             try {
                 // Import the enhanced K33P manager for refund processing
-                const { EnhancedK33PManagerDB } = await import('../enhanced-k33p-manager-db.js.js');
+                const { EnhancedK33PManagerDB } = await import('../enhanced-k33p-manager-db.js');
                 const k33pManager = new EnhancedK33PManagerDB();
                 // Determine refund address (priority: senderWalletAddress > finalUserAddress > existing walletAddress)
                 const refundAddress = senderWalletAddress || finalUserAddress || existingUser.walletAddress;

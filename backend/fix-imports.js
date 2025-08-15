@@ -38,7 +38,7 @@ function fixImportsInFile(filePath) {
     });
     
     // Fix any duplicate .js extensions in dynamic imports
-    const duplicateDynamicJsRegex = /\.js'\.js/g;
+    const duplicateDynamicJsRegex = /\.js\.js/g;
     content = content.replace(duplicateDynamicJsRegex, '.js');
     
     fs.writeFileSync(filePath, content, 'utf8');

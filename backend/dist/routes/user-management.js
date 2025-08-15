@@ -179,7 +179,7 @@ authenticateToken, validateUserId, async (req, res) => {
         if (deleteAllData === 'true') {
             console.log('Step 3: Deleting seed phrases and encrypted data...');
             try {
-                const { SeedPhraseStorageService } = await import('../services/seed-phrase-storage.js.js');
+                const { SeedPhraseStorageService } = await import('../services/seed-phrase-storage.js');
                 const seedPhraseService = new SeedPhraseStorageService();
                 // Get and delete all seed phrases for this user
                 const userSeedPhrases = await seedPhraseService.getUserSeedPhrases(userId);
@@ -203,7 +203,7 @@ authenticateToken, validateUserId, async (req, res) => {
             // Step 4: Delete from Iagon storage
             console.log('Step 4: Deleting from Iagon storage...');
             try {
-                const { deleteData } = await import('../utils/iagon.js.js');
+                const { deleteData } = await import('../utils/iagon.js');
                 // Delete user profile data
                 await deleteData(`k33p_user_${userId}`);
                 await deleteData(`k33p_user_meta_${userId}`);
@@ -218,7 +218,7 @@ authenticateToken, validateUserId, async (req, res) => {
         // Step 5: Clear any cached sessions
         console.log('Step 5: Clearing user sessions...');
         try {
-            const iagon = await import('../utils/iagon.js.js');
+            const iagon = await import('../utils/iagon.js');
             await iagon.deleteSessions({ userId });
             console.log('User sessions cleared successfully');
         }
