@@ -10,6 +10,7 @@ import { generateZkCommitment, generateZkProof, verifyZkProof as verifyZkProofUt
 import { signupTxBuilder } from '../utils/lucid.js';
 import * as iagon from '../utils/iagon.js';
 import { storageService } from '../services/storage-abstraction.js';
+import { dbService } from '../database/service.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
@@ -930,12 +931,45 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       console.log('Existing wallet user check completed, found:', !!existingWalletUserResult.data);
       
       if (existingWalletUserResult.success && existingWalletUserResult.data) {
-        console.log('User already exists with this wallet address');
-        return res.status(400).json({ 
-          success: false,
-          error: 'This wallet address is already registered with another account. Please use a different wallet or contact support if this is your wallet.',
-          code: 'WALLET_IN_USE'
-        });
+        console.log('User already exists with this wallet address, checking deposit status...');
+        
+        // Check if this wallet has a deposit record to determine if signup was completed
+        const depositRecord = await dbService.getDepositByUserAddress(finalUserAddress);
+        console.log('Deposit record found:', !!depositRecord);
+        
+        if (depositRecord) {
+          console.log('Deposit status - refunded:', depositRecord.refunded, 'signup_completed:', depositRecord.signup_completed);
+          
+          // If the deposit was refunded but signup was not completed, allow re-registration
+          if (depositRecord.refunded && !depositRecord.signup_completed) {
+            console.log('Wallet was refunded but signup not completed, allowing re-registration');
+            // Continue with signup process - don't return error
+          } else if (depositRecord.signup_completed) {
+            // Signup was completed, don't allow re-registration
+            console.log('Signup was completed for this wallet, blocking re-registration');
+            return res.status(400).json({ 
+              success: false,
+              error: 'This wallet address is already registered with a completed account. Please use a different wallet or contact support if this is your wallet.',
+              code: 'WALLET_IN_USE'
+            });
+          } else {
+            // Deposit exists but not refunded and not completed (still in progress)
+            console.log('Deposit in progress for this wallet, blocking re-registration');
+            return res.status(400).json({ 
+              success: false,
+              error: 'This wallet address has a pending registration. Please complete your existing registration or wait for the process to finish.',
+              code: 'WALLET_IN_USE'
+            });
+          }
+        } else {
+          // User exists but no deposit record found, block registration
+          console.log('User exists but no deposit record found, blocking registration');
+          return res.status(400).json({ 
+            success: false,
+            error: 'This wallet address is already registered with another account. Please use a different wallet or contact support if this is your wallet.',
+            code: 'WALLET_IN_USE'
+          });
+        }
       }
     }
 
