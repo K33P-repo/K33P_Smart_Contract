@@ -409,4 +409,188 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
   }
 });
 
+/**
+ * Login with phone number and PIN (Auto ZK Authentication)
+ * @route POST /api/zk/login-with-pin
+ */
+router.post('/login-with-pin', async (req, res) => {
+  try {
+    const { phoneNumber, pin } = req.body;
+    
+    // Validate inputs
+    if (!phoneNumber || !pin) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_INPUT',
+          message: 'Missing required inputs: phoneNumber and pin are required'
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    // Validate PIN format (4 digits)
+    if (!/^\d{4}$/.test(pin)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_PIN_FORMAT',
+          message: 'PIN must be exactly 4 digits'
+        },
+        timestamp: new Date().toISOString()
+      });
+    }
+    
+    const client = await pool.connect();
+    
+    try {
+      // Hash the phone number to find the user
+      const phoneHash = hashPhone(phoneNumber);
+      
+      // Find user by phone hash and verify PIN
+      const userQuery = await client.query(
+        'SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", pin FROM users WHERE phone_hash = $1',
+        [phoneHash]
+      );
+      
+      if (userQuery.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'USER_NOT_FOUND',
+            message: 'No user found with this phone number'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      const user = userQuery.rows[0];
+      
+      // Verify PIN (assuming PIN is stored as plain text for now)
+      if (user.pin !== pin) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_PIN',
+            message: 'Invalid PIN provided'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Check if user has ZK commitment
+      if (!user.zkCommitment) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'NO_ZK_COMMITMENT',
+            message: 'User does not have a ZK commitment stored'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Retrieve the user's ZK proof from the database
+      const proofQuery = await client.query(
+        'SELECT proof, commitment, public_inputs, is_valid FROM zk_proofs WHERE user_id = $1 AND is_valid = true ORDER BY created_at DESC LIMIT 1',
+        [user.userId]
+      );
+      
+      if (proofQuery.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'NO_ZK_PROOF',
+            message: 'No valid ZK proof found for this user'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      const zkProofData = proofQuery.rows[0];
+      
+      // Parse the proof data if it's stored as JSON string
+      let proof;
+      try {
+        proof = typeof zkProofData.proof === 'string' ? JSON.parse(zkProofData.proof) : zkProofData.proof;
+      } catch (parseError) {
+        proof = zkProofData.proof;
+      }
+      
+      // Get the commitment from the proof or use the stored commitment
+      const commitment = zkProofData.commitment || user.zkCommitment;
+      
+      // Verify the ZK proof
+      const isValid = verifyZkProof(proof, commitment);
+      
+      if (!isValid) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'ZK_VERIFICATION_FAILED',
+            message: 'ZK proof verification failed'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Check if the commitment matches the user's stored commitment
+      // Handle the case where stored commitment has a suffix (e.g., "commitment-12345678")
+      const storedCommitment = user.zkCommitment;
+      const baseStoredCommitment = storedCommitment.includes('-') ? storedCommitment.split('-')[0] : storedCommitment;
+      const baseCommitment = commitment.includes('-') ? commitment.split('-')[0] : commitment;
+      
+      if (baseStoredCommitment !== baseCommitment) {
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'COMMITMENT_MISMATCH',
+            message: 'ZK commitment does not match user record'
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Generate a JWT token for the authenticated user
+      const token = jwt.sign(
+        { 
+          userId: user.userId,
+          walletAddress: user.walletAddress,
+          authMethod: 'zk-pin'
+        },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '1h' }
+      );
+      
+      // Login successful
+      return res.status(200).json({
+        success: true,
+        data: {
+          message: 'ZK login with PIN successful',
+          userId: user.userId,
+          walletAddress: user.walletAddress,
+          token,
+          authMethod: 'zk-pin'
+        },
+        timestamp: new Date().toISOString()
+      });
+      
+    } finally {
+      client.release();
+    }
+    
+  } catch (error) {
+    console.error('Error during ZK login with PIN:', error);
+    return res.status(500).json({
+      success: false,
+      error: {
+        code: 'INTERNAL_ERROR',
+        message: 'Failed to login with ZK proof using PIN',
+        details: error.message
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 export default router;

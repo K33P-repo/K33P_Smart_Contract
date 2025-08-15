@@ -93,6 +93,156 @@ This document provides comprehensive documentation for all authentication-relate
 
 ---
 
+### 5. ZK Login with PIN (Auto Authentication)
+
+**Endpoint:** `POST /api/zk/login-with-pin`  
+**Access:** Public  
+**Description:** Login using phone number and PIN with automatic ZK proof retrieval and verification.
+
+#### Request Body
+```json
+{
+  "phoneNumber": "+1234567890",
+  "pin": "1234"
+}
+```
+
+#### Request Fields
+- `phoneNumber` (string, required): User's phone number
+- `pin` (string, required): 4-digit PIN (must be exactly 4 digits)
+
+#### Success Response (200)
+```json
+{
+  "success": true,
+  "data": {
+    "message": "ZK login with PIN successful",
+    "userId": "user_id_123",
+    "walletAddress": "addr1qxy...",
+    "token": "jwt_token_here",
+    "authMethod": "zk-pin"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+#### Error Responses
+
+**400 - Invalid Input**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_INPUT",
+    "message": "Missing required inputs: phoneNumber and pin are required"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**400 - Invalid PIN Format**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_PIN_FORMAT",
+    "message": "PIN must be exactly 4 digits"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**404 - User Not Found**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "USER_NOT_FOUND",
+    "message": "No user found with this phone number"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**401 - Invalid PIN**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "INVALID_PIN",
+    "message": "Invalid PIN provided"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**400 - No ZK Commitment**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NO_ZK_COMMITMENT",
+    "message": "User does not have a ZK commitment stored"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**400 - No ZK Proof**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "NO_ZK_PROOF",
+    "message": "No valid ZK proof found for this user"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**401 - ZK Verification Failed**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "ZK_VERIFICATION_FAILED",
+    "message": "ZK proof verification failed"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+**401 - Commitment Mismatch**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "COMMITMENT_MISMATCH",
+    "message": "ZK commitment does not match user record"
+  },
+  "timestamp": "2024-01-01T00:00:00.000Z"
+}
+```
+
+#### How It Works
+1. **Phone Number Validation**: The system hashes the provided phone number to find the user
+2. **PIN Verification**: Verifies the 4-digit PIN against the stored PIN in the database
+3. **ZK Commitment Check**: Ensures the user has a stored ZK commitment
+4. **ZK Proof Retrieval**: Automatically retrieves the user's valid ZK proof from the database
+5. **ZK Verification**: Verifies the retrieved ZK proof against the commitment
+6. **Commitment Matching**: Ensures the proof commitment matches the user's stored commitment
+7. **JWT Generation**: Generates and returns a JWT token for authenticated access
+
+#### Benefits
+- **User-Friendly**: Users only need to provide phone number and PIN
+- **Automatic ZK Handling**: System automatically retrieves and verifies ZK proofs
+- **Secure**: Maintains ZK proof security while simplifying user experience
+- **No Manual Proof Input**: Users don't need to handle complex ZK proof data
+
+```
+
+---
+
 ### 2. User Login
 
 **Endpoint:** `POST /api/auth/login`  

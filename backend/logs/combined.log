@@ -1139,3 +1139,68 @@
 {"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-14T11:43:29.080Z"}
 {"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-08-14T11:43:45.611Z","userAgent":"curl/8.9.1"}
 {"ip":"::1","level":"info","message":"POST /api/zk/login","service":"k33p-backend","timestamp":"2025-08-14T11:43:57.050Z","userAgent":"curl/8.9.1"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T07:58:30.917Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T07:58:30.921Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-15T07:58:32.954Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-15T07:58:35.806Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-15T07:58:37.633Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-08-15T07:58:37.658Z"}
+{"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-15T07:58:37.660Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T07:58:53.971Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T07:58:54.025Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T07:58:54.038Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T07:58:54.044Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T07:58:54.055Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T07:59:55.480Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T07:59:55.484Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-15T07:59:57.722Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-15T07:59:59.780Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-15T08:00:01.155Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T08:00:34.735Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T08:00:34.737Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-15T08:00:38.007Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-15T08:00:40.133Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-15T08:00:41.576Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-08-15T08:00:41.583Z"}
+{"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-15T08:00:41.584Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T08:00:52.538Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T08:00:52.910Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T08:00:53.866Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T08:00:55.133Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-15T08:00:55.189Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T08:04:39.505Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T08:04:39.508Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-15T08:04:42.354Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-15T08:04:46.583Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-15T08:04:49.144Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:05:53.057Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:06:53.081Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:07:53.089Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:08:53.100Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:09:53.109Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:10:53.118Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:11:53.129Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:12:38.135Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:13:38.142Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:14:38.153Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:15:38.167Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:16:38.173Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:17:38.175Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:18:38.191Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:19:38.205Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:20:38.208Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:21:38.210Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:22:38.213Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:23:38.216Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:24:38.220Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:25:38.221Z"}
+{"error":"getaddrinfo ENOTFOUND switchyard.proxy.rlwy.net","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T08:26:38.237Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-pin","service":"k33p-backend","timestamp":"2025-08-15T08:27:50.823Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/auth/confirm-pin","service":"k33p-backend","timestamp":"2025-08-15T08:27:50.849Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-biometric","service":"k33p-backend","timestamp":"2025-08-15T08:27:50.858Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/auth/complete-signup","service":"k33p-backend","timestamp":"2025-08-15T08:27:50.869Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-pin","service":"k33p-backend","timestamp":"2025-08-15T08:28:09.976Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/auth/confirm-pin","service":"k33p-backend","timestamp":"2025-08-15T08:28:09.995Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-biometric","service":"k33p-backend","timestamp":"2025-08-15T08:28:10.002Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"ip":"::1","level":"info","message":"POST /api/auth/complete-signup","service":"k33p-backend","timestamp":"2025-08-15T08:28:10.015Z","userAgent":"node-fetch/1.0 (+https://github.com/bitinn/node-fetch)"}
+{"level":"warn","message":"Rate limit exceeded for IP: ::1","service":"k33p-backend","timestamp":"2025-08-15T08:28:10.018Z"}
