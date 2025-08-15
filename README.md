@@ -73,6 +73,16 @@ The backend provides the following endpoints:
 - `/refund` - Issue refund (must be backend-signed)
 - `/verify-zk-login` - Verify ZK proof for login
 
+### API Documentation
+
+For comprehensive API documentation including error handling, response formats, and example scenarios, see:
+
+- **[API Error Response Guide](backend/docs/API_ERROR_RESPONSE_GUIDE.md)** - Complete guide to error handling, success responses, and common scenarios
+- **[API Documentation](backend/API_DOCUMENTATION.md)** - Full API endpoint documentation
+- **[User Management API](backend/USER_MANAGEMENT_API.md)** - User-specific endpoints and flows
+
+The API implements standardized error handling with consistent response formats across all endpoints.
+
 ## Zero-Knowledge Proof Integration
 
 The system uses zero-knowledge proofs to verify user identity without revealing sensitive information:
