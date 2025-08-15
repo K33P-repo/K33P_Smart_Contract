@@ -11,6 +11,7 @@ import { testConnection } from './database/config.js';
 import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
+import { globalErrorHandler } from './middleware/error-handler.js';
 
 // Import routes
 // @ts-ignore
@@ -129,6 +130,8 @@ app.use('/api/seed-phrases', seedPhraseRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
 
+// Global error handler (must be last middleware)
+app.use(globalErrorHandler);
 
 // Validation error handler
 const handleValidationErrors = (req: Request, res: Response, next: NextFunction) => {

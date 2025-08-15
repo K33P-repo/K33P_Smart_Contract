@@ -1,0 +1,20 @@
+{
+  "name": "k33p-error-handling-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for K33P API error handling",
+  "type": "module",
+  "scripts": {
+    "test": "mocha error-handling-test.js --timeout 10000",
+    "test:scenarios": "node error-handling-test.js --run-scenarios",
+    "test:watch": "mocha error-handling-test.js --watch --timeout 10000"
+  },
+  "dependencies": {
+    "axios": "^1.6.0",
+    "chai": "^4.3.10",
+    "mocha": "^10.2.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.9",
+    "@types/mocha": "^10.0.4"
+  }
+}

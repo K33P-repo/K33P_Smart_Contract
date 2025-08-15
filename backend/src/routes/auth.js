@@ -4,6 +4,8 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { verifyToken, verifyZkProof, authenticate } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rate-limiter.js';
+import { K33PError, ErrorCodes, asyncHandler } from '../middleware/error-handler.js';
+import { ResponseUtils } from '../utils/response-helpers.js';
 import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
 import { generateZkCommitment, generateZkProof, verifyZkProof as verifyZkProofUtil } from '../utils/zk.js';
 import { signupTxBuilder } from '../utils/lucid.js';
@@ -112,43 +114,25 @@ router.post('/send-otp', createRateLimiter({
   windowMs: 5 * 60 * 1000, // 5 minutes
   max: 3, // 3 OTP requests per 5 minutes
   message: 'Too many OTP requests, please try again later'
-}), async (req, res) => {
-  try {
-    const { phoneNumber } = req.body;
-    
-    if (!phoneNumber) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Phone number is required' 
-      });
-    }
-    
-    console.log(`Sending OTP to ${phoneNumber}`);
-    const result = await sendOtp(phoneNumber);
-    
-    if (result.success) {
-      res.json({
-        success: true,
-        message: 'OTP sent successfully',
-        data: { 
-          requestId: result.requestId,
-          expiresIn: 300 // 5 minutes
-        }
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        error: result.error || 'Failed to send OTP'
-      });
-    }
-  } catch (error) {
-    console.error('Error sending OTP:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to send OTP' 
-    });
+}), asyncHandler(async (req, res) => {
+  const { phoneNumber } = req.body;
+  
+  if (!phoneNumber) {
+    throw new K33PError(ErrorCodes.VALIDATION_ERROR, 'Phone number is required');
   }
-});
+  
+  console.log(`Sending OTP to ${phoneNumber}`);
+  const result = await sendOtp(phoneNumber);
+  
+  if (result.success) {
+    ResponseUtils.success(res, {
+      requestId: result.requestId,
+      expiresIn: 300 // 5 minutes
+    }, 'OTP sent successfully');
+  } else {
+    throw new K33PError(ErrorCodes.OTP_SEND_FAILED, result.error || 'Failed to send OTP');
+  }
+}));
 
 // Session storage for signup flow (in production, use Redis)
 const signupSessions = new NodeCache({ stdTTL: 1800 }); // 30 minutes

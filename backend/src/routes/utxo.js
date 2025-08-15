@@ -4,6 +4,8 @@ import { verifyToken } from '../middleware/auth.js';
 import { hashPhone } from '../utils/hash.js';
 import { fetchUtxos, refundTx } from '../utils/lucid.js';
 import * as iagon from '../utils/iagon.js';
+import { K33PError, ErrorCodes, asyncHandler } from '../middleware/error-handler.js';
+import { ResponseUtils } from '../utils/response-helpers.js';
 
 const router = express.Router();
 
@@ -32,39 +34,45 @@ router.get('/fetch/:phoneHash', verifyToken, async (req, res) => {
  * @desc Issue a refund for a UTXO
  * @access Private
  */
-router.post('/refund', verifyToken, async (req, res) => {
+router.post('/refund', verifyToken, asyncHandler(async (req, res) => {
+  const { utxo, ownerAddress, zkProof } = req.body;
+  
+  if (!utxo || !ownerAddress) {
+    throw new K33PError(ErrorCodes.VALIDATION_ERROR, 'Missing required fields: utxo and ownerAddress');
+  }
+  
+  // Check if user is authorized to refund this UTXO
+  const user = await iagon.findUserById(req.user.id);
+  if (!user) {
+    throw new K33PError(ErrorCodes.USER_NOT_FOUND, 'User not found');
+  }
+  
+  // Verify that the UTXO belongs to the user
+  const scriptUtxo = await iagon.findScriptUtxo({ txHash: utxo.txHash, outputIndex: utxo.outputIndex });
+  if (!scriptUtxo || scriptUtxo.userId !== user.id) {
+    throw new K33PError(ErrorCodes.UNAUTHORIZED, 'Unauthorized to refund this UTXO');
+  }
+  
+  // Require ZK proof for refund
+  if (!zkProof) {
+    throw new K33PError(ErrorCodes.VALIDATION_ERROR, 'Missing ZK proof');
+  }
+  if (!zkProof.isValid) {
+    throw new K33PError(ErrorCodes.INVALID_ZK_PROOF, 'Invalid ZK proof');
+  }
+  
   try {
-    const { utxo, ownerAddress, zkProof } = req.body;
-    if (!utxo || !ownerAddress) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-    // Check if user is authorized to refund this UTXO
-    const user = await iagon.findUserById(req.user.id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    // Verify that the UTXO belongs to the user
-    const scriptUtxo = await iagon.findScriptUtxo({ txHash: utxo.txHash, outputIndex: utxo.outputIndex });
-    if (!scriptUtxo || scriptUtxo.userId !== user.id) {
-      return res.status(403).json({ error: 'Unauthorized to refund this UTXO' });
-    }
-    // Require ZK proof for refund
-    if (!zkProof) {
-      return res.status(400).json({ error: 'Missing ZK proof' });
-    }
-    if (!zkProof.isValid) {
-      return res.status(400).json({ error: 'Invalid ZK proof' });
-    }
     // Issue refund
     const txHash = await refundTx(ownerAddress, utxo);
     // Update UTXO status in Iagon
     await iagon.updateScriptUtxo(scriptUtxo.id, { refunded: true, refundTxHash: txHash });
-    res.status(200).json({ message: 'Refund issued successfully', txHash });
+    
+    ResponseUtils.success(res, { txHash }, 'Refund issued successfully');
   } catch (error) {
-    console.error('Refund error:', error);
-    res.status(500).json({ error: 'Failed to issue refund' });
+    console.error('Refund transaction error:', error);
+    throw new K33PError(ErrorCodes.REFUND_FAILED, 'Failed to process refund transaction');
   }
-});
+}));
 
 /**
  * @route POST /api/utxo/track
