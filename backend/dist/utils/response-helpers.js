@@ -29,7 +29,7 @@ export function handleValidationErrors(errors) {
 }
 // Success response creator
 export function createSuccessResponse(data, message) {
-    return ResponseUtils.success(data, message);
+    return ResponseUtils.legacySuccess(data, message);
 }
 // Error response creator
 export function createErrorResponse(code, message, details) {

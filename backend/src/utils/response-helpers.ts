@@ -35,7 +35,7 @@ export function handleValidationErrors(errors: any[]): never {
 
 // Success response creator
 export function createSuccessResponse(data: any, message?: string) {
-  return ResponseUtils.success(data, message);
+  return ResponseUtils.legacySuccess(data, message);
 }
 
 // Error response creator

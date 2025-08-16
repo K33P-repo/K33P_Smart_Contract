@@ -6,3 +6,10 @@
 {"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-15T21:29:29.460Z"}
 {"error":"","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-15T21:29:29.627Z"}
 {"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-15T21:29:29.629Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-16T08:42:59.275Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-16T08:42:59.277Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-16T08:43:01.871Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-16T08:43:06.338Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-16T08:43:08.150Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-08-16T08:43:08.158Z"}
+{"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-16T08:43:08.320Z"}

@@ -4,12 +4,13 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { verifyToken, verifyZkProof, authenticate } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rate-limiter.js';
-import { K33PError, ErrorCodes, asyncHandler, ResponseUtils } from '../middleware/error-handler.js';
+import { K33PError, ErrorCodes, SuccessCodes, asyncHandler, ResponseUtils } from '../middleware/error-handler.js';
 import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
 import { generateZkCommitment, generateZkProof, verifyZkProof as verifyZkProofUtil } from '../utils/zk.js';
 import { signupTxBuilder } from '../utils/lucid.js';
 import * as iagon from '../utils/iagon.js';
 import { storageService } from '../services/storage-abstraction.js';
+import { dbService } from '../database/service.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
@@ -107,10 +108,10 @@ router.post('/send-otp', createRateLimiter({
     console.log(`Sending OTP to ${phoneNumber}`);
     const result = await sendOtp(phoneNumber);
     if (result.success) {
-        ResponseUtils.success(res, {
+        ResponseUtils.success(res, SuccessCodes.OTP_SENT, {
             requestId: result.requestId,
             expiresIn: 300 // 5 minutes
-        }, 'OTP sent successfully');
+        });
     }
     else {
         throw new K33PError(ErrorCodes.OTP_SEND_FAILED, result.error || 'Failed to send OTP');
@@ -541,18 +542,15 @@ router.get('/session-status/:sessionId', createRateLimiter({
             });
         }
         // Return session status without sensitive data
-        res.json({
-            success: true,
-            data: {
-                sessionId,
-                step: sessionData.step,
-                phoneNumber: sessionData.phoneNumber ? sessionData.phoneNumber.replace(/.(?=.{4})/g, '*') : null,
-                pinConfirmed: sessionData.pinConfirmed || false,
-                biometricType: sessionData.biometricType || null,
-                username: sessionData.username || null,
-                completed: sessionData.completed || false,
-                timestamp: sessionData.timestamp
-            }
+        return ResponseUtils.success(res, SuccessCodes.SESSION_RETRIEVED, {
+            sessionId,
+            step: sessionData.step,
+            phoneNumber: sessionData.phoneNumber ? sessionData.phoneNumber.replace(/.(?=.{4})/g, '*') : null,
+            pinConfirmed: sessionData.pinConfirmed || false,
+            biometricType: sessionData.biometricType || null,
+            username: sessionData.username || null,
+            completed: sessionData.completed || false,
+            timestamp: sessionData.timestamp
         });
     }
     catch (error) {
@@ -645,44 +643,44 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         // Validate required fields
         if (!finalPhoneNumber) {
             console.log('Validation failed: Phone number is required');
-            return res.status(400).json({ error: 'Phone number is required' });
+            return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
         }
         if (!userId && !passkey) {
             console.log('Validation failed: User ID or passkey is required');
-            return res.status(400).json({ error: 'User ID or passkey is required' });
+            return ResponseUtils.error(res, ErrorCodes.IDENTIFIER_REQUIRED);
         }
         if (username && (username.length < 3 || username.length > 30)) {
             console.log('Validation failed: Username must be 3-30 characters');
-            return res.status(400).json({ error: 'Username must be between 3 and 30 characters' });
+            return ResponseUtils.error(res, ErrorCodes.USERNAME_INVALID_FORMAT, null, 'Username must be between 3 and 30 characters');
         }
         if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
             console.log('Validation failed: Username contains invalid characters');
-            return res.status(400).json({ error: 'Username can only contain letters, numbers, and underscores' });
+            return ResponseUtils.error(res, ErrorCodes.USERNAME_INVALID_FORMAT, null, 'Username can only contain letters, numbers, and underscores');
         }
         // Validate verification method specific requirements
         if (verificationMethod === 'pin' && !pin) {
             console.log('Validation failed: PIN is required for PIN verification');
-            return res.status(400).json({ error: 'PIN is required for PIN verification method' });
+            return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
         }
         if (verificationMethod === 'pin' && !/^\d{4}$/.test(pin)) {
             console.log('Validation failed: PIN must be 4 digits');
-            return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+            return ResponseUtils.error(res, ErrorCodes.PIN_INVALID_FORMAT);
         }
         if (verificationMethod === 'biometric' && !finalBiometricData) {
             console.log('Validation failed: Biometric data is required for biometric verification');
-            return res.status(400).json({ error: 'Biometric data is required for biometric verification method' });
+            return ResponseUtils.error(res, ErrorCodes.BIOMETRIC_DATA_REQUIRED);
         }
         if (verificationMethod === 'biometric' && !biometricType) {
             console.log('Validation failed: Biometric type is required for biometric verification');
-            return res.status(400).json({ error: 'Biometric type is required for biometric verification method' });
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Biometric type is required for biometric verification method');
         }
         if (verificationMethod === 'biometric' && !['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
             console.log('Validation failed: Invalid biometric type');
-            return res.status(400).json({ error: 'Biometric type must be one of: fingerprint, faceid, voice, iris' });
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Biometric type must be one of: fingerprint, faceid, voice, iris');
         }
         if (verificationMethod === 'passkey' && !passkey) {
             console.log('Validation failed: Passkey is required for passkey verification');
-            return res.status(400).json({ error: 'Passkey is required for passkey verification method' });
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Passkey is required for passkey verification method');
         }
         console.log('Step 1: Hashing phone...');
         const phoneHash = hashPhone(finalPhoneNumber);
@@ -718,7 +716,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
             console.log('New ZK proof generated, valid:', newZkProof.isValid);
             if (!newZkProof.isValid) {
                 console.log('New ZK proof validation failed');
-                return res.status(400).json({ error: 'Invalid ZK proof for existing user update' });
+                return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid ZK proof for existing user update');
             }
             // Update existing user with new data
             console.log('Step 4.3: Updating existing user with new ZK commitment...');
@@ -743,7 +741,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
             const updateResult = await storageService.updateUser(existingUser.id, updateData);
             if (!updateResult.success) {
                 console.log('Failed to update existing user:', updateResult.error);
-                return res.status(500).json({ error: 'Failed to update existing user: ' + updateResult.error });
+                return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing user: ' + updateResult.error);
             }
             console.log('Existing user updated successfully');
             // Process 2 ADA refund for existing user
@@ -820,12 +818,33 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
             const existingWalletUserResult = await storageService.findUser({ walletAddress: finalUserAddress });
             console.log('Existing wallet user check completed, found:', !!existingWalletUserResult.data);
             if (existingWalletUserResult.success && existingWalletUserResult.data) {
-                console.log('User already exists with this wallet address');
-                return res.status(400).json({
-                    success: false,
-                    error: 'This wallet address is already registered with another account. Please use a different wallet or contact support if this is your wallet.',
-                    code: 'WALLET_IN_USE'
-                });
+                console.log('User already exists with this wallet address, checking deposit status...');
+                // Check if this wallet has a deposit record to determine if signup was completed
+                const depositRecord = await dbService.getDepositByUserAddress(finalUserAddress);
+                console.log('Deposit record found:', !!depositRecord);
+                if (depositRecord) {
+                    console.log('Deposit status - refunded:', depositRecord.refunded, 'signup_completed:', depositRecord.signup_completed);
+                    // If the deposit was refunded but signup was not completed, allow re-registration
+                    if (depositRecord.refunded && !depositRecord.signup_completed) {
+                        console.log('Wallet was refunded but signup not completed, allowing re-registration');
+                        // Continue with signup process - don't return error
+                    }
+                    else if (depositRecord.signup_completed) {
+                        // Signup was completed, don't allow re-registration
+                        console.log('Signup was completed for this wallet, blocking re-registration');
+                        return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE, null, 'This wallet address is already registered with a completed account. Please use a different wallet or contact support if this is your wallet.');
+                    }
+                    else {
+                        // Deposit exists but not refunded and not completed (still in progress)
+                        console.log('Deposit in progress for this wallet, blocking re-registration');
+                        return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE, null, 'This wallet address has a pending registration. Please complete your existing registration or wait for the process to finish.');
+                    }
+                }
+                else {
+                    // User exists but no deposit record found, block registration
+                    console.log('User exists but no deposit record found, blocking registration');
+                    return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE, null, 'This wallet address is already registered with another account. Please use a different wallet or contact support if this is your wallet.');
+                }
             }
         }
         console.log('Step 6: Generating ZK commitment...');
@@ -846,7 +865,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         console.log('ZK proof generated, valid:', zkProof.isValid);
         if (!zkProof.isValid) {
             console.log('ZK proof validation failed');
-            return res.status(400).json({ error: 'Invalid ZK proof' });
+            return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
         }
         // Note: Transaction creation happens later when user sends 2 ADA for verification
         // No transaction is created during initial signup
@@ -871,7 +890,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         const userResult = await storageService.storeUser(userData);
         if (!userResult.success) {
             console.log('Failed to create user:', userResult.error);
-            return res.status(500).json({ error: 'Failed to create user: ' + userResult.error });
+            return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to create user: ' + userResult.error);
         }
         const user = { id: userResult.data.id, ...userData };
         console.log('User created successfully, ID:', user.id, 'Storage:', userResult.storageUsed);
@@ -931,12 +950,9 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         console.error('=== END SIGNUP ERROR ===');
-        res.status(500).json({
-            success: false,
-            error: 'Internal server error',
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
             message: error.message,
-            debug: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-            timestamp: new Date().toISOString()
+            debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 }
@@ -974,21 +990,23 @@ router.post('/login', verifyZkProof, async (req, res) => {
             user = userResult.success ? userResult.data : null;
         }
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         // Verify ZK proof (simulated)
         if (user.zkCommitment !== commitment) {
-            return res.status(401).json({ error: 'Invalid ZK proof' });
+            return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
         }
         // Generate JWT token
         const token = jwt.sign({ id: user.id, walletAddress: user.walletAddress }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '24h' });
         // Create session in Iagon
         await iagon.createSession({ userId: user.id, token, expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) });
-        res.status(200).json({ message: 'Login successful', token, hasWallet: !!user.walletAddress });
+        return ResponseUtils.success(res, SuccessCodes.AUTH_LOGIN_SUCCESS, { token, hasWallet: !!user.walletAddress });
     }
     catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ error: 'Failed to login' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
     }
 });
 /**
@@ -1004,55 +1022,36 @@ router.post('/signin', async (req, res) => {
         // Validate required fields
         if (!phoneNumber) {
             console.log('Validation failed: Phone number is required');
-            return res.status(400).json({
-                success: false,
-                error: 'Phone number is required'
-            });
+            return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
         }
         if (!otpRequestId) {
             console.log('Validation failed: OTP request ID is required');
-            return res.status(400).json({
-                success: false,
-                error: 'OTP request ID is required'
-            });
+            return ResponseUtils.error(res, ErrorCodes.OTP_REQUEST_ID_REQUIRED);
         }
         if (!otpCode) {
             console.log('Validation failed: OTP code is required');
-            return res.status(400).json({
-                success: false,
-                error: 'OTP code is required'
-            });
+            return ResponseUtils.error(res, ErrorCodes.OTP_CODE_REQUIRED);
         }
         if (!pin) {
             console.log('Validation failed: PIN is required');
-            return res.status(400).json({
-                success: false,
-                error: 'PIN is required'
-            });
+            return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
         }
         // Validate PIN format (4 digits)
         if (!/^\d{4}$/.test(pin)) {
             console.log('Validation failed: PIN must be 4 digits');
-            return res.status(400).json({
-                success: false,
-                error: 'PIN must be exactly 4 digits'
-            });
+            return ResponseUtils.error(res, ErrorCodes.PIN_INVALID_FORMAT);
         }
         // Validate OTP code format (5 digits)
         if (!/^\d{5}$/.test(otpCode)) {
             console.log('Validation failed: OTP code must be 5 digits');
-            return res.status(400).json({
-                success: false,
-                error: 'OTP code must be exactly 5 digits'
-            });
+            return ResponseUtils.error(res, ErrorCodes.OTP_CODE_INVALID_FORMAT);
         }
         console.log('Step 1: Verifying OTP...');
         const otpVerification = await verifyOtp(otpRequestId, otpCode);
         if (!otpVerification.success) {
             console.log('OTP verification failed:', otpVerification.error);
-            return res.status(400).json({
-                success: false,
-                error: otpVerification.error || 'Invalid or expired OTP'
+            return ResponseUtils.error(res, ErrorCodes.OTP_INVALID, {
+                message: otpVerification.error || 'Invalid or expired OTP'
             });
         }
         console.log('OTP verified successfully');
@@ -1063,29 +1062,20 @@ router.post('/signin', async (req, res) => {
         const userResult = await storageService.findUser({ phoneHash });
         if (!userResult.success || !userResult.data) {
             console.log('User not found with this phone number');
-            return res.status(404).json({
-                success: false,
-                error: 'User not found with this phone number'
-            });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         const user = userResult.data;
         console.log('User found:', user.id);
         // Check if user has a PIN stored
         if (!user.pin) {
             console.log('User does not have a PIN set');
-            return res.status(400).json({
-                success: false,
-                error: 'No PIN found for this user. Please contact support.'
-            });
+            return ResponseUtils.error(res, ErrorCodes.PIN_NOT_FOUND);
         }
         console.log('Step 4: Verifying PIN...');
         // Verify PIN (direct comparison since it's stored as plain text during signup)
         if (user.pin !== pin) {
             console.log('PIN verification failed');
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid PIN. Please try again.'
-            });
+            return ResponseUtils.error(res, ErrorCodes.PIN_INVALID);
         }
         console.log('PIN verified successfully');
         console.log('Step 5: Generating JWT token...');
@@ -1123,12 +1113,9 @@ router.post('/signin', async (req, res) => {
         console.error('Error message:', error.message);
         console.error('Error stack:', error.stack);
         console.error('=== END SIGNIN ERROR ===');
-        res.status(500).json({
-            success: false,
-            error: 'Internal server error',
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
             message: error.message,
-            debug: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-            timestamp: new Date().toISOString()
+            debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 });
@@ -1141,11 +1128,13 @@ router.post('/logout', verifyToken, async (req, res) => {
     try {
         // Delete session in Iagon
         await iagon.deleteSessions({ userId: req.user.id });
-        res.status(200).json({ message: 'Logout successful' });
+        return ResponseUtils.success(res, SuccessCodes.AUTH_LOGOUT_SUCCESS);
     }
     catch (error) {
         console.error('Logout error:', error);
-        res.status(500).json({ error: 'Failed to logout' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
     }
 });
 /**
@@ -1158,10 +1147,10 @@ router.get('/me', verifyToken, async (req, res) => {
         // Find user by ID using storage abstraction
         const userResult = await storageService.findUser({ userId: req.user.id });
         if (!userResult.success || !userResult.data) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         const user = userResult.data;
-        res.status(200).json({
+        return ResponseUtils.success(res, SuccessCodes.USER_RETRIEVED, {
             id: user.id,
             walletAddress: user.walletAddress,
             createdAt: user.createdAt,
@@ -1171,7 +1160,9 @@ router.get('/me', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.error('Get user error:', error);
-        res.status(500).json({ error: 'Failed to get user' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
     }
 });
 // Initialize Blockfrost API
@@ -1197,12 +1188,8 @@ const walletVerifyLimiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     handler: (req, res) => {
-        res.status(429).json({
-            success: false,
-            error: 'Rate limit exceeded. Please try again later.',
-            code: 'RATE_LIMIT_EXCEEDED',
-            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000),
-            timestamp: new Date().toISOString()
+        return ResponseUtils.error(res, ErrorCodes.RATE_LIMIT_EXCEEDED, {
+            retryAfter: Math.ceil(req.rateLimit.resetTime / 1000)
         });
     }
 });
@@ -1216,28 +1203,34 @@ router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res
         const { walletAddress } = req.body;
         const userId = req.user.id;
         if (!walletAddress) {
-            return res.status(400).json({ message: 'Wallet address is required' });
+            return ResponseUtils.error(res, ErrorCodes.WALLET_ADDRESS_REQUIRED);
         }
         // Check if wallet address is already in use by another user
         const existingUserResult = await storageService.findUser({ walletAddress });
         if (existingUserResult.success && existingUserResult.data && existingUserResult.data.userId !== userId) {
-            return res.status(400).json({ message: 'Wallet address already in use by another user' });
+            return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE);
         }
         // Query blockchain for recent transactions
         const isValidTx = await verify2AdaTransaction(walletAddress);
         if (!isValidTx) {
-            return res.status(400).json({ message: 'No valid 2 ADA transaction found' });
+            return ResponseUtils.error(res, ErrorCodes.TRANSACTION_NOT_FOUND, {
+                message: 'No valid 2 ADA transaction found'
+            });
         }
         // Update user with wallet address using storage abstraction
         const updateResult = await storageService.updateUser(userId, { walletAddress });
         if (!updateResult.success) {
-            return res.status(500).json({ message: 'Failed to update user wallet address: ' + updateResult.error });
+            return ResponseUtils.error(res, ErrorCodes.USER_UPDATE_FAILED, {
+                message: updateResult.error
+            });
         }
         res.json({ message: 'Wallet verified successfully' });
     }
     catch (error) {
         console.error('Wallet verification error:', error);
-        res.status(500).json({ message: 'Wallet verification failed', error: error.message });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
     }
 });
 /**
@@ -1250,11 +1243,11 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
         const userId = req.user.id;
         const userResult = await storageService.findUser({ userId });
         if (!userResult.success || !userResult.data) {
-            return res.status(404).json({ message: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         const user = userResult.data;
         if (!user.walletAddress) {
-            return res.status(400).json({ message: 'No wallet address found' });
+            return ResponseUtils.error(res, ErrorCodes.WALLET_ADDRESS_NOT_FOUND);
         }
         res.json({
             walletAddress: user.walletAddress,
@@ -1263,7 +1256,9 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
     }
     catch (error) {
         console.error('Wallet connect error:', error);
-        res.status(500).json({ message: 'Wallet connect failed', error: error.message });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
     }
 });
 async function verify2AdaTransaction(walletAddress) {
@@ -1364,18 +1359,12 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
         console.log('User ID:', userId);
         console.log('Sender wallet address:', senderWalletAddress);
         if (!senderWalletAddress) {
-            return res.status(400).json({
-                success: false,
-                error: 'Sender wallet address is required'
-            });
+            return ResponseUtils.error(res, ErrorCodes.WALLET_ADDRESS_REQUIRED);
         }
         // Get user data
         const userResult = await storageService.findUser({ userId });
         if (!userResult.success || !userResult.data) {
-            return res.status(404).json({
-                success: false,
-                error: 'User not found'
-            });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         const user = userResult.data;
         console.log('Step 1: Verifying 2 ADA transaction from sender wallet...');
@@ -1383,9 +1372,8 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
         const hasValidDeposit = await verify2AdaDeposit(senderWalletAddress);
         if (!hasValidDeposit) {
             console.log('No valid 2 ADA deposit found');
-            return res.status(400).json({
-                success: false,
-                error: 'No valid 2 ADA deposit found from this wallet address'
+            return ResponseUtils.error(res, ErrorCodes.DEPOSIT_NOT_FOUND, {
+                message: 'No valid 2 ADA deposit found from this wallet address'
             });
         }
         console.log('Step 2: Creating signup transaction with user data...');
@@ -1406,9 +1394,8 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
         });
         if (!updateResult.success) {
             console.log('Failed to update user:', updateResult.error);
-            return res.status(500).json({
-                success: false,
-                error: 'Failed to update user: ' + updateResult.error
+            return ResponseUtils.error(res, ErrorCodes.USER_UPDATE_FAILED, {
+                message: updateResult.error
             });
         }
         console.log('User updated successfully, storage used:', updateResult.storageUsed);
@@ -1427,9 +1414,7 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
         console.error('=== DEPOSIT VERIFICATION ERROR ===');
         console.error('Error:', error);
         console.error('=== END DEPOSIT VERIFICATION ERROR ===');
-        res.status(500).json({
-            success: false,
-            error: 'Failed to verify deposit',
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
             message: error.message
         });
     }
@@ -1443,10 +1428,7 @@ router.post('/verify', async (req, res) => {
     try {
         const { token } = req.body;
         if (!token) {
-            return res.status(400).json({
-                success: false,
-                error: 'Token is required'
-            });
+            return ResponseUtils.error(res, ErrorCodes.TOKEN_REQUIRED);
         }
         // Verify JWT token
         try {
@@ -1454,19 +1436,13 @@ router.post('/verify', async (req, res) => {
             // Check if user exists
             const userResult = await storageService.findUser({ userId: decoded.id });
             if (!userResult.success || !userResult.data) {
-                return res.status(404).json({
-                    success: false,
-                    error: 'User not found'
-                });
+                return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
             }
             const user = userResult.data;
             // Check if session exists in Iagon
             const session = await iagon.findSession({ userId: decoded.id, token });
             if (!session) {
-                return res.status(401).json({
-                    success: false,
-                    error: 'Invalid session'
-                });
+                return ResponseUtils.error(res, ErrorCodes.SESSION_INVALID);
             }
             res.status(200).json({
                 success: true,
@@ -1479,18 +1455,12 @@ router.post('/verify', async (req, res) => {
             });
         }
         catch (jwtError) {
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid or expired token'
-            });
+            return ResponseUtils.error(res, ErrorCodes.TOKEN_INVALID);
         }
     }
     catch (error) {
         console.error('Token verification error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to verify token'
-        });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR);
     }
 });
 export default router;
