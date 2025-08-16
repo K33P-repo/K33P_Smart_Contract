@@ -10,6 +10,7 @@ export var SuccessCodes;
     SuccessCodes["AUTH_LOGIN_SUCCESS"] = "AUTH_LOGIN_SUCCESS";
     SuccessCodes["AUTH_LOGOUT_SUCCESS"] = "AUTH_LOGOUT_SUCCESS";
     SuccessCodes["AUTH_TOKEN_VERIFIED"] = "AUTH_TOKEN_VERIFIED";
+    SuccessCodes["TOKEN_VERIFIED"] = "TOKEN_VERIFIED";
     // User Management
     SuccessCodes["USER_CREATED"] = "USER_CREATED";
     SuccessCodes["USER_RETRIEVED"] = "USER_RETRIEVED";
@@ -18,6 +19,7 @@ export var SuccessCodes;
     SuccessCodes["PHONE_VERIFIED"] = "PHONE_VERIFIED";
     SuccessCodes["WALLET_CONNECTED"] = "WALLET_CONNECTED";
     SuccessCodes["WALLET_VERIFIED"] = "WALLET_VERIFIED";
+    SuccessCodes["WALLET_RETRIEVED"] = "WALLET_RETRIEVED";
     // OTP & Verification
     SuccessCodes["OTP_SENT"] = "OTP_SENT";
     SuccessCodes["OTP_VERIFIED"] = "OTP_VERIFIED";
@@ -53,6 +55,7 @@ export var ErrorCodes;
     ErrorCodes["AUTH_TOKEN_MISSING"] = "AUTH_TOKEN_MISSING";
     ErrorCodes["TOKEN_REQUIRED"] = "TOKEN_REQUIRED";
     ErrorCodes["TOKEN_INVALID"] = "TOKEN_INVALID";
+    ErrorCodes["INVALID_TOKEN"] = "INVALID_TOKEN";
     ErrorCodes["ACCESS_DENIED"] = "ACCESS_DENIED";
     // User Management
     ErrorCodes["USER_NOT_FOUND"] = "USER_NOT_FOUND";
@@ -76,6 +79,8 @@ export var ErrorCodes;
     ErrorCodes["OTP_EXPIRED"] = "OTP_EXPIRED";
     ErrorCodes["OTP_INVALID"] = "OTP_INVALID";
     ErrorCodes["OTP_SEND_FAILED"] = "OTP_SEND_FAILED";
+    ErrorCodes["OTP_VERIFICATION_FAILED"] = "OTP_VERIFICATION_FAILED";
+    ErrorCodes["OTP_CANCELLATION_FAILED"] = "OTP_CANCELLATION_FAILED";
     ErrorCodes["OTP_REQUEST_ID_REQUIRED"] = "OTP_REQUEST_ID_REQUIRED";
     ErrorCodes["OTP_CODE_REQUIRED"] = "OTP_CODE_REQUIRED";
     ErrorCodes["OTP_CODE_INVALID_FORMAT"] = "OTP_CODE_INVALID_FORMAT";
@@ -95,6 +100,8 @@ export var ErrorCodes;
     ErrorCodes["SESSION_ID_REQUIRED"] = "SESSION_ID_REQUIRED";
     ErrorCodes["SESSION_NOT_FOUND"] = "SESSION_NOT_FOUND";
     ErrorCodes["SESSION_INVALID"] = "SESSION_INVALID";
+    ErrorCodes["INVALID_SESSION"] = "INVALID_SESSION";
+    ErrorCodes["INVALID_FLOW"] = "INVALID_FLOW";
     // ZK Proofs
     ErrorCodes["ZK_PROOF_INVALID"] = "ZK_PROOF_INVALID";
     ErrorCodes["ZK_PROOF_GENERATION_FAILED"] = "ZK_PROOF_GENERATION_FAILED";
@@ -115,6 +122,7 @@ export var ErrorCodes;
     ErrorCodes["INVALID_INPUT"] = "INVALID_INPUT";
     ErrorCodes["MISSING_REQUIRED_FIELDS"] = "MISSING_REQUIRED_FIELDS";
     ErrorCodes["IDENTIFIER_REQUIRED"] = "IDENTIFIER_REQUIRED";
+    ErrorCodes["DUPLICATE_ENTRY"] = "DUPLICATE_ENTRY";
     // Rate Limiting
     ErrorCodes["RATE_LIMIT_EXCEEDED"] = "RATE_LIMIT_EXCEEDED";
     // Server Errors
@@ -135,6 +143,7 @@ const ERROR_MESSAGES = {
     [ErrorCodes.AUTH_TOKEN_MISSING]: 'Authentication required',
     [ErrorCodes.TOKEN_REQUIRED]: 'Authentication token is required',
     [ErrorCodes.TOKEN_INVALID]: 'Invalid or expired token',
+    [ErrorCodes.INVALID_TOKEN]: 'Invalid authentication token',
     [ErrorCodes.ACCESS_DENIED]: 'Access denied. Insufficient permissions',
     // User Management
     [ErrorCodes.USER_NOT_FOUND]: 'User account not found',
@@ -158,6 +167,8 @@ const ERROR_MESSAGES = {
     [ErrorCodes.OTP_EXPIRED]: 'Verification code has expired. Please request a new one',
     [ErrorCodes.OTP_INVALID]: 'Invalid verification code. Please try again',
     [ErrorCodes.OTP_SEND_FAILED]: 'Failed to send verification code. Please try again',
+    [ErrorCodes.OTP_VERIFICATION_FAILED]: 'OTP verification failed. Please try again',
+    [ErrorCodes.OTP_CANCELLATION_FAILED]: 'Failed to cancel OTP request. Please try again',
     [ErrorCodes.OTP_REQUEST_ID_REQUIRED]: 'OTP request ID is required',
     [ErrorCodes.OTP_CODE_REQUIRED]: 'OTP code is required',
     [ErrorCodes.OTP_CODE_INVALID_FORMAT]: 'OTP code must be exactly 5 digits',
@@ -177,6 +188,8 @@ const ERROR_MESSAGES = {
     [ErrorCodes.SESSION_ID_REQUIRED]: 'Session ID is required',
     [ErrorCodes.SESSION_NOT_FOUND]: 'Session not found or expired',
     [ErrorCodes.SESSION_INVALID]: 'Invalid session',
+    [ErrorCodes.INVALID_SESSION]: 'Invalid or expired session',
+    [ErrorCodes.INVALID_FLOW]: 'Invalid operation flow. Please follow the correct sequence',
     // ZK Proofs
     [ErrorCodes.ZK_PROOF_INVALID]: 'Invalid zero-knowledge proof',
     [ErrorCodes.ZK_PROOF_GENERATION_FAILED]: 'Failed to generate zero-knowledge proof',
@@ -197,6 +210,7 @@ const ERROR_MESSAGES = {
     [ErrorCodes.INVALID_INPUT]: 'Invalid input provided',
     [ErrorCodes.MISSING_REQUIRED_FIELDS]: 'Please fill in all required fields',
     [ErrorCodes.IDENTIFIER_REQUIRED]: 'User identifier is required',
+    [ErrorCodes.DUPLICATE_ENTRY]: 'This entry already exists',
     // Rate Limiting
     [ErrorCodes.RATE_LIMIT_EXCEEDED]: 'Too many requests. Please wait a moment and try again',
     // Server Errors
@@ -214,6 +228,7 @@ const SUCCESS_MESSAGES = {
     [SuccessCodes.AUTH_LOGIN_SUCCESS]: 'Login successful',
     [SuccessCodes.AUTH_LOGOUT_SUCCESS]: 'Logout successful',
     [SuccessCodes.AUTH_TOKEN_VERIFIED]: 'Token verified successfully',
+    [SuccessCodes.TOKEN_VERIFIED]: 'Token verified successfully',
     // User Management
     [SuccessCodes.USER_CREATED]: 'User account created successfully',
     [SuccessCodes.USER_RETRIEVED]: 'User information retrieved successfully',
@@ -222,6 +237,7 @@ const SUCCESS_MESSAGES = {
     [SuccessCodes.PHONE_VERIFIED]: 'Phone number verified successfully',
     [SuccessCodes.WALLET_CONNECTED]: 'Wallet connected successfully',
     [SuccessCodes.WALLET_VERIFIED]: 'Wallet verified successfully',
+    [SuccessCodes.WALLET_RETRIEVED]: 'Wallet information retrieved successfully',
     // OTP & Verification
     [SuccessCodes.OTP_SENT]: 'Verification code sent successfully',
     [SuccessCodes.OTP_VERIFIED]: 'Verification code verified successfully',
@@ -256,6 +272,7 @@ const ERROR_STATUS_CODES = {
     [ErrorCodes.AUTH_TOKEN_MISSING]: 401,
     [ErrorCodes.TOKEN_REQUIRED]: 400,
     [ErrorCodes.TOKEN_INVALID]: 401,
+    [ErrorCodes.INVALID_TOKEN]: 401,
     [ErrorCodes.ACCESS_DENIED]: 403,
     // User Management (404, 409, 400)
     [ErrorCodes.USER_NOT_FOUND]: 404,
@@ -279,6 +296,8 @@ const ERROR_STATUS_CODES = {
     [ErrorCodes.OTP_EXPIRED]: 410,
     [ErrorCodes.OTP_INVALID]: 400,
     [ErrorCodes.OTP_SEND_FAILED]: 500,
+    [ErrorCodes.OTP_VERIFICATION_FAILED]: 400,
+    [ErrorCodes.OTP_CANCELLATION_FAILED]: 500,
     [ErrorCodes.OTP_REQUEST_ID_REQUIRED]: 400,
     [ErrorCodes.OTP_CODE_REQUIRED]: 400,
     [ErrorCodes.OTP_CODE_INVALID_FORMAT]: 400,
@@ -298,6 +317,8 @@ const ERROR_STATUS_CODES = {
     [ErrorCodes.SESSION_ID_REQUIRED]: 400,
     [ErrorCodes.SESSION_NOT_FOUND]: 404,
     [ErrorCodes.SESSION_INVALID]: 401,
+    [ErrorCodes.INVALID_SESSION]: 401,
+    [ErrorCodes.INVALID_FLOW]: 400,
     // ZK Proofs (400)
     [ErrorCodes.ZK_PROOF_INVALID]: 400,
     [ErrorCodes.ZK_PROOF_GENERATION_FAILED]: 500,
@@ -318,6 +339,7 @@ const ERROR_STATUS_CODES = {
     [ErrorCodes.INVALID_INPUT]: 400,
     [ErrorCodes.MISSING_REQUIRED_FIELDS]: 400,
     [ErrorCodes.IDENTIFIER_REQUIRED]: 400,
+    [ErrorCodes.DUPLICATE_ENTRY]: 409,
     // Rate Limiting (429)
     [ErrorCodes.RATE_LIMIT_EXCEEDED]: 429,
     // Server Errors (500)
@@ -360,8 +382,16 @@ export class ResponseUtils {
             code: successCode || SuccessCodes.OPERATION_SUCCESS,
             message,
             data,
+            statusCode,
             timestamp: new Date().toISOString()
         };
+        // Log success response for debugging
+        logger.info('API Success:', {
+            statusCode,
+            code: successCode || SuccessCodes.OPERATION_SUCCESS,
+            message,
+            timestamp: response.timestamp
+        });
         // Remove data field if undefined
         if (data === undefined) {
             delete response.data;
@@ -376,8 +406,15 @@ export class ResponseUtils {
             success: true,
             message: message || 'Operation completed successfully',
             data,
+            statusCode,
             timestamp: new Date().toISOString()
         };
+        // Log legacy success response for debugging
+        logger.info('API Legacy Success:', {
+            statusCode,
+            message: response.message,
+            timestamp: response.timestamp
+        });
         // Remove data field if undefined
         if (data === undefined) {
             delete response.data;
@@ -399,8 +436,9 @@ export class ResponseUtils {
             // Generic error
             k33pError = new K33PError(ErrorCodes.SERVER_ERROR, details, typeof error === 'string' ? error : 'An unexpected error occurred');
         }
-        // Log error for debugging (console output)
+        // Log error for debugging (console output) - now includes error code and status code
         logger.error('API Error:', {
+            statusCode: k33pError.statusCode,
             code: k33pError.code,
             message: k33pError.message,
             userMessage: k33pError.userMessage,
@@ -408,13 +446,14 @@ export class ResponseUtils {
             stack: k33pError.stack,
             timestamp: k33pError.timestamp
         });
-        // Send user-friendly response
+        // Send user-friendly response with error code included
         const response = {
             success: false,
             error: {
                 code: k33pError.code,
                 message: k33pError.userMessage
             },
+            statusCode: k33pError.statusCode,
             timestamp: k33pError.timestamp
         };
         // Add details for development environment

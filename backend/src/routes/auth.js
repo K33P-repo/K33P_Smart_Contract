@@ -152,18 +152,12 @@ router.post('/setup-pin', createRateLimiter({
     
     // Validate required fields
     if (!phoneNumber || !pin) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Phone number and PIN are required' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Phone number and PIN are required');
     }
     
     // Validate PIN format
     if (!/^\d{4}$/.test(pin)) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'PIN must be exactly 4 digits' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'PIN must be exactly 4 digits');
     }
     
     // Create or update session
@@ -180,22 +174,15 @@ router.post('/setup-pin', createRateLimiter({
     
     console.log(`PIN setup completed for session: ${sessionKey}`);
     
-    res.json({
-      success: true,
-      message: 'PIN setup completed successfully',
-      data: {
-        sessionId: sessionKey,
-        step: 'pin_setup',
-        nextStep: 'pin_confirmation'
-      }
+    return ResponseUtils.success(res, SuccessCodes.PIN_SETUP_SUCCESS, {
+      sessionId: sessionKey,
+      step: 'pin_setup',
+      nextStep: 'pin_confirmation'
     });
     
   } catch (error) {
     console.error('Error setting up PIN:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to setup PIN' 
-    });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to setup PIN');
   }
 });
 
@@ -214,27 +201,18 @@ router.post('/confirm-pin', createRateLimiter({
     
     // Validate required fields
     if (!sessionId || !pin) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Session ID and PIN are required' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID and PIN are required');
     }
     
     // Get session data
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Invalid or expired session' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
     }
     
     // Verify PIN matches
     if (sessionData.pin !== pin) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'PIN confirmation does not match. Please try again.' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_PIN, null, 'PIN confirmation does not match. Please try again.');
     }
     
     // Update session
@@ -246,22 +224,15 @@ router.post('/confirm-pin', createRateLimiter({
     
     console.log(`PIN confirmed for session: ${sessionId}`);
     
-    res.json({
-      success: true,
-      message: 'PIN confirmed successfully',
-      data: {
-        sessionId,
-        step: 'pin_confirmed',
-        nextStep: 'biometric_setup'
-      }
+    return ResponseUtils.success(res, SuccessCodes.PIN_VERIFIED, {
+      sessionId,
+      step: 'pin_confirmed',
+      nextStep: 'biometric_setup'
     });
     
   } catch (error) {
     console.error('Error confirming PIN:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to confirm PIN' 
-    });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to confirm PIN');
   }
 });
 
@@ -280,27 +251,18 @@ router.post('/setup-biometric', createRateLimiter({
     
     // Validate required fields
     if (!sessionId) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Session ID is required' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID is required');
     }
     
     // Get session data
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Invalid or expired session' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
     }
     
     // Verify PIN was confirmed
     if (!sessionData.pinConfirmed) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'PIN must be confirmed before setting up biometric authentication' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_FLOW, null, 'PIN must be confirmed before setting up biometric authentication');
     }
     
     // Validate biometric data if provided
@@ -323,23 +285,16 @@ router.post('/setup-biometric', createRateLimiter({
     
     console.log(`Biometric setup completed for session: ${sessionId}`);
     
-    res.json({
-      success: true,
-      message: biometricType ? `${biometricType} setup completed successfully` : 'Biometric setup skipped',
-      data: {
-        sessionId,
-        step: 'biometric_setup',
-        biometricType: biometricType || null,
-        nextStep: 'did_creation'
-      }
-    });
+    return ResponseUtils.success(res, SuccessCodes.BIOMETRIC_SETUP_SUCCESS, {
+      sessionId,
+      step: 'biometric_setup',
+      biometricType: biometricType || null,
+      nextStep: 'did_creation'
+    }, biometricType ? `${biometricType} setup completed successfully` : 'Biometric setup skipped');
     
   } catch (error) {
     console.error('Error setting up biometric:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to setup biometric authentication' 
-    });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to setup biometric authentication');
   }
 });
 
@@ -358,27 +313,18 @@ router.post('/complete-signup', createRateLimiter({
     
     // Validate required fields
     if (!sessionId) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Session ID is required' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID is required');
     }
     
     // Get session data
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Invalid or expired session' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
     }
     
     // Verify biometric setup was completed
     if (sessionData.step !== 'biometric_setup') {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Biometric setup must be completed before finalizing signup' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_FLOW, null, 'Biometric setup must be completed before finalizing signup');
     }
     
     // Prepare user data for signup
@@ -427,7 +373,7 @@ router.post('/complete-signup', createRateLimiter({
         sessionData.timestamp = new Date();
         signupSessions.set(sessionId, sessionData);
         
-        res.json({
+        return ResponseUtils.success(res, SuccessCodes.USER_CREATED, {
           ...data,
           sessionId,
           nextStep: 'username_setup'
@@ -440,10 +386,7 @@ router.post('/complete-signup', createRateLimiter({
     
   } catch (error) {
     console.error('Error completing signup:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to complete signup' 
-    });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to complete signup');
   }
 });
 
@@ -462,52 +405,34 @@ router.post('/setup-username', createRateLimiter({
     
     // Validate required fields
     if (!sessionId || !username) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Session ID and username are required' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID and username are required');
     }
     
     // Validate username format
     if (username.length < 3 || username.length > 30) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Username must be between 3 and 30 characters' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username must be between 3 and 30 characters');
     }
     
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Username can only contain letters, numbers, and underscores' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username can only contain letters, numbers, and underscores');
     }
     
     // Get session data
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Invalid or expired session' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
     }
     
     // Verify signup was completed
     if (sessionData.step !== 'signup_completed') {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Signup must be completed before setting up username' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.INVALID_FLOW, null, 'Signup must be completed before setting up username');
     }
     
     // Check if username is already taken
     try {
       const existingUserResult = await storageService.findUser({ username });
       if (existingUserResult.success && existingUserResult.data) {
-        return res.status(400).json({ 
-          success: false,
-          error: 'Username is already taken. Please choose a different username.' 
-        });
+        return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_EXISTS, null, 'Username is already taken. Please choose a different username.');
       }
     } catch (error) {
       console.log('Error checking username availability:', error);
@@ -520,17 +445,11 @@ router.post('/setup-username', createRateLimiter({
         const updateResult = await storageService.updateUser(userIdToUpdate, { username });
         if (!updateResult.success) {
           console.log('Failed to update user with username:', updateResult.error);
-          return res.status(500).json({ 
-            success: false,
-            error: 'Failed to save username' 
-          });
+          return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, updateResult.error, 'Failed to save username');
         }
       } catch (error) {
         console.log('Error updating user with username:', error);
-        return res.status(500).json({ 
-          success: false,
-          error: 'Failed to save username' 
-        });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to save username');
       }
     }
     
@@ -556,19 +475,15 @@ router.post('/setup-username', createRateLimiter({
       { expiresIn: process.env.JWT_EXPIRATION || '24h' }
     );
     
-    res.json({
-      success: true,
-      message: 'Username setup completed successfully. Welcome to K33P!',
-      data: {
-        sessionId,
-        step: 'username_setup',
-        username,
-        userId: userIdToUpdate,
-        walletAddress: sessionData.walletAddress,
-        completed: true
-      },
+    return ResponseUtils.success(res, SuccessCodes.USERNAME_SET, {
+      sessionId,
+      step: 'username_setup',
+      username,
+      userId: userIdToUpdate,
+      walletAddress: sessionData.walletAddress,
+      completed: true,
       token
-    });
+    }, 'Username setup completed successfully. Welcome to K33P!');
     
     // Clean up session after successful completion
     setTimeout(() => {
@@ -577,10 +492,7 @@ router.post('/setup-username', createRateLimiter({
     
   } catch (error) {
     console.error('Error setting up username:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to setup username' 
-    });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to setup username');
   }
 });
 
@@ -598,18 +510,12 @@ router.get('/session-status/:sessionId', createRateLimiter({
     const { sessionId } = req.params;
     
     if (!sessionId) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Session ID is required' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID is required');
     }
     
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
-      return res.status(404).json({ 
-        success: false,
-        error: 'Session not found or expired' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.SESSION_NOT_FOUND, null, 'Session not found or expired');
     }
     
     // Return session status without sensitive data
@@ -626,10 +532,7 @@ router.get('/session-status/:sessionId', createRateLimiter({
     
   } catch (error) {
     console.error('Error getting session status:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to get session status' 
-    });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get session status');
   }
 });
 
@@ -647,10 +550,7 @@ router.post('/verify-otp', createRateLimiter({
     const { requestId, code } = req.body;
     
     if (!requestId || !code) {
-      return res.status(400).json({ 
-        success: false,
-        error: 'Request ID and verification code are required' 
-      });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Request ID and verification code are required');
     }
     
     console.log(`Verifying OTP for request ${requestId}`);
@@ -663,17 +563,11 @@ router.post('/verify-otp', createRateLimiter({
         data: { verified: true }
       });
     } else {
-      res.status(400).json({
-        success: false,
-        error: result.error || 'Invalid or expired OTP'
-      });
+      return ResponseUtils.error(res, ErrorCodes.OTP_VERIFICATION_FAILED, result.error, result.error || 'Invalid or expired OTP');
     }
   } catch (error) {
     console.error('Error verifying OTP:', error);
-    res.status(500).json({ 
-      success: false,
-      error: 'Failed to verify OTP' 
-    });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify OTP');
   }
 });
 
@@ -1065,7 +959,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
     console.log('Response built successfully');
     console.log('=== SIGNUP DEBUG END ===');
-    res.status(201).json(response);
+    return ResponseUtils.success(res, SuccessCodes.USER_CREATED, response.data, response.message);
   } catch (error) {
     console.error('=== SIGNUP ERROR ===');
     console.error('Error name:', error.name);
@@ -1093,11 +987,11 @@ router.post('/login', verifyZkProof, async (req, res) => {
     
     // At least one identifier is required
     if (!phone && !username && !walletAddress) {
-      return res.status(400).json({ error: 'At least one identifier is required: phone, username, or walletAddress' });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'At least one identifier is required: phone, username, or walletAddress');
     }
     
     if (!proof || !commitment) {
-      return res.status(400).json({ error: 'Missing required fields: proof and commitment are required' });
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Missing required fields: proof and commitment are required');
     }
     
     // Find user by multiple identifiers (priority: phone > username > wallet address)
@@ -1256,16 +1150,12 @@ router.post('/signin', async (req, res) => {
     
     console.log('=== SIGNIN DEBUG END ===');
     
-    res.status(200).json({
-      success: true,
-      message: 'Sign in successful',
-      data: {
-        userId: user.userId || user.id,
-        phoneNumber: user.phoneNumber,
-        username: user.username,
-        walletAddress: user.walletAddress,
-        verificationMethod: user.verificationMethod
-      },
+    return ResponseUtils.success(res, SuccessCodes.AUTH_LOGIN_SUCCESS, {
+      userId: user.userId || user.id,
+      phoneNumber: user.phoneNumber,
+      username: user.username,
+      walletAddress: user.walletAddress,
+      verificationMethod: user.verificationMethod,
       token
     });
     
@@ -1398,7 +1288,9 @@ router.post('/verify-wallet', authenticate, walletVerifyLimiter, async (req, res
       });
     }
 
-    res.json({ message: 'Wallet verified successfully' });
+    return ResponseUtils.success(res, SuccessCodes.WALLET_VERIFIED, {
+      message: 'Wallet verified successfully'
+    });
   } catch (error) {
     console.error('Wallet verification error:', error);
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
@@ -1426,9 +1318,9 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
       return ResponseUtils.error(res, ErrorCodes.WALLET_ADDRESS_NOT_FOUND);
     }
     
-    res.json({ 
+    return ResponseUtils.success(res, SuccessCodes.WALLET_RETRIEVED, {
       walletAddress: user.walletAddress,
-      storageUsed: userResult.storageUsed 
+      storageUsed: userResult.storageUsed
     });
   } catch (error) {
     console.error('Wallet connect error:', error);
@@ -1616,8 +1508,7 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
     // which detects the UTXO and processes the refund automatically
 
     console.log('=== DEPOSIT VERIFICATION SUCCESS ===');
-    res.status(200).json({ 
-      success: true,
+    return ResponseUtils.success(res, SuccessCodes.DEPOSIT_VERIFIED, {
       message: 'Deposit verified successfully. Refund will be processed automatically.',
       txHash,
       senderWalletAddress
@@ -1664,8 +1555,7 @@ router.post('/verify', async (req, res) => {
         return ResponseUtils.error(res, ErrorCodes.SESSION_INVALID);
       }
 
-      res.status(200).json({ 
-        success: true,
+      return ResponseUtils.success(res, SuccessCodes.TOKEN_VERIFIED, {
         message: 'Token is valid',
         user: {
           id: user.id,

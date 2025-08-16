@@ -15,7 +15,7 @@ router.get('/fetch/:phoneHash', verifyToken, async (req, res) => {
     try {
         const { phoneHash } = req.params;
         if (!phoneHash) {
-            return res.status(400).json({ error: 'Missing phone hash' });
+            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Missing phone hash');
         }
         // Fetch UTXOs at script address
         const utxos = await fetchUtxos(phoneHash);
@@ -23,7 +23,7 @@ router.get('/fetch/:phoneHash', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.error('Fetch UTXOs error:', error);
-        res.status(500).json({ error: 'Failed to fetch UTXOs' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to fetch UTXOs');
     }
 });
 /**
@@ -74,12 +74,12 @@ router.post('/track', verifyToken, async (req, res) => {
     try {
         const { txHash, outputIndex, datum } = req.body;
         if (!txHash || outputIndex === undefined || !datum) {
-            return res.status(400).json({ error: 'Missing required fields' });
+            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Missing required fields');
         }
         // Check if UTXO already exists
         const existingUtxo = await iagon.findScriptUtxo({ txHash, outputIndex });
         if (existingUtxo) {
-            return res.status(409).json({ error: 'UTXO already tracked' });
+            return ResponseUtils.error(res, ErrorCodes.DUPLICATE_ENTRY, null, 'UTXO already tracked');
         }
         // Create UTXO in Iagon
         const scriptUtxo = await iagon.createScriptUtxo({ txHash, outputIndex, datum: JSON.stringify(datum), userId: req.user.id, refunded: false });
@@ -87,7 +87,7 @@ router.post('/track', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.error('Track UTXO error:', error);
-        res.status(500).json({ error: 'Failed to track UTXO' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to track UTXO');
     }
 });
 /**
@@ -103,7 +103,7 @@ router.get('/user', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.error('Get user UTXOs error:', error);
-        res.status(500).json({ error: 'Failed to get user UTXOs' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get user UTXOs');
     }
 });
 /**
@@ -115,25 +115,16 @@ router.post('/deposit', verifyToken, async (req, res) => {
     try {
         const { amount, walletAddress, txHash, outputIndex } = req.body;
         if (!amount || !walletAddress) {
-            return res.status(400).json({
-                success: false,
-                error: 'Missing required fields: amount and walletAddress are required'
-            });
+            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Missing required fields: amount and walletAddress are required');
         }
         // Validate amount
         if (isNaN(amount) || amount <= 0) {
-            return res.status(400).json({
-                success: false,
-                error: 'Invalid amount: must be a positive number'
-            });
+            return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Invalid amount: must be a positive number');
         }
         // Get user information
         const user = await iagon.findUserById(req.user.id);
         if (!user) {
-            return res.status(404).json({
-                success: false,
-                error: 'User not found'
-            });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         // Create deposit record
         const deposit = {
@@ -166,10 +157,7 @@ router.post('/deposit', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.error('Deposit error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to create deposit'
-        });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to create deposit');
     }
 });
 /**
@@ -216,10 +204,7 @@ router.get('/balance', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.error('Balance error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get balance'
-        });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get balance');
     }
 });
 /**
@@ -293,10 +278,7 @@ router.post('/history', verifyToken, async (req, res) => {
     }
     catch (error) {
         console.error('History error:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get transaction history'
-        });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get transaction history');
     }
 });
 export default router;

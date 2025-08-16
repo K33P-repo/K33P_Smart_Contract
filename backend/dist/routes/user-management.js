@@ -4,6 +4,7 @@ import { UserDataStorageService } from '../services/user-data-storage.js';
 import { EnhancedIagonService } from '../services/enhanced-iagon-service.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { createRateLimiter } from '../middleware/rate-limiter.js';
+import { ResponseUtils, ErrorCodes } from '../middleware/error-handler.js';
 import logger from '../utils/logger.js';
 const router = Router();
 const userDataService = new UserDataStorageService();
@@ -12,7 +13,7 @@ const iagonService = new EnhancedIagonService();
 const validateUserId = (req, res, next) => {
     const { userId } = req.params;
     if (!userId || typeof userId !== 'string') {
-        return res.status(400).json({ error: 'Valid user ID is required' });
+        return ResponseUtils.error(res, ErrorCodes.IDENTIFIER_REQUIRED, null, 'Valid user ID is required');
     }
     next();
 };
@@ -25,12 +26,12 @@ async (req, res) => {
     try {
         const { userId, email, username, phoneNumber, userAddress, biometricType, verificationMethod, pin } = req.body;
         if (!userId || !email) {
-            return res.status(400).json({ error: 'User ID and email are required' });
+            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'User ID and email are required');
         }
         // Check if user already exists
         const existingUser = await userDataService.findUser({ userId });
         if (existingUser) {
-            return res.status(409).json({ error: 'User already exists' });
+            return ResponseUtils.error(res, ErrorCodes.USER_ALREADY_EXISTS);
         }
         const userProfile = await userDataService.createUser(userId, userAddress || '', phoneNumber || '', email, username);
         logger.info('User profile created successfully', { userId, email });
@@ -48,7 +49,7 @@ async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to create user profile:', error);
-        res.status(500).json({ error: 'Failed to create user profile' });
+        return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, error);
     }
 });
 /**
@@ -61,7 +62,7 @@ router.get('/:userId', validateUserId, async (req, res) => {
         const { includeSecrets } = req.query;
         const userProfile = await userDataService.getUserById(userId);
         if (!userProfile) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         // Remove sensitive data unless explicitly requested
         const responseData = {
@@ -77,7 +78,7 @@ router.get('/:userId', validateUserId, async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to get user profile:', error);
-        res.status(500).json({ error: 'Failed to get user profile' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get user profile');
     }
 });
 /**
@@ -96,7 +97,7 @@ router.put('/:userId', validateUserId, async (req, res) => {
         delete updateData.seedPhrases;
         const updatedUser = await userDataService.updateUser(userId, updateData);
         if (!updatedUser) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         logger.info('User profile updated successfully', { userId });
         res.json({
@@ -107,7 +108,7 @@ router.put('/:userId', validateUserId, async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to update user profile:', error);
-        res.status(500).json({ error: 'Failed to update user profile' });
+        return ResponseUtils.error(res, ErrorCodes.USER_UPDATE_FAILED, error);
     }
 });
 /**
@@ -122,7 +123,7 @@ authenticateToken, validateUserId, async (req, res) => {
         // Security check: ensure user can only delete their own data or is admin
         const requestingUser = req.user;
         if (requestingUser.userId !== userId && !requestingUser.isAdmin) {
-            return res.status(403).json({ error: 'Unauthorized: Can only delete your own data' });
+            return ResponseUtils.error(res, ErrorCodes.ACCESS_DENIED, null, 'Unauthorized: Can only delete your own data');
         }
         // Require explicit confirmation for data deletion
         if (confirmDeletion !== 'true') {
@@ -138,7 +139,7 @@ authenticateToken, validateUserId, async (req, res) => {
         console.log('Step 1: Deleting user profile...');
         const userDeleted = await userDataService.deleteUser(userId);
         if (!userDeleted) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         // Step 2: Delete from PostgreSQL database
         console.log('Step 2: Deleting from PostgreSQL database...');
@@ -291,7 +292,7 @@ router.get('/search', async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to search users:', error);
-        res.status(500).json({ error: 'Failed to search users' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to search users');
     }
 });
 /**
@@ -338,7 +339,7 @@ router.post('/:userId/seed-phrases', validateUserId, async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to add seed phrase to user:', error);
-        res.status(500).json({ error: 'Failed to add seed phrase' });
+        return ResponseUtils.error(res, ErrorCodes.SEED_PHRASE_ENCRYPTION_FAILED, error, 'Failed to add seed phrase');
     }
 });
 /**
@@ -350,7 +351,7 @@ router.get('/:userId/seed-phrases', validateUserId, async (req, res) => {
         const { userId } = req.params;
         const userProfile = await userDataService.getUserById(userId);
         if (!userProfile) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         const seedPhrases = userProfile.seedPhrases || [];
         res.json({
@@ -367,7 +368,7 @@ router.get('/:userId/seed-phrases', validateUserId, async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to get user seed phrases:', error);
-        res.status(500).json({ error: 'Failed to get seed phrases' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get seed phrases');
     }
 });
 /**
@@ -379,13 +380,13 @@ router.get('/:userId/seed-phrases/:seedPhraseId', validateUserId, async (req, re
         const { userId, seedPhraseId } = req.params;
         const { encryptionPassword, includeFullDocument } = req.query;
         if (!encryptionPassword) {
-            return res.status(400).json({ error: 'Encryption password is required' });
+            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Encryption password is required');
         }
         // Get user's seed phrase info
         const userProfile = await userDataService.getUserById(userId);
         const seedPhraseInfo = userProfile?.seedPhrases?.find(sp => sp.id === seedPhraseId);
         if (!seedPhraseInfo) {
-            return res.status(404).json({ error: 'Seed phrase not found' });
+            return ResponseUtils.error(res, ErrorCodes.SEED_PHRASE_NOT_FOUND);
         }
         // Note: Need to implement proper seed phrase retrieval
         // For now, we'll return a placeholder response
@@ -422,7 +423,7 @@ router.get('/:userId/seed-phrases/:seedPhraseId', validateUserId, async (req, re
     }
     catch (error) {
         logger.error('Failed to retrieve seed phrase:', error);
-        res.status(500).json({ error: 'Failed to retrieve seed phrase' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to retrieve seed phrase');
     }
 });
 /**
@@ -436,7 +437,7 @@ router.delete('/:userId/seed-phrases/:seedPhraseId', validateUserId, async (req,
         // Note: removeSeedPhraseFromUser method needs to be implemented
         const success = true; // Placeholder
         if (!success) {
-            return res.status(404).json({ error: 'Seed phrase not found' });
+            return ResponseUtils.error(res, ErrorCodes.SEED_PHRASE_NOT_FOUND);
         }
         logger.info('Seed phrase removed from user successfully', { userId, seedPhraseId });
         res.json({
@@ -446,7 +447,7 @@ router.delete('/:userId/seed-phrases/:seedPhraseId', validateUserId, async (req,
     }
     catch (error) {
         logger.error('Failed to remove seed phrase from user:', error);
-        res.status(500).json({ error: 'Failed to remove seed phrase' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to remove seed phrase');
     }
 });
 /**
@@ -458,7 +459,7 @@ router.get('/:userId/storage/stats', validateUserId, async (req, res) => {
         const { userId } = req.params;
         const stats = await userDataService.getUserStorageStats(userId);
         if (!stats) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         res.json({
             success: true,
@@ -467,7 +468,7 @@ router.get('/:userId/storage/stats', validateUserId, async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to get storage stats:', error);
-        res.status(500).json({ error: 'Failed to get storage stats' });
+        return ResponseUtils.error(res, ErrorCodes.STORAGE_SERVICE_ERROR, error, 'Failed to get storage stats');
     }
 });
 /**
@@ -480,7 +481,7 @@ router.post('/:userId/backup', validateUserId, async (req, res) => {
         const { includeMetadata = true } = req.body;
         const backupResult = await userDataService.backupUserData(userId);
         if (!backupResult) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         logger.info('User data backup created successfully', {
             userId,
@@ -494,7 +495,7 @@ router.post('/:userId/backup', validateUserId, async (req, res) => {
     }
     catch (error) {
         logger.error('Failed to create backup:', error);
-        res.status(500).json({ error: 'Failed to create backup' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to create backup');
     }
 });
 // ============================================================================
@@ -510,11 +511,11 @@ router.get('/:userId/subscription', authenticateToken, validateUserId, async (re
         // Security check: ensure user can only access their own subscription or is admin
         const requestingUser = req.user;
         if (requestingUser.userId !== userId && !requestingUser.isAdmin) {
-            return res.status(403).json({ error: 'Unauthorized: Can only access your own subscription' });
+            return ResponseUtils.error(res, ErrorCodes.ACCESS_DENIED, null, 'Unauthorized: Can only access your own subscription');
         }
         const userProfile = await userDataService.getUserById(userId);
         if (!userProfile) {
-            return res.status(404).json({ error: 'User not found' });
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
         }
         // Get subscription details from database
         const { Pool } = await import('pg');
@@ -523,7 +524,7 @@ router.get('/:userId/subscription', authenticateToken, validateUserId, async (re
         try {
             const result = await client.query('SELECT subscription_tier, subscription_start_date, subscription_end_date FROM users WHERE user_id = $1', [userId]);
             if (result.rows.length === 0) {
-                return res.status(404).json({ error: 'User subscription not found' });
+                return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User subscription not found');
             }
             const subscription = result.rows[0];
             const now = new Date();
@@ -545,7 +546,7 @@ router.get('/:userId/subscription', authenticateToken, validateUserId, async (re
     }
     catch (error) {
         logger.error('Failed to get subscription status:', error);
-        res.status(500).json({ error: 'Failed to get subscription status' });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get subscription status');
     }
 });
 /**
@@ -559,15 +560,15 @@ router.put('/:userId/subscription', authenticateToken, validateUserId, async (re
         // Security check: ensure user can only update their own subscription or is admin
         const requestingUser = req.user;
         if (requestingUser.userId !== userId && !requestingUser.isAdmin) {
-            return res.status(403).json({ error: 'Unauthorized: Can only update your own subscription' });
+            return ResponseUtils.error(res, ErrorCodes.ACCESS_DENIED, null, 'Unauthorized: Can only update your own subscription');
         }
         // Validate subscription tier
         if (!['freemium', 'premium'].includes(tier)) {
-            return res.status(400).json({ error: 'Invalid subscription tier. Must be: freemium or premium' });
+            return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Invalid subscription tier. Must be: freemium or premium');
         }
         // Validate duration for paid tiers
         if (tier !== 'freemium' && (!duration || !['monthly', 'yearly'].includes(duration))) {
-            return res.status(400).json({ error: 'Duration required for paid tiers. Must be: monthly or yearly' });
+            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Duration required for paid tiers. Must be: monthly or yearly');
         }
         console.log('=== SUBSCRIPTION UPDATE START ===');
         console.log('User ID:', userId);
@@ -635,10 +636,7 @@ router.put('/:userId/subscription', authenticateToken, validateUserId, async (re
         console.error('=== END SUBSCRIPTION UPDATE ERROR ===');
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         logger.error('Failed to update subscription:', error);
-        res.status(500).json({
-            error: 'Failed to update subscription',
-            message: errorMessage
-        });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to update subscription');
     }
 });
 /**
@@ -651,7 +649,7 @@ router.delete('/:userId/subscription', authenticateToken, validateUserId, async 
         // Security check: ensure user can only cancel their own subscription or is admin
         const requestingUser = req.user;
         if (requestingUser.userId !== userId && !requestingUser.isAdmin) {
-            return res.status(403).json({ error: 'Unauthorized: Can only cancel your own subscription' });
+            return ResponseUtils.error(res, ErrorCodes.ACCESS_DENIED, null, 'Unauthorized: Can only cancel your own subscription');
         }
         const { Pool } = await import('pg');
         const pool = new Pool();
@@ -685,10 +683,7 @@ router.delete('/:userId/subscription', authenticateToken, validateUserId, async 
     catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         logger.error('Failed to cancel subscription:', error);
-        res.status(500).json({
-            error: 'Failed to cancel subscription',
-            message: errorMessage
-        });
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to cancel subscription');
     }
 });
 // ============================================================================

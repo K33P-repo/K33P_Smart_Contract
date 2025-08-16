@@ -11,6 +11,7 @@ import {
   CancelVerificationRequest,
   CancelVerificationResponse 
 } from '../interfaces/otp.js';
+import { ResponseUtils, ErrorCodes } from '../middleware/error-handler.js';
 
 const router = express.Router();
 
@@ -29,9 +30,9 @@ const createResponse = <T>(success: boolean, data?: T, message?: string, error?:
 const handleValidationErrors = (req: Request, res: Response, next: Function) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json(createResponse(false, undefined, undefined, 
+    return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 
       `Validation errors: ${errors.array().map((e: any) => e.msg).join(', ')}`
-    ));
+    );
   }
   next();
 };
@@ -59,11 +60,11 @@ router.post('/send',
     if (result.success) {
       res.json(createResponse(true, { requestId: result.requestId }, 'Verification code sent'));
     } else {
-      res.status(400).json(createResponse(false, undefined, undefined, result.error));
+      return ResponseUtils.error(res, ErrorCodes.OTP_SEND_FAILED, null, result.error);
     }
   } catch (error) {
     console.error('Error sending OTP:', error);
-    res.status(500).json(createResponse(false, undefined, undefined, 'Failed to send verification code'));
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to send verification code');
   }
 });
 
@@ -94,11 +95,11 @@ router.post('/verify',
     if (result.success) {
       res.json(createResponse(true, { verified: true }, 'Phone number verified successfully'));
     } else {
-      res.status(400).json(createResponse(false, undefined, undefined, result.error));
+      return ResponseUtils.error(res, ErrorCodes.OTP_VERIFICATION_FAILED, null, result.error);
     }
   } catch (error) {
     console.error('Error verifying OTP:', error);
-    res.status(500).json(createResponse(false, undefined, undefined, 'Failed to verify code'));
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify code');
   }
 });
 
@@ -121,11 +122,11 @@ router.post('/cancel', [
     if (result.success) {
       res.json(createResponse(true, undefined, 'Verification cancelled successfully'));
     } else {
-      res.status(400).json(createResponse(false, undefined, undefined, result.error));
+      return ResponseUtils.error(res, ErrorCodes.OTP_CANCELLATION_FAILED, null, result.error);
     }
   } catch (error) {
     console.error('Error cancelling verification:', error);
-    res.status(500).json(createResponse(false, undefined, undefined, 'Failed to cancel verification'));
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to cancel verification');
   }
 });
 
@@ -155,11 +156,11 @@ router.post('/verify-token', [
         verified: true 
       }, 'Firebase token verified successfully'));
     } else {
-      res.status(401).json(createResponse(false, undefined, undefined, 'Invalid Firebase token'));
+      return ResponseUtils.error(res, ErrorCodes.INVALID_TOKEN, null, 'Invalid Firebase token');
     }
   } catch (error) {
     console.error('Error verifying Firebase token:', error);
-    res.status(500).json(createResponse(false, undefined, undefined, 'Failed to verify Firebase token'));
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify Firebase token');
   }
 });
 

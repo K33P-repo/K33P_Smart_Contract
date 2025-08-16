@@ -2,6 +2,7 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import { verifyZkProof as zkVerify } from '../utils/zk.js';
+import { ResponseUtils, ErrorCodes } from './error-handler.js';
 
 interface AuthenticatedRequest extends Request {
   user?: any;
@@ -16,7 +17,7 @@ export const verifyToken = (req: AuthenticatedRequest, res: Response, next: Next
     // Get token from Authorization header
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'No token provided' });
+      return ResponseUtils.error(res, ErrorCodes.AUTH_TOKEN_MISSING);
     }
 
     const token = authHeader.split(' ')[1];
@@ -30,13 +31,13 @@ export const verifyToken = (req: AuthenticatedRequest, res: Response, next: Next
     next();
   } catch (error: any) {
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
+      return ResponseUtils.error(res, ErrorCodes.AUTH_TOKEN_EXPIRED);
     }
     if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token' });
+      return ResponseUtils.error(res, ErrorCodes.AUTH_TOKEN_INVALID);
     }
     console.error('Auth middleware error:', error);
-    res.status(500).json({ error: 'Authentication failed' });
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Authentication failed');
   }
 };
 
@@ -49,26 +50,26 @@ export const verifyZkProof = (req: AuthenticatedRequest, res: Response, next: Ne
     const { proof, commitment } = req.body;
     
     if (!proof || !commitment) {
-      return res.status(400).json({ error: 'Missing ZK proof or commitment' });
+      return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_REQUIRED);
     }
     
     // Validate proof structure
     if (!proof.publicInputs || !proof.publicInputs.commitment || typeof proof.isValid !== 'boolean') {
-      return res.status(400).json({ error: 'Invalid proof object structure. Expected: { publicInputs: { commitment: string }, isValid: boolean }' });
+      return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid proof object structure. Expected: { publicInputs: { commitment: string }, isValid: boolean }');
     }
     
     // Use the actual ZK verification function
     const isValid = zkVerify(proof, commitment);
     
     if (!isValid) {
-      return res.status(401).json({ error: 'Invalid ZK proof' });
+      return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
     }
     
     req.zkVerified = true;
     next();
   } catch (error) {
     console.error('ZK verification error:', error);
-    res.status(500).json({ error: 'ZK verification failed' });
+    return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_GENERATION_FAILED, error, 'ZK verification failed');
   }
 };
 
