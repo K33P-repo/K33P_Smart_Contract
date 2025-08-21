@@ -955,15 +955,6 @@ router.post('/signin',
       
       logger.info(`Unified signin attempt for: ${phoneNumber}`);
       
-      // Validate that either PIN or biometric data is provided
-      if (!pin && (!biometricData || !biometricType)) {
-        return res.status(400).json({
-          success: false,
-          message: 'Either PIN or biometric authentication is required',
-          error: 'MISSING_AUTH_METHOD'
-        });
-      }
-      
       // Get user by phone number from database
       const client = await pool.connect();
       let user: any = null;
@@ -1005,40 +996,50 @@ router.post('/signin',
       let authenticationSuccessful = false;
       let authMethod = '';
       
-      // Try PIN authentication if provided
-      if (pin && user.pin_hash) {
-        if (authMethods.includes('pin')) {
-          // Verify PIN using crypto comparison
-          const pinHash = crypto.createHash('sha256').update(pin).digest('hex');
-          if (pinHash === user.pin_hash) {
+      // Determine which auth method to use based on what was provided and what user registered with
+      // Priority: Use the auth method they registered with, PIN is optional fallback
+      
+      // If biometric data is provided, try biometric authentication first (respecting user's original choice)
+      if (biometricData && biometricType && authMethods.includes(biometricType)) {
+        const storedBiometric = storedBiometricData[biometricType];
+        if (storedBiometric) {
+          // Simple comparison for biometric data (in production, use proper biometric verification)
+          const providedBiometric = biometricData[biometricType];
+          if (providedBiometric && providedBiometric === storedBiometric) {
             authenticationSuccessful = true;
-            authMethod = 'PIN';
+            authMethod = biometricType.toUpperCase().replace('_', ' ');
           }
         }
       }
       
-      // Try biometric authentication if provided and PIN failed or not provided
-      if (!authenticationSuccessful && biometricData && biometricType) {
-        if (authMethods.includes(biometricType)) {
-          const storedBiometric = storedBiometricData[biometricType];
-          if (storedBiometric) {
-            // Simple comparison for biometric data (in production, use proper biometric verification)
-            const providedBiometric = biometricData[biometricType];
-            if (providedBiometric && providedBiometric === storedBiometric) {
-              authenticationSuccessful = true;
-              authMethod = biometricType.toUpperCase().replace('_', ' ');
-            }
-          }
+      // If biometric auth failed or not provided, try PIN as optional fallback
+      if (!authenticationSuccessful && pin && user.pin_hash) {
+        // Verify PIN using crypto comparison
+        const pinHash = crypto.createHash('sha256').update(pin).digest('hex');
+        if (pinHash === user.pin_hash) {
+          authenticationSuccessful = true;
+          authMethod = 'PIN';
         }
       }
       
+      // If no authentication method was provided or succeeded, check what methods user has available
       if (!authenticationSuccessful) {
-        logger.warn(`Failed signin attempt for: ${phoneNumber}`);
-        return res.status(401).json({
-          success: false,
-          message: 'Authentication failed. Please check your PIN or biometric data.',
-          error: 'INVALID_CREDENTIALS'
-        });
+        if (!pin && (!biometricData || !biometricType)) {
+          return res.status(400).json({
+            success: false,
+            message: `Please provide authentication using one of your registered methods: ${authMethods.join(', ')}`,
+            error: 'MISSING_AUTH_METHOD',
+            availableAuthMethods: authMethods
+          });
+        } else {
+          logger.warn(`Failed signin attempt for: ${phoneNumber}`);
+          return res.status(401).json({
+            success: false,
+            message: 'Authentication failed. Please check your credentials.',
+            error: 'INVALID_CREDENTIALS',
+            availableAuthMethods: authMethods
+          });
+        }
       }
       
       // Generate tokens
