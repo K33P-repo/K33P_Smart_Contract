@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { EnhancedK33PManagerDB } from './enhanced-k33p-manager-db.js';
 import { dbService } from './database/service.js';
 import { autoRefundMonitor } from './services/auto-refund-monitor.js';
+import { subscriptionService } from './services/subscription-service.js';
 import { MockDatabaseService } from './database/mock-service.js';
 import { testConnection } from './database/config.js';
 import winston from 'winston';
@@ -34,6 +35,10 @@ import seedPhraseRoutes from './routes/seed-phrase-routes.js';
 import userRoutes from './routes/user-routes.js';
 // @ts-ignore
 import autoRefundRoutes from './routes/auto-refund-routes.js';
+// @ts-ignore
+import paymentRoutes from './routes/payment.js';
+// @ts-ignore
+import subscriptionRoutes from './routes/subscription.js';
 
 
 // Load environment variables
@@ -129,6 +134,8 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/seed-phrases', seedPhraseRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 
 // Global error handler (must be last middleware)
 app.use(globalErrorHandler);

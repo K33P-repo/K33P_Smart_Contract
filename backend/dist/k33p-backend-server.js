@@ -33,6 +33,10 @@ import seedPhraseRoutes from './routes/seed-phrase-routes.js';
 import userRoutes from './routes/user-routes.js';
 // @ts-ignore
 import autoRefundRoutes from './routes/auto-refund-routes.js';
+// @ts-ignore
+import paymentRoutes from './routes/payment.js';
+// @ts-ignore
+import subscriptionRoutes from './routes/subscription.js';
 // Load environment variables
 dotenv.config();
 // Constants
@@ -111,6 +115,8 @@ app.use('/api/otp', otpRoutes);
 app.use('/api/seed-phrases', seedPhraseRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 // Global error handler (must be last middleware)
 app.use(globalErrorHandler);
 // Validation error handler

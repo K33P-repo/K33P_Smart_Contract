@@ -11,6 +11,7 @@
     "node": ">=18.0.0 <=22.14.0"
   },
   "devDependencies": {
-    "@types/nodemailer": "^6.4.17"
+    "@types/nodemailer": "^6.4.17",
+    "@types/paystack": "^2.0.4"
   }
 }
