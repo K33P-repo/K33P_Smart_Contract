@@ -143,8 +143,8 @@ const signupSessions = new NodeCache({ stdTTL: 1800 }); // 30 minutes
  * @access Public
  */
 router.post('/setup-pin', createRateLimiter({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // 10 attempts per 15 minutes
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // 100 attempts per minute
   message: 'Too many PIN setup attempts, please try again later'
 }), async (req, res) => {
   try {
