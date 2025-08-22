@@ -292,3 +292,45 @@
 {"code":"PIN_VERIFIED","level":"info","message":"API Success: PIN verified successfully","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T19:46:32.282Z"}
 {"ip":"::1","level":"info","message":"POST /api/auth/setup-biometric","service":"k33p-backend","timestamp":"2025-08-22T19:46:32.291Z","userAgent":"node"}
 {"level":"warn","message":"Rate limit exceeded for IP: ::1","service":"k33p-backend","timestamp":"2025-08-22T19:46:32.293Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-22T20:03:38.194Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-22T20:03:38.201Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-22T20:03:40.511Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-22T20:03:43.368Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-22T20:03:45.116Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-08-22T20:03:45.123Z"}
+{"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-22T20:03:45.124Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-pin","service":"k33p-backend","timestamp":"2025-08-22T20:04:06.792Z","userAgent":"node"}
+{"code":"PIN_SETUP_SUCCESS","level":"info","message":"API Success: PIN setup completed successfully","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:04:06.795Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/confirm-pin","service":"k33p-backend","timestamp":"2025-08-22T20:04:06.821Z","userAgent":"node"}
+{"code":"PIN_VERIFIED","level":"info","message":"API Success: PIN verified successfully","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:04:06.826Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-biometric","service":"k33p-backend","timestamp":"2025-08-22T20:04:06.850Z","userAgent":"node"}
+{"code":"BIOMETRIC_SETUP_SUCCESS","level":"info","message":"API Success: Biometric setup skipped","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:04:06.856Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/complete-signup","service":"k33p-backend","timestamp":"2025-08-22T20:04:06.869Z","userAgent":"node"}
+{"level":"info","message":"User stored successfully","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-08-22T20:04:07.710Z","userId":"df6946a3-f11b-4d85-97df-1d5a4952db69"}
+{"level":"info","message":"Generating ZK proof for user registration","service":"k33p-backend","timestamp":"2025-08-22T20:04:07.716Z","userId":"df6946a3-f11b-4d85-97df-1d5a4952db69"}
+{"commitment":"667b69a5b46707a883d6...","level":"info","message":"ZK proof generated and stored successfully","service":"k33p-backend","timestamp":"2025-08-22T20:04:07.908Z","userId":"df6946a3-f11b-4d85-97df-1d5a4952db69"}
+{"code":"USER_CREATED","level":"info","message":"API Success: DID created successfully. Welcome to K33P!","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:04:07.920Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-pin","service":"k33p-backend","timestamp":"2025-08-22T20:05:59.565Z","userAgent":"node"}
+{"code":"PIN_SETUP_SUCCESS","level":"info","message":"API Success: PIN setup completed successfully","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:05:59.566Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/confirm-pin","service":"k33p-backend","timestamp":"2025-08-22T20:05:59.593Z","userAgent":"node"}
+{"code":"PIN_VERIFIED","level":"info","message":"API Success: PIN verified successfully","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:05:59.595Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-biometric","service":"k33p-backend","timestamp":"2025-08-22T20:05:59.603Z","userAgent":"node"}
+{"code":"BIOMETRIC_SETUP_SUCCESS","level":"info","message":"API Success: Biometric setup skipped","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:05:59.609Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/complete-signup","service":"k33p-backend","timestamp":"2025-08-22T20:05:59.620Z","userAgent":"node"}
+{"level":"info","message":"User stored successfully","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-08-22T20:06:00.203Z","userId":"4e00a6cd-ac44-42cd-8c8f-a22f3f85e5cc"}
+{"level":"info","message":"Generating ZK proof for user registration","service":"k33p-backend","timestamp":"2025-08-22T20:06:00.209Z","userId":"4e00a6cd-ac44-42cd-8c8f-a22f3f85e5cc"}
+{"commitment":"ba8231dc804926787534...","level":"info","message":"ZK proof generated and stored successfully","service":"k33p-backend","timestamp":"2025-08-22T20:06:00.447Z","userId":"4e00a6cd-ac44-42cd-8c8f-a22f3f85e5cc"}
+{"code":"USER_CREATED","level":"info","message":"API Success: DID created successfully. Welcome to K33P!","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:06:00.463Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-pin","service":"k33p-backend","timestamp":"2025-08-22T20:07:41.784Z","userAgent":"node"}
+{"code":"PIN_SETUP_SUCCESS","level":"info","message":"API Success: PIN setup completed successfully","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:07:41.786Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/confirm-pin","service":"k33p-backend","timestamp":"2025-08-22T20:07:41.812Z","userAgent":"node"}
+{"code":"PIN_VERIFIED","level":"info","message":"API Success: PIN verified successfully","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:07:41.815Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-biometric","service":"k33p-backend","timestamp":"2025-08-22T20:07:41.825Z","userAgent":"node"}
+{"code":"BIOMETRIC_SETUP_SUCCESS","level":"info","message":"API Success: Biometric setup skipped","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:07:41.840Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/complete-signup","service":"k33p-backend","timestamp":"2025-08-22T20:07:41.862Z","userAgent":"node"}
+{"level":"info","message":"User stored successfully","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-08-22T20:07:43.828Z","userId":"015574bc-11b8-4951-b62d-71a73bda46b3"}
+{"level":"info","message":"Generating ZK proof for user registration","service":"k33p-backend","timestamp":"2025-08-22T20:07:43.830Z","userId":"015574bc-11b8-4951-b62d-71a73bda46b3"}
+{"commitment":"8ccdeadde25d76b254b4...","level":"info","message":"ZK proof generated and stored successfully","service":"k33p-backend","timestamp":"2025-08-22T20:07:44.074Z","userId":"015574bc-11b8-4951-b62d-71a73bda46b3"}
+{"code":"USER_CREATED","level":"info","message":"API Success: DID created successfully. Welcome to K33P!","service":"k33p-backend","statusCode":200,"timestamp":"2025-08-22T20:07:44.161Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/setup-pin","service":"k33p-backend","timestamp":"2025-08-22T20:09:53.765Z","userAgent":"node"}
+{"level":"warn","message":"Rate limit exceeded for IP: ::1","service":"k33p-backend","timestamp":"2025-08-22T20:09:53.766Z"}

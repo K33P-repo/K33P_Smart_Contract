@@ -14,9 +14,8 @@ const SERVER_URL = process.env.SERVER_URL || 'http://localhost:3000';
  * @returns {string} - Hashed phone number
  */
 function hashPhone(phone) {
-  const salt = process.env.PHONE_HASH_SALT || 'default-salt';
   return crypto.createHash('sha256')
-    .update(phone + salt)
+    .update(`phone:${phone}`)
     .digest('hex');
 }
 
@@ -242,8 +241,12 @@ async function runPinStorageTest() {
     console.log('\n⏳ Waiting 2 seconds for database update...');
     await new Promise(resolve => setTimeout(resolve, 2000));
     
+    // Use the phone number from the signup result if available, otherwise use test data
+    const phoneNumberToCheck = signupResult.phoneNumber || testData.phoneNumber;
+    console.log('\n🔍 Checking PIN storage for phone number:', phoneNumberToCheck);
+    
     // Check PIN storage in database
-    const dbCheckResult = await checkPinInDatabase(testData.phoneNumber, testData.pin);
+    const dbCheckResult = await checkPinInDatabase(phoneNumberToCheck, testData.pin);
     
     if (!dbCheckResult.success) {
       console.log('\n❌ Database check failed:', dbCheckResult.error);
