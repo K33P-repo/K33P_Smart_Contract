@@ -208,8 +208,8 @@ router.post('/confirm-pin', createRateLimiter({
  * @access Public
  */
 router.post('/setup-biometric', createRateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10, // 10 attempts per 15 minutes
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 50, // 50 attempts per minute (increased for testing)
     message: 'Too many biometric setup attempts, please try again later'
 }), async (req, res) => {
     try {
@@ -261,8 +261,8 @@ router.post('/setup-biometric', createRateLimiter({
  * @access Public
  */
 router.post('/complete-signup', createRateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 5, // 5 attempts per 15 minutes
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 50, // 50 attempts per minute for testing
     message: 'Too many signup completion attempts, please try again later'
 }), async (req, res) => {
     try {
@@ -286,7 +286,8 @@ router.post('/complete-signup', createRateLimiter({
             pin: sessionData.pin,
             biometricType: sessionData.biometricType,
             biometricData: sessionData.biometricData,
-            verificationMethod: 'pin' // Default verification method
+            verificationMethod: 'pin', // Default verification method
+            userId: crypto.randomUUID() // Generate a unique user ID
         };
         // Use existing handleSignup function to complete the process
         const mockReq = {
@@ -524,6 +525,13 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
             hasPasskey: !!passkey,
             hasBiometric: !!biometric,
             hasBiometricData: !!biometricData
+        });
+        console.log('IDENTIFIER_REQUIRED check:', {
+            userId: userId,
+            passkey: passkey,
+            hasUserId: !!userId,
+            hasPasskey: !!passkey,
+            willPass: !!(userId || passkey)
         });
         // Support both new and legacy request formats
         const finalUserAddress = userAddress || walletAddress;

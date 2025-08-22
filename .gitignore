@@ -6,3 +6,8 @@ build/
 docs/
 # Allow backend documentation
 !backend/docs/
+
+# Environment files
+.env
+.env.local
+.env.*.local

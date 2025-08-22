@@ -5,3 +5,100 @@
 {"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-16T08:43:08.144Z"}
 {"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-16T08:43:08.145Z"}
 {"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-16T08:43:08.149Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:15:54.451Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: b44e3349ea6ae89e...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:15:55.748Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:16:31.623Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: b44e3349ea6ae89e...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:16:33.089Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:16:33.090Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:16:33.091Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:16:33.092Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:16:33.094Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:16:33.095Z"}
+{"level":"info","message":"📨 Found 1 new incoming transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:18:34.604Z"}
+{"level":"info","message":"💰 Processing incoming transaction: 2f2b3bb60f329b61bd2a0d9ad1bf3f81f32c8d6a031653ab33614342b517bd10","service":"auto-refund-monitor","timestamp":"2025-08-22T19:18:34.605Z"}
+{"level":"info","message":"📍 From: addr_test1qrtz7rmxspen5y23vz0v0x4ajmxj79hhw8mgeu008cf9qq94yur63jv0d5gz6eq4q6f905tlxgfjnekdknqs53gcf0qsxsy5xt","service":"auto-refund-monitor","timestamp":"2025-08-22T19:18:34.620Z"}
+{"level":"info","message":"💵 Amount: 2 ADA","service":"auto-refund-monitor","timestamp":"2025-08-22T19:18:34.620Z"}
+{"level":"info","message":"✅ Created user record for automatic refund: auto_1755890315348","service":"auto-refund-monitor","timestamp":"2025-08-22T19:18:35.675Z"}
+{"level":"info","message":"✅ Automatic refund processed successfully: 0d583e11989496ee4d2a59a66392f236d51cac252153e5174775ef7ef68c1275","service":"auto-refund-monitor","timestamp":"2025-08-22T19:18:39.993Z"}
+{"level":"warn","message":"⚠️ Transaction 0d583e11989496ee4d2a59a66392f236d51cac252153e5174775ef7ef68c1275 already exists in database, skipping duplicate insert","service":"auto-refund-monitor","timestamp":"2025-08-22T19:18:40.290Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:19:52.620Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:19:53.939Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:20:33.048Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:20:34.291Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:20:34.294Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:20:34.297Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:20:34.299Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:20:34.309Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:20:34.311Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:22:49.131Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:22:50.675Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:39.076Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:40.388Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:40.433Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:40.460Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:40.464Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:40.469Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:40.471Z"}
+{"level":"info","message":"🛑 Stopping Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:23:46.934Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:25.941Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:27.394Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:27.395Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:27.396Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:27.397Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:27.398Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:27.399Z"}
+{"level":"info","message":"🛑 Stopping Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:24:37.561Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:25:28.977Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:25:48.687Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:25:48.693Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:25:48.694Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:25:48.695Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:25:48.696Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:25:48.696Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:28:48.670Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:28:49.894Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:29:22.724Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:29:24.100Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:29:24.115Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:29:24.116Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:29:24.118Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:29:24.119Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:29:24.126Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:18.901Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 2f2b3bb60f329b61...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:20.643Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:20.644Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:20.645Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:20.647Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:20.649Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:20.649Z"}
+{"level":"info","message":"📨 Found 1 new incoming transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:53.403Z"}
+{"level":"info","message":"💰 Processing incoming transaction: a27a98f14ef048eff319c255fd1da1c7d21b65f3c06c882a8b4e43cf714fd0ba","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:53.436Z"}
+{"level":"info","message":"📍 From: addr_test1qp4zqrs6zverjegrq4t5yner304gnm2cd9ktxqjg3rxfctqtzar85vrwjadjyltyjk4y3ynsggp9nzhaucz4guxwwp3q6yhgvm","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:53.443Z"}
+{"level":"info","message":"💵 Amount: 2 ADA","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:53.445Z"}
+{"level":"info","message":"✅ Created user record for automatic refund: auto_1755891174095","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:54.566Z"}
+{"level":"info","message":"✅ Automatic refund processed successfully: e512f2034146654de7ede954dfec5d404002e274323f60a1126a45fe21a99f69","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:57.543Z"}
+{"level":"warn","message":"⚠️ Transaction e512f2034146654de7ede954dfec5d404002e274323f60a1126a45fe21a99f69 already exists in database, skipping duplicate insert","service":"auto-refund-monitor","timestamp":"2025-08-22T19:32:57.705Z"}
+{"level":"info","message":"📨 Found 1 new incoming transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:35:55.013Z"}
+{"level":"info","message":"💰 Processing incoming transaction: 85e7f5d44f10c7a438632974822a9a3dde2f8d14bc8582189b2661e1eccb3d93","service":"auto-refund-monitor","timestamp":"2025-08-22T19:35:55.014Z"}
+{"level":"info","message":"📍 From: addr_test1qr42jas88wnr5yk79v0vxkd3dzgukvhyz2hg67wzay4ck2znd8eh0m34zxn8r9enc3m3me7d46vqfg5axygechkvrhpqlt9ms0","service":"auto-refund-monitor","timestamp":"2025-08-22T19:35:55.014Z"}
+{"level":"info","message":"💵 Amount: 2 ADA","service":"auto-refund-monitor","timestamp":"2025-08-22T19:35:55.015Z"}
+{"level":"info","message":"✅ Automatic refund processed successfully: bbe70a8aff686b15174bb9b322180e9632eb6c89d1f39e70baa3d83a5d95c4bb","service":"auto-refund-monitor","timestamp":"2025-08-22T19:35:57.725Z"}
+{"level":"warn","message":"⚠️ Transaction bbe70a8aff686b15174bb9b322180e9632eb6c89d1f39e70baa3d83a5d95c4bb already exists in database, skipping duplicate insert","service":"auto-refund-monitor","timestamp":"2025-08-22T19:35:57.999Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:02.908Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 85e7f5d44f10c7a4...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:04.302Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:48.226Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 85e7f5d44f10c7a4...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:49.599Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:49.601Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:49.601Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:49.603Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:49.604Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:37:49.604Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:10.840Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 85e7f5d44f10c7a4...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:12.095Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:56.682Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: 85e7f5d44f10c7a4...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:58.595Z"}
+{"level":"info","message":"📚 Loaded 0 previously processed transactions","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:58.624Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor initialized. Deposit address: addr_test1wznyv36t3a2rzfs4q6mvyu7nqlr4dxjwkmykkskafg54yzs735734","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:58.664Z"}
+{"level":"info","message":"📱 Mobile-optimized polling interval: 30000ms","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:58.674Z"}
+{"level":"info","message":"🎯 Starting Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:58.679Z"}
+{"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-22T19:41:58.680Z"}

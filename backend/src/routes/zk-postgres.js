@@ -415,22 +415,22 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
  */
 router.post('/login-with-pin', async (req, res) => {
   try {
-    const { phoneNumber, pin } = req.body;
+    const { phoneNumber, pin, biometricData, biometricType, passkeyData } = req.body;
     
-    // Validate inputs
-    if (!phoneNumber || !pin) {
+    // Validate inputs - phoneNumber is required, but PIN is now optional
+    if (!phoneNumber) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'INVALID_INPUT',
-          message: 'Missing required inputs: phoneNumber and pin are required'
+          message: 'Missing required input: phoneNumber is required'
         },
         timestamp: new Date().toISOString()
       });
     }
     
-    // Validate PIN format (4 digits)
-    if (!/^\d{4}$/.test(pin)) {
+    // Validate PIN format if provided (4 digits)
+    if (pin && !/^\d{4}$/.test(pin)) {
       return res.status(400).json({
         success: false,
         error: {
@@ -447,9 +447,15 @@ router.post('/login-with-pin', async (req, res) => {
       // Hash the phone number to find the user
       const phoneHash = hashPhone(phoneNumber);
       
-      // Find user by phone hash and verify PIN
+      // Find user by phone hash and get their verification method and authentication data
       const userQuery = await client.query(
-        'SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", pin FROM users WHERE phone_hash = $1',
+        `SELECT u.user_id as "userId", u.wallet_address as "walletAddress", u.phone_hash as "phoneHash", 
+                u.zk_commitment as "zkCommitment", ud.pin, ud.verification_method as "verificationMethod", 
+                ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash", 
+                u.username, ud.passkey_hash as "passkeyHash"
+         FROM users u 
+         LEFT JOIN user_deposits ud ON u.user_id = ud.user_id 
+         WHERE u.phone_hash = $1`,
         [phoneHash]
       );
       
@@ -466,13 +472,80 @@ router.post('/login-with-pin', async (req, res) => {
       
       const user = userQuery.rows[0];
       
-      // Verify PIN (assuming PIN is stored as plain text for now)
-      if (user.pin !== pin) {
+      // Authentication logic based on user's original verification method
+      let authenticationSuccessful = false;
+      let authMethod = '';
+      
+      // Check if no authentication data is provided
+      if (!pin && !biometricData && !passkeyData) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'NO_AUTH_DATA',
+            message: 'At least one authentication method is required (PIN, biometric, or passkey)',
+            availableMethods: {
+              originalMethod: user.verificationMethod,
+              biometricType: user.biometricType,
+              hasPIN: !!user.pin,
+              hasPasskey: !!user.passkeyHash
+            }
+          },
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Try authentication with user's original verification method first
+      if (user.verificationMethod === 'biometric' && biometricData && biometricType) {
+        if (biometricType === user.biometricType && user.biometricHash) {
+          // Import hash function for biometric verification
+          const { hashBiometric } = await import('../utils/hash.js');
+          const providedBiometricHash = hashBiometric(biometricData);
+          
+          if (providedBiometricHash === user.biometricHash) {
+            authenticationSuccessful = true;
+            authMethod = `${user.biometricType} biometric`;
+          }
+        }
+      } else if (user.verificationMethod === 'passkey' && passkeyData) {
+        if (user.passkeyHash) {
+          // Import hash function for passkey verification
+          const { hashPasskey } = await import('../utils/hash.js');
+          const providedPasskeyHash = hashPasskey(passkeyData);
+          
+          if (providedPasskeyHash === user.passkeyHash) {
+            authenticationSuccessful = true;
+            authMethod = 'passkey';
+          }
+        }
+      } else if (user.verificationMethod === 'pin' && pin) {
+        // Verify PIN for users who originally signed up with PIN
+        if (user.pin === pin) {
+          authenticationSuccessful = true;
+          authMethod = 'PIN';
+        }
+      }
+      
+      // If original method failed or wasn't provided, try PIN as fallback (if available)
+      if (!authenticationSuccessful && pin && user.pin && user.verificationMethod !== 'pin') {
+        if (user.pin === pin) {
+          authenticationSuccessful = true;
+          authMethod = 'PIN (fallback)';
+        }
+      }
+      
+      // If authentication failed
+      if (!authenticationSuccessful) {
         return res.status(401).json({
           success: false,
           error: {
-            code: 'INVALID_PIN',
-            message: 'Invalid PIN provided'
+            code: 'AUTHENTICATION_FAILED',
+            message: 'Authentication failed. Please use your original signup method or correct credentials.',
+            availableMethods: {
+              originalMethod: user.verificationMethod,
+              biometricType: user.biometricType,
+              hasPIN: !!user.pin,
+              hasPasskey: !!user.passkeyHash
+            }
           },
           timestamp: new Date().toISOString()
         });
@@ -556,7 +629,7 @@ router.post('/login-with-pin', async (req, res) => {
         { 
           userId: user.userId,
           walletAddress: user.walletAddress,
-          authMethod: 'zk-pin'
+          authMethod: `zk-${authMethod.toLowerCase().replace(' ', '-')}`
         },
         process.env.JWT_SECRET || 'your-secret-key',
         { expiresIn: '1h' }
@@ -566,11 +639,12 @@ router.post('/login-with-pin', async (req, res) => {
       return res.status(200).json({
         success: true,
         data: {
-          message: 'ZK login with PIN successful',
+          message: `ZK login successful using ${authMethod}`,
           userId: user.userId,
           walletAddress: user.walletAddress,
           token,
-          authMethod: 'zk-pin'
+          authMethod: authMethod,
+          originalVerificationMethod: user.verificationMethod
         },
         timestamp: new Date().toISOString()
       });
