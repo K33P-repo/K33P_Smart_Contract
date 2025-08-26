@@ -914,8 +914,9 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
           
           if (depositRecord && !depositRecord.refunded && !depositRecord.signup_completed) {
             // There's a pending deposit for this wallet with a different phone number
-            console.log('Pending deposit exists for this wallet with different phone, blocking registration');
-            return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE, null, 'This wallet address has a pending registration with a different phone number. Please wait for the process to finish or use a different wallet.');
+            console.log('Pending deposit exists for this wallet with different phone, allowing wallet reuse but noting the existing deposit');
+            // Allow wallet reuse but log the situation for monitoring
+            console.log('Warning: Wallet reuse with pending deposit from different phone number detected');
           }
           
           // Allow wallet reuse for different phone number
