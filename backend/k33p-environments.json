@@ -1,37 +1,6 @@
 {
   "environments": [
     {
-      "id": "localhost-env",
-      "name": "K33P Backend - Localhost",
-      "values": [
-        {
-          "key": "base_url",
-          "value": "http://localhost:3002",
-          "enabled": true
-        },
-        {
-          "key": "jwt_token",
-          "value": "",
-          "enabled": true
-        },
-        {
-          "key": "admin_token",
-          "value": "",
-          "enabled": true
-        },
-        {
-          "key": "user_id",
-          "value": "",
-          "enabled": true
-        },
-        {
-          "key": "request_id",
-          "value": "",
-          "enabled": true
-        }
-      ]
-    },
-    {
       "id": "production-env",
       "name": "K33P Backend - Production",
       "values": [

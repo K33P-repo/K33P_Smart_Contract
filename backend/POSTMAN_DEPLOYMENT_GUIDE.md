@@ -19,12 +19,11 @@
 2. Select "Manage Environments"
 3. Click "Import" button
 4. Select `k33p-environments.json`
-5. Choose which environment to activate:
-   - **K33P Backend - Localhost** for local development (http://localhost:3002)
+5. Activate the environment:
    - **K33P Backend - Production** for deployed backend (https://k33p-backend-i9kj.onrender.com)
 
 ### Step 3: Test the Collection
-1. Select the appropriate environment from the dropdown (top right)
+1. Select the production environment from the dropdown (top right)
 2. Start with "Health Check" endpoint to verify connectivity
 3. Use "Phone Signup" or "Login" to get authentication tokens
 4. Test other endpoints as needed
@@ -37,13 +36,10 @@
 
 ### Basic Collection Run
 ```bash
-# Run entire collection against localhost
+# Run entire collection against production
 postman collection run k33p-postman-collection.json
 
-# Run with environment variables
-postman collection run k33p-postman-collection.json --env-var "base_url=http://localhost:3002"
-
-# Run against production
+# Run with environment variables (production is default)
 postman collection run k33p-postman-collection.json --env-var "base_url=https://k33p-backend-i9kj.onrender.com"
 
 # Run with verbose output
@@ -72,7 +68,7 @@ postman collection run k33p-postman-collection.json --working-dir ./
 
 The collection uses these variables that are automatically managed:
 
-- `base_url` - API base URL (localhost or production)
+- `base_url` - API base URL (production: https://k33p-backend-i9kj.onrender.com)
 - `jwt_token` - Authentication token (auto-set after login)
 - `admin_token` - Admin authentication token
 - `user_id` - Current user ID (auto-set after login)
@@ -128,19 +124,19 @@ The collection uses these variables that are automatically managed:
 5. **Business Logic** - Test UTXO, ZK Proof, Payment endpoints
 6. **Monitoring** - Use status endpoints for system health
 
-## Switching Between Environments
+## Environment Configuration
 
 ### In Postman App
 - Use the environment dropdown in the top right
-- Switch between "Localhost" and "Production" as needed
+- Select "K33P Backend - Production" environment
 
 ### In CLI
-- Use `--env-var` to override the base_url:
+- The collection is pre-configured for production. You can override if needed:
   ```bash
-  # Localhost
-  postman collection run k33p-postman-collection.json --env-var "base_url=http://localhost:3002"
+  # Production (default)
+  postman collection run k33p-postman-collection.json
   
-  # Production
+  # Override base_url if needed
   postman collection run k33p-postman-collection.json --env-var "base_url=https://k33p-backend-i9kj.onrender.com"
   ```
 
@@ -149,12 +145,12 @@ The collection uses these variables that are automatically managed:
 - The collection includes automatic token extraction for seamless testing
 - All endpoints are pre-configured with sample request bodies
 - Environment variables are automatically managed where possible
-- The collection supports both localhost development and production testing
+- The collection is configured for production testing on Render
 - Some endpoints require valid Twilio credentials to function properly
 
 ## Troubleshooting
 
 - **500 Errors**: Usually indicate missing environment variables (Twilio, database, etc.)
 - **401 Errors**: Check that JWT token is properly set after login
-- **Connection Errors**: Verify the correct base_url for your environment
+- **Connection Errors**: Verify the production server is accessible at https://k33p-backend-i9kj.onrender.com
 - **Timeout Errors**: Increase timeout values in CLI or check server status

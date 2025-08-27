@@ -8,11 +8,6 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:3002",
-      "type": "string"
-    },
-    {
-      "key": "deployed_url",
       "value": "https://k33p-backend-i9kj.onrender.com",
       "type": "string"
     },
@@ -590,13 +585,8 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// Auto-set base_url based on environment",
-          "const currentUrl = pm.request.url.toString();",
-          "if (currentUrl.includes('localhost')) {",
-          "    pm.collectionVariables.set('base_url', 'http://localhost:3002');",
-          "} else if (currentUrl.includes('render.com')) {",
-          "    pm.collectionVariables.set('base_url', 'https://k33p-backend-i9kj.onrender.com');",
-          "}"
+          "// Set base_url to deployed environment",
+          "pm.collectionVariables.set('base_url', 'https://k33p-backend-i9kj.onrender.com');"
         ]
       }
     }
