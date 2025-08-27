@@ -450,7 +450,7 @@ router.post('/login-with-pin', async (req, res) => {
       // Find user by phone hash and get their verification method and authentication data
       const userQuery = await client.query(
         `SELECT u.user_id as "userId", u.wallet_address as "walletAddress", u.phone_hash as "phoneHash", 
-                u.zk_commitment as "zkCommitment", ud.pin, ud.verification_method as "verificationMethod", 
+                u.zk_commitment as "zkCommitment", u.pin, ud.verification_method as "verificationMethod", 
                 ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash", 
                 u.username, ud.passkey_hash as "passkeyHash"
          FROM users u 

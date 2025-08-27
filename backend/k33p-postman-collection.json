@@ -1,0 +1,604 @@
+{
+  "info": {
+    "name": "K33P Backend API Collection",
+    "description": "Complete API collection for K33P Backend with authentication, OTP, user management, and more",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3002",
+      "type": "string"
+    },
+    {
+      "key": "deployed_url",
+      "value": "https://k33p-backend-i9kj.onrender.com",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "request_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Phone Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"walletAddress\": \"addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup/phone",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup", "phone"]
+            }
+          }
+        },
+        {
+          "name": "PIN Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"pin\": \"123456\",\n  \"walletAddress\": \"addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/signup/pin",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "signup", "pin"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"authMethod\": \"pin\",\n  \"authData\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    if (response.data && response.data.token) {",
+                    "        pm.collectionVariables.set('jwt_token', response.data.token);",
+                    "        pm.collectionVariables.set('user_id', response.data.userId);",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "OTP Management",
+      "item": [
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/otp/send",
+              "host": ["{{base_url}}"],
+              "path": ["api", "otp", "send"]
+            },
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "if (pm.response.code === 200) {",
+                    "    const response = pm.response.json();",
+                    "    if (response.data && response.data.requestId) {",
+                    "        pm.collectionVariables.set('request_id', response.data.requestId);",
+                    "    }",
+                    "}"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestId\": \"{{request_id}}\",\n  \"code\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/otp/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "otp", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Cancel OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"requestId\": \"{{request_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/otp/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "otp", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "Create User Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser123\",\n  \"email\": \"test@example.com\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user-management/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user-management", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/user-management/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user-management", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"updateduser123\",\n  \"email\": \"updated@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/user-management/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "user-management", "profile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "UTXO Management",
+      "item": [
+        {
+          "name": "Get User UTXOs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/utxo/user",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utxo", "user"]
+            }
+          }
+        },
+        {
+          "name": "Get Balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/utxo/balance",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utxo", "balance"]
+            }
+          }
+        },
+        {
+          "name": "Create Deposit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1000000,\n  \"walletAddress\": \"addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/utxo/deposit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "utxo", "deposit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Zero-Knowledge Proof",
+      "item": [
+        {
+          "name": "Generate ZK Commitment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1234567890\",\n  \"biometric\": \"biometric_data_sample\",\n  \"passkey\": \"passkey_data_sample\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/zk/commitment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "zk", "commitment"]
+            }
+          }
+        },
+        {
+          "name": "Generate ZK Proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+1234567890\",\n  \"biometric\": \"biometric_data_sample\",\n  \"passkey\": \"passkey_data_sample\",\n  \"commitment\": \"commitment_hash_sample\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/zk/proof",
+              "host": ["{{base_url}}"],
+              "path": ["api", "zk", "proof"]
+            }
+          }
+        },
+        {
+          "name": "Verify ZK Proof",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"proof\": {\n    \"publicInputs\": {\n      \"commitment\": \"commitment_hash_sample\"\n    },\n    \"isValid\": true\n  },\n  \"commitment\": \"commitment_hash_sample\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/zk/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "zk", "verify"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment & Subscription",
+      "item": [
+        {
+          "name": "Get Subscription Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscription/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscription", "status"]
+            }
+          }
+        },
+        {
+          "name": "Initialize Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionType\": \"premium\",\n  \"durationMonths\": 1,\n  \"paymentMethod\": \"stripe\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payment/initialize",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payment", "initialize"]
+            }
+          }
+        },
+        {
+          "name": "Activate Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"durationMonths\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/subscription/activate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscription", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/subscription/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["api", "subscription", "cancel"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health & Status",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          }
+        },
+        {
+          "name": "Server Status",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "status"]
+            }
+          }
+        },
+        {
+          "name": "API Version",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/version",
+              "host": ["{{base_url}}"],
+              "path": ["api", "version"]
+            }
+          }
+        },
+        {
+          "name": "Auto-Refund Health",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/auto-refund/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auto-refund", "health"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set base_url based on environment",
+          "const currentUrl = pm.request.url.toString();",
+          "if (currentUrl.includes('localhost')) {",
+          "    pm.collectionVariables.set('base_url', 'http://localhost:3002');",
+          "} else if (currentUrl.includes('render.com')) {",
+          "    pm.collectionVariables.set('base_url', 'https://k33p-backend-i9kj.onrender.com');",
+          "}"
+        ]
+      }
+    }
+  ]
+}
