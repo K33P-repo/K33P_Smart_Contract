@@ -14,7 +14,7 @@ import { dbService } from '../database/service.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { sendOtp, verifyOtp } from '../utils/firebase.js';
+import { sendOtp, verifyOtp } from '../utils/twilio.js';
 const router = express.Router();
 // Rate limiters for auth routes
 const signupLimiter = createRateLimiter({
@@ -720,32 +720,86 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
             const existingWalletUserResult = await storageService.findUser({ walletAddress: finalUserAddress });
             console.log('Existing wallet user check completed, found:', !!existingWalletUserResult.data);
             if (existingWalletUserResult.success && existingWalletUserResult.data) {
-                console.log('User already exists with this wallet address, checking deposit status...');
-                // Check if this wallet has a deposit record to determine if signup was completed
-                const depositRecord = await dbService.getDepositByUserAddress(finalUserAddress);
-                console.log('Deposit record found:', !!depositRecord);
-                if (depositRecord) {
-                    console.log('Deposit status - refunded:', depositRecord.refunded, 'signup_completed:', depositRecord.signup_completed);
-                    // If the deposit was refunded but signup was not completed, allow re-registration
-                    if (depositRecord.refunded && !depositRecord.signup_completed) {
-                        console.log('Wallet was refunded but signup not completed, allowing re-registration');
-                        // Continue with signup process - don't return error
+                console.log('User already exists with this wallet address, checking if same phone number...');
+                const existingWalletUser = existingWalletUserResult.data;
+                // Check if the existing user has the same phone number
+                if (existingWalletUser.phoneHash === phoneHash) {
+                    console.log('Same phone number detected, treating as existing user update');
+                    // This is the same user trying to signup again with same phone and wallet
+                    // Allow this and treat it as an update (similar to the existing user flow above)
+                    // Generate new ZK commitment and proof for existing user
+                    console.log('Generating new ZK commitment for existing wallet user...');
+                    const newCommitmentData = { phoneHash };
+                    if (biometricHash)
+                        newCommitmentData.biometricHash = biometricHash;
+                    if (passkeyHash)
+                        newCommitmentData.passkeyHash = passkeyHash;
+                    const newZkCommitment = generateZkCommitment(newCommitmentData);
+                    console.log('New ZK commitment generated successfully');
+                    const newProofData = { phone: finalPhoneNumber };
+                    if (finalBiometricData)
+                        newProofData.biometric = finalBiometricData;
+                    if (passkey)
+                        newProofData.passkey = passkey;
+                    const newZkProof = generateZkProof(newProofData, newZkCommitment);
+                    console.log('New ZK proof generated, valid:', newZkProof.isValid);
+                    if (!newZkProof.isValid) {
+                        console.log('New ZK proof validation failed');
+                        return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid ZK proof for existing wallet user update');
                     }
-                    else if (depositRecord.signup_completed) {
-                        // Signup was completed, don't allow re-registration
-                        console.log('Signup was completed for this wallet, blocking re-registration');
-                        return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE, null, 'This wallet address is already registered with a completed account. Please use a different wallet or contact support if this is your wallet.');
+                    // Update existing user with new data
+                    const updateData = {
+                        zkCommitment: newZkCommitment,
+                        verificationMethod,
+                        biometricType: biometricType || null,
+                        senderWalletAddress: senderWalletAddress || null,
+                        phoneNumber: finalPhoneNumber,
+                        updatedAt: new Date()
+                    };
+                    if (biometricHash)
+                        updateData.biometricHash = biometricHash;
+                    if (passkeyHash)
+                        updateData.passkeyHash = passkeyHash;
+                    if (pin)
+                        updateData.pin = pin;
+                    if (username)
+                        updateData.username = username;
+                    const updateResult = await storageService.updateUser(existingWalletUser.id, updateData);
+                    if (!updateResult.success) {
+                        console.log('Failed to update existing wallet user:', updateResult.error);
+                        return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing wallet user: ' + updateResult.error);
                     }
-                    else {
-                        // Deposit exists but not refunded and not completed (still in progress)
-                        console.log('Deposit in progress for this wallet, blocking re-registration');
-                        return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE, null, 'This wallet address has a pending registration. Please complete your existing registration or wait for the process to finish.');
-                    }
+                    console.log('Existing wallet user updated successfully');
+                    // Generate JWT token for updated existing user
+                    const token = jwt.sign({ id: existingWalletUser.id, walletAddress: finalUserAddress }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+                    return res.status(200).json({
+                        success: true,
+                        data: {
+                            verified: existingWalletUser.verified || false,
+                            userId: existingWalletUser.userId || existingWalletUser.id,
+                            verificationMethod,
+                            message: 'User account updated successfully with same wallet and phone.',
+                            depositAddress: finalUserAddress,
+                            isUpdate: true
+                        },
+                        message: 'User account updated successfully with same wallet and phone.',
+                        token
+                    });
                 }
                 else {
-                    // User exists but no deposit record found, block registration
-                    console.log('User exists but no deposit record found, blocking registration');
-                    return ResponseUtils.error(res, ErrorCodes.WALLET_IN_USE, null, 'This wallet address is already registered with another account. Please use a different wallet or contact support if this is your wallet.');
+                    console.log('Different phone number detected, allowing wallet reuse for new account');
+                    // Different phone number - allow wallet reuse
+                    // Check deposit status to ensure we handle any pending transactions properly
+                    const depositRecord = await dbService.getDepositByUserAddress(finalUserAddress);
+                    console.log('Deposit record found for wallet reuse:', !!depositRecord);
+                    if (depositRecord && !depositRecord.refunded && !depositRecord.signup_completed) {
+                        // There's a pending deposit for this wallet with a different phone number
+                        console.log('Pending deposit exists for this wallet with different phone, allowing wallet reuse but noting the existing deposit');
+                        // Allow wallet reuse but log the situation for monitoring
+                        console.log('Warning: Wallet reuse with pending deposit from different phone number detected');
+                    }
+                    // Allow wallet reuse for different phone number
+                    console.log('Allowing wallet reuse for different phone number');
                 }
             }
         }

@@ -56,4 +56,5 @@ export interface OtpRequest {
   phoneNumber: string;
   timestamp: number;
   verified: boolean;
+  otpCode?: string; // For manual SMS verification
 }

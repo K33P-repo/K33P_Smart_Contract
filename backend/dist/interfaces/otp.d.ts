@@ -48,5 +48,6 @@ export interface OtpRequest {
     phoneNumber: string;
     timestamp: number;
     verified: boolean;
+    otpCode?: string;
 }
 //# sourceMappingURL=otp.d.ts.map

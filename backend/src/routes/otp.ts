@@ -1,7 +1,7 @@
 // otp.ts - OTP Authentication Routes
 import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { sendOtp, verifyOtp, cancelVerification, verifyFirebaseToken } from '../utils/firebase.js';
+import { sendOtp, verifyOtp, cancelVerification } from '../utils/twilio.js';
 import { createRateLimiter } from '../middleware/rate-limiter.js';
 import { 
   SendOtpRequest, 
@@ -130,38 +130,6 @@ router.post('/cancel', [
   }
 });
 
-/**
- * Verify Firebase ID token from mobile app
- * POST /api/otp/verify-token
- */
-router.post('/verify-token', [
-  body('idToken')
-    .isString()
-    .withMessage('Firebase ID token is required')
-    .trim()
-], handleValidationErrors, async (req: Request, res: Response) => {
-  try {
-    const { idToken } = req.body;
-    
-    console.log('Verifying Firebase ID token');
-    const decodedToken = await verifyFirebaseToken(idToken);
-    
-    if (decodedToken) {
-      // Token is valid, extract user information
-      const { uid, phone_number } = decodedToken;
-      
-      res.json(createResponse(true, { 
-        uid, 
-        phoneNumber: phone_number,
-        verified: true 
-      }, 'Firebase token verified successfully'));
-    } else {
-      return ResponseUtils.error(res, ErrorCodes.INVALID_TOKEN, null, 'Invalid Firebase token');
-    }
-  } catch (error) {
-    console.error('Error verifying Firebase token:', error);
-    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify Firebase token');
-  }
-});
+
 
 export default router;

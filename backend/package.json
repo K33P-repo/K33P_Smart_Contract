@@ -41,7 +41,7 @@
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
     "express-validator": "^7.2.1",
-    "firebase-admin": "^13.4.0",
+
     "helmet": "^8.1.0",
     "lucid-cardano": "^0.10.11",
     "morgan": "1.10.1",
@@ -51,6 +51,7 @@
     "nodemailer": "7.0.5",
     "paystack": "^2.0.1",
     "pg": "^8.11.3",
+    "twilio": "5.8.0",
     "webcrypto-core": "1.8.1",
     "winston": "^3.17.0"
   },

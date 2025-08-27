@@ -14,7 +14,7 @@ import { dbService } from '../database/service.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { sendOtp, verifyOtp } from '../utils/firebase.js';
+import { sendOtp, verifyOtp } from '../utils/twilio.js';
 
 const router = express.Router();
 
