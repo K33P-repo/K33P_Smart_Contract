@@ -475,22 +475,8 @@ router.post('/login-with-pin', async (req, res) => {
       let authenticationSuccessful = false;
       let authMethod = '';
       
-      // Check if no authentication data is provided
-      if (!pin && !biometricData && !passkeyData) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'NO_AUTH_DATA',
-            message: 'At least one authentication method is required (PIN, biometric, or passkey)',
-            availableMethods: {
-              originalMethod: user.verificationMethod,
-              biometricType: user.biometricType,
-              hasPIN: !!user.pin
-            }
-          },
-          timestamp: new Date().toISOString()
-        });
-      }
+      // PIN is now optional - allow login with just phone number
+      // If no authentication data is provided, we'll proceed with phone-only authentication
       
       // Try authentication with user's original verification method first
       if (user.verificationMethod === 'biometric' && biometricData && biometricType) {
@@ -520,7 +506,13 @@ router.post('/login-with-pin', async (req, res) => {
         }
       }
       
-      // If authentication failed
+      // If no authentication data was provided, allow phone-only authentication
+      if (!authenticationSuccessful && !pin && !biometricData && !passkeyData) {
+        authenticationSuccessful = true;
+        authMethod = 'phone-only';
+      }
+      
+      // If authentication failed with provided credentials
       if (!authenticationSuccessful) {
         return res.status(401).json({
           success: false,

@@ -1,35 +1,31 @@
 {
-  "environments": [
+  "id": "production-env",
+  "name": "K33P Backend - Production",
+  "values": [
     {
-      "id": "production-env",
-      "name": "K33P Backend - Production",
-      "values": [
-        {
-          "key": "base_url",
-          "value": "https://k33p-backend-i9kj.onrender.com",
-          "enabled": true
-        },
-        {
-          "key": "jwt_token",
-          "value": "",
-          "enabled": true
-        },
-        {
-          "key": "admin_token",
-          "value": "",
-          "enabled": true
-        },
-        {
-          "key": "user_id",
-          "value": "",
-          "enabled": true
-        },
-        {
-          "key": "request_id",
-          "value": "",
-          "enabled": true
-        }
-      ]
+      "key": "base_url",
+      "value": "https://k33p-backend-i9kj.onrender.com",
+      "enabled": true
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "enabled": true
+    },
+    {
+      "key": "request_id",
+      "value": "",
+      "enabled": true
     }
   ]
 }
