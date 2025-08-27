@@ -451,8 +451,7 @@ router.post('/login-with-pin', async (req, res) => {
       const userQuery = await client.query(
         `SELECT u.user_id as "userId", u.wallet_address as "walletAddress", u.phone_hash as "phoneHash", 
                 u.zk_commitment as "zkCommitment", u.pin, ud.verification_method as "verificationMethod", 
-                ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash", 
-                ud.passkey_hash as "passkeyHash"
+                ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash"
          FROM users u 
          LEFT JOIN user_deposits ud ON u.user_id = ud.user_id 
          WHERE u.phone_hash = $1`,
@@ -486,8 +485,7 @@ router.post('/login-with-pin', async (req, res) => {
             availableMethods: {
               originalMethod: user.verificationMethod,
               biometricType: user.biometricType,
-              hasPIN: !!user.pin,
-              hasPasskey: !!user.passkeyHash
+              hasPIN: !!user.pin
             }
           },
           timestamp: new Date().toISOString()
@@ -504,17 +502,6 @@ router.post('/login-with-pin', async (req, res) => {
           if (providedBiometricHash === user.biometricHash) {
             authenticationSuccessful = true;
             authMethod = `${user.biometricType} biometric`;
-          }
-        }
-      } else if (user.verificationMethod === 'passkey' && passkeyData) {
-        if (user.passkeyHash) {
-          // Import hash function for passkey verification
-          const { hashPasskey } = await import('../utils/hash.js');
-          const providedPasskeyHash = hashPasskey(passkeyData);
-          
-          if (providedPasskeyHash === user.passkeyHash) {
-            authenticationSuccessful = true;
-            authMethod = 'passkey';
           }
         }
       } else if (user.verificationMethod === 'pin' && pin) {
@@ -543,8 +530,7 @@ router.post('/login-with-pin', async (req, res) => {
             availableMethods: {
               originalMethod: user.verificationMethod,
               biometricType: user.biometricType,
-              hasPIN: !!user.pin,
-              hasPasskey: !!user.passkeyHash
+              hasPIN: !!user.pin
             }
           },
           timestamp: new Date().toISOString()

@@ -163,3 +163,5 @@
 {"level":"info","message":"✅ Auto-Refund Monitor started with 30000ms interval","service":"auto-refund-monitor","timestamp":"2025-08-27T10:23:03.271Z"}
 {"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-27T11:04:54.092Z"}
 {"level":"info","message":"🔄 Resuming monitoring from last seen transaction: d64bc4381068d973...","service":"auto-refund-monitor","timestamp":"2025-08-27T11:04:57.785Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2025-08-27T11:18:45.714Z"}
+{"level":"info","message":"🔄 Resuming monitoring from last seen transaction: d64bc4381068d973...","service":"auto-refund-monitor","timestamp":"2025-08-27T11:18:46.716Z"}
