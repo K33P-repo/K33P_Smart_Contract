@@ -452,7 +452,7 @@ router.post('/login-with-pin', async (req, res) => {
         `SELECT u.user_id as "userId", u.wallet_address as "walletAddress", u.phone_hash as "phoneHash", 
                 u.zk_commitment as "zkCommitment", u.pin, ud.verification_method as "verificationMethod", 
                 ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash", 
-                u.username, ud.passkey_hash as "passkeyHash"
+                ud.passkey_hash as "passkeyHash"
          FROM users u 
          LEFT JOIN user_deposits ud ON u.user_id = ud.user_id 
          WHERE u.phone_hash = $1`,

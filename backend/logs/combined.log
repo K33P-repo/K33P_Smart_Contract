@@ -506,3 +506,11 @@
 {"ip":"::1","level":"info","message":"GET /api/version","service":"k33p-backend","timestamp":"2025-08-27T10:34:20.569Z","userAgent":"PostmanRuntime/7.44.1"}
 {"ip":"::1","level":"info","message":"GET /api/auto-refund/health","service":"k33p-backend","timestamp":"2025-08-27T10:34:20.674Z","userAgent":"PostmanRuntime/7.44.1"}
 {"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-27T11:03:54.062Z","userAgent":"curl/8.9.1"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-27T11:04:26.754Z","userAgent":"curl/8.9.1"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-27T11:04:49.020Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-27T11:04:49.023Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-08-27T11:04:49.682Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-08-27T11:04:49.849Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-27T11:04:51.492Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-27T11:04:54.092Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-27T11:04:57.807Z"}
