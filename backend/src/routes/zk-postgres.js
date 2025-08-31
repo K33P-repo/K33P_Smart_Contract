@@ -622,7 +622,11 @@ router.post('/login-with-pin', async (req, res) => {
           walletAddress: user.walletAddress,
           token,
           authMethod: authMethod,
-          originalVerificationMethod: user.verificationMethod
+          registeredAuthMethod: {
+            verificationMethod: user.verificationMethod,
+            biometricType: user.biometricType,
+            hasPIN: !!user.pin
+          }
         },
         timestamp: new Date().toISOString()
       });

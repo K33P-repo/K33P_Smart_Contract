@@ -530,3 +530,16 @@
 {"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-27T18:40:25.284Z"}
 {"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-08-27T18:40:25.294Z"}
 {"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-27T18:40:25.297Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-31T12:03:11.878Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-08-31T12:03:11.887Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-08-31T12:03:13.356Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-08-31T12:03:13.696Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-08-31T12:03:19.564Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-08-31T12:03:25.607Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded","service":"k33p-backend","timestamp":"2025-08-31T12:03:27.269Z"}
+{"level":"info","message":"K33P Backend Server running on port 3001","service":"k33p-backend","timestamp":"2025-08-31T12:03:27.283Z"}
+{"level":"info","message":"Health check: https://your-app.onrender.com/api/health","service":"k33p-backend","timestamp":"2025-08-31T12:03:27.357Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-31T12:03:37.170Z","userAgent":"curl/8.14.1"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-31T12:04:00.854Z","userAgent":"curl/8.14.1"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-08-31T12:04:34.658Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-08-31T12:05:27.763Z","userAgent":"curl/8.14.1"}
