@@ -406,9 +406,8 @@ router.post('/login-with-pin', async (req, res) => {
             const phoneHash = hashPhone(phoneNumber);
             // Find user by phone hash and get their verification method and authentication data
             const userQuery = await client.query(`SELECT u.user_id as "userId", u.wallet_address as "walletAddress", u.phone_hash as "phoneHash", 
-                u.zk_commitment as "zkCommitment", ud.pin, ud.verification_method as "verificationMethod", 
-                ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash", 
-                u.username, ud.passkey_hash as "passkeyHash"
+                u.zk_commitment as "zkCommitment", u.pin, ud.verification_method as "verificationMethod", 
+                ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash"
          FROM users u 
          LEFT JOIN user_deposits ud ON u.user_id = ud.user_id 
          WHERE u.phone_hash = $1`, [phoneHash]);
@@ -426,23 +425,8 @@ router.post('/login-with-pin', async (req, res) => {
             // Authentication logic based on user's original verification method
             let authenticationSuccessful = false;
             let authMethod = '';
-            // Check if no authentication data is provided
-            if (!pin && !biometricData && !passkeyData) {
-                return res.status(400).json({
-                    success: false,
-                    error: {
-                        code: 'NO_AUTH_DATA',
-                        message: 'At least one authentication method is required (PIN, biometric, or passkey)',
-                        availableMethods: {
-                            originalMethod: user.verificationMethod,
-                            biometricType: user.biometricType,
-                            hasPIN: !!user.pin,
-                            hasPasskey: !!user.passkeyHash
-                        }
-                    },
-                    timestamp: new Date().toISOString()
-                });
-            }
+            // PIN is now optional - allow login with just phone number
+            // If no authentication data is provided, we'll proceed with phone-only authentication
             // Try authentication with user's original verification method first
             if (user.verificationMethod === 'biometric' && biometricData && biometricType) {
                 if (biometricType === user.biometricType && user.biometricHash) {
@@ -452,17 +436,6 @@ router.post('/login-with-pin', async (req, res) => {
                     if (providedBiometricHash === user.biometricHash) {
                         authenticationSuccessful = true;
                         authMethod = `${user.biometricType} biometric`;
-                    }
-                }
-            }
-            else if (user.verificationMethod === 'passkey' && passkeyData) {
-                if (user.passkeyHash) {
-                    // Import hash function for passkey verification
-                    const { hashPasskey } = await import('../utils/hash.js');
-                    const providedPasskeyHash = hashPasskey(passkeyData);
-                    if (providedPasskeyHash === user.passkeyHash) {
-                        authenticationSuccessful = true;
-                        authMethod = 'passkey';
                     }
                 }
             }
@@ -480,7 +453,12 @@ router.post('/login-with-pin', async (req, res) => {
                     authMethod = 'PIN (fallback)';
                 }
             }
-            // If authentication failed
+            // If no authentication data was provided, allow phone-only authentication
+            if (!authenticationSuccessful && !pin && !biometricData && !passkeyData) {
+                authenticationSuccessful = true;
+                authMethod = 'phone-only';
+            }
+            // If authentication failed with provided credentials
             if (!authenticationSuccessful) {
                 return res.status(401).json({
                     success: false,
@@ -490,8 +468,7 @@ router.post('/login-with-pin', async (req, res) => {
                         availableMethods: {
                             originalMethod: user.verificationMethod,
                             biometricType: user.biometricType,
-                            hasPIN: !!user.pin,
-                            hasPasskey: !!user.passkeyHash
+                            hasPIN: !!user.pin
                         }
                     },
                     timestamp: new Date().toISOString()
@@ -573,7 +550,11 @@ router.post('/login-with-pin', async (req, res) => {
                     walletAddress: user.walletAddress,
                     token,
                     authMethod: authMethod,
-                    originalVerificationMethod: user.verificationMethod
+                    registeredAuthMethod: {
+                        verificationMethod: user.verificationMethod,
+                        biometricType: user.biometricType,
+                        hasPIN: !!user.pin
+                    }
                 },
                 timestamp: new Date().toISOString()
             });

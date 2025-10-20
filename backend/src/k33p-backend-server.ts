@@ -84,7 +84,11 @@ async function initializeK33P() {
     }
     
     k33pManager = new EnhancedK33PManagerDB();
+    if (process.env.DISABLE_CARDANO !== "true") {
     await k33pManager.initialize();
+  } else {
+    console.log("🚫 Cardano features disabled via DISABLE_CARDANO");
+  }
     logger.info('K33P Manager with Database initialized successfully');
     
     // Initialize and start auto-refund monitor (only if PostgreSQL is available)
