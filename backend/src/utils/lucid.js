@@ -1,188 +1,174 @@
-// Lucid SDK utilities for K33P Identity System
-import { Lucid, Blockfrost, Data, fromText, toHex } from 'lucid-cardano';
-import { bech32 } from 'bech32';
-import fs from 'fs';
+// backend/src/utils/lucid.js
 
-// load backend private key from file
+import { Lucid, Blockfrost, Data, fromText, toHex } from "lucid-cardano";
+import { bech32 } from "bech32";
+import fs from "fs";
+import path from "path";
+
+/* ----------------------------- PRIVATE KEY LOADER ----------------------------- */
 function getBackendPrivateKey() {
-  // First try to use the direct key from environment
   if (process.env.BACKEND_PRIVATE_KEY) {
     const key = process.env.BACKEND_PRIVATE_KEY.trim();
-    console.log('Using BACKEND_PRIVATE_KEY from environment, length:', key.length);
-    console.log('Key starts with:', key.substring(0, 10));
-    
-    // If the key is in cborHex format (starts with 5820), convert to bech32 ed25519_sk format
-    if (key.startsWith('5820') && key.length === 68) {
-      // Remove the CBOR prefix (5820) to get the 64-character private key
+
+    // Handle cborHex format from .skey files
+    if (key.startsWith("5820") && key.length === 68) {
       const hexKey = key.substring(4);
-      console.log('Extracted hex private key from cborHex, length:', hexKey.length);
-      
-      // Convert hex to bytes
-      const keyBytes = Buffer.from(hexKey, 'hex');
-      
-      // Convert to bech32 with ed25519_sk prefix
+      const keyBytes = Buffer.from(hexKey, "hex");
       const words = bech32.toWords(keyBytes);
-      const bech32Key = bech32.encode('ed25519_sk', words);
-      console.log('Converted to bech32 ed25519_sk format:', bech32Key.substring(0, 20) + '...');
-      
+      const bech32Key = bech32.encode("ed25519_sk", words);
       return bech32Key;
     }
-    
+
     return key;
   }
-  
-  // If not available, try to load from file
+
   const keyPath = process.env.BACKEND_PRIVATE_KEY_PATH;
-  if (!keyPath) throw new Error('Neither BACKEND_PRIVATE_KEY nor BACKEND_PRIVATE_KEY_PATH set in environment');
-  
+  if (!keyPath) throw new Error("No BACKEND_PRIVATE_KEY or BACKEND_PRIVATE_KEY_PATH found");
+
+  const fileContent = fs.readFileSync(keyPath, "utf8");
   try {
-    // Read the file content
-    const fileContent = fs.readFileSync(keyPath, 'utf8');
-    
-    // Try to parse as JSON (for .skey format)
-    try {
-      const keyJson = JSON.parse(fileContent);
-      if (keyJson.cborHex) {
-        return keyJson.cborHex;
-      }
-    } catch (e) {
-      // Not JSON, assume it's a raw key
-    }
-    
-    // Return as raw content
-    return fileContent.trim();
-  } catch (error) {
-    console.error('Error loading backend private key:', error);
-    throw new Error('Failed to load backend private key');
-  }
+    const parsed = JSON.parse(fileContent);
+    if (parsed.cborHex) return parsed.cborHex;
+  } catch (_) {}
+  return fileContent.trim();
 }
 
-// Initialize Lucid with Blockfrost provider
-const initLucid = async () => {
+/* ----------------------------- LUCID INITIALIZER ----------------------------- */
+export const initLucid = async () => {
   return await Lucid.new(
-    new Blockfrost(
-      process.env.BLOCKFROST_URL,
-      process.env.BLOCKFROST_API_KEY
-    ),
-    process.env.NETWORK || 'Preprod'
+    new Blockfrost(process.env.BLOCKFROST_URL, process.env.BLOCKFROST_API_KEY),
+    process.env.NETWORK || "Preprod"
   );
 };
 
-// Define the Identity Datum Schema for Lucid
-const IdentityDatumSchema = Data.Object({
-  phone_hash: Data.Bytes(),
-  biometric_hash: Data.Bytes(),
-  passkey_hash: Data.Bytes(),
-  wallet_address: Data.Bytes(),
-  created_at: Data.Integer()
+/* ----------------------------- LOAD PLUTUS VALIDATOR ----------------------------- */
+function loadValidator() {
+  const filePath = path.resolve("./plutus.json");
+  const plutus = JSON.parse(fs.readFileSync(filePath, "utf8"));
+
+  // Get first validator (adjust index if you have multiple)
+  const compiled = plutus.validators[0].compiledCode;
+  if (!compiled) throw new Error("compiledCode missing in plutus.json");
+
+  return {
+    type: "PlutusV3", // matches your plutusVersion in JSON
+    script: compiled,
+  };
+}
+
+/* ----------------------------- GET SCRIPT ADDRESS ----------------------------- */
+export async function getScriptAddress() {
+  const lucid = await initLucid();
+  const validator = loadValidator();
+  return lucid.utils.validatorToAddress(validator);
+}
+
+/* ----------------------------- EXAMPLE DATUM/REDEEMER SCHEMA ----------------------------- */
+
+// simplified structure for on-chain signup
+const SignupDatumValueSchema = Data.Object({
+  wallet: Data.Bytes(), // simplified for now (can replace with Address encoding later)
+  user_id: Data.Bytes(),
+  zk_proof: Data.Bytes(),
+  timestamp: Data.Integer(),
 });
 
-/**
- * Create a signup transaction
- * @param {string} userAddress - User's wallet address
- * @param {Object} userHashes - Object containing phone_hash, biometric_hash, and passkey_hash
- * @returns {Promise<string>} - Transaction hash
- */
-const signupTxBuilder = async (userAddress, userHashes) => {
-  try {
-    // Initialize Lucid
-    const lucid = await initLucid();
-    
-    // Load backend wallet from private key file
-    lucid.selectWalletFromPrivateKey(getBackendPrivateKey());
-    
-    // Create datum with user hashes
-    const datum = Data.to(
-      {
-        phone_hash: userHashes.phoneHash,
-        biometric_hash: userHashes.biometricHash,
-        passkey_hash: userHashes.passkeyHash,
-        wallet_address: fromText(userAddress),
-        created_at: BigInt(Date.now())
+const IdentityDatumSchema = Data.Enum([
+  Data.Object({ SignupDatum: SignupDatumValueSchema }),
+]);
+
+const K33pDatumSchema = Data.Enum([
+  Data.Object({ IdentityDatumType: IdentityDatumSchema }),
+]);
+
+const IdentityRedeemerSchema = Data.Enum([
+  Data.Object({ ProcessSignup: Data.Object({ signature: Data.Bytes() }) }),
+]);
+
+const K33pRedeemerSchema = Data.Enum([
+  Data.Object({ IdentityRedeemerType: IdentityRedeemerSchema }),
+]);
+
+/* ----------------------------- SIGNUP TRANSACTION ----------------------------- */
+export async function signupTxBuilder(userAddress, userData) {
+  const lucid = await initLucid();
+  const validator = loadValidator();
+  lucid.selectWalletFromPrivateKey(getBackendPrivateKey());
+
+  const scriptAddress = lucid.utils.validatorToAddress(validator);
+
+  // Build datum that matches the Aiken schema
+  const datum = Data.to(
+    {
+      IdentityDatumType: {
+        SignupDatum: {
+          wallet: fromText(userAddress),
+          user_id: fromText(userData.user_id),
+          zk_proof: userData.zk_proof,
+          timestamp: BigInt(Math.floor(Date.now() / 1000)),
+        },
       },
-      IdentityDatumSchema
-    );
-    
-    // Build signup transaction
-    const tx = await lucid.newTx()
-      .payToContract(
-        process.env.SCRIPT_ADDRESS,
-        { inline: datum },
-        { lovelace: BigInt(2_000_000) } // 2 ADA
-      )
-      .complete();
-    
-    const signedTx = await tx.sign().complete();
-    return await signedTx.submit();
-  } catch (error) {
-    console.error('Signup transaction error:', error);
-    throw new Error('Failed to create signup transaction');
-  }
-};
+    },
+    K33pDatumSchema
+  );
 
-/**
- * Issue a refund for a UTXO
- * @param {string} ownerAddress - Owner's wallet address
- * @param {Object} scriptUtxo - UTXO to refund
- * @returns {Promise<string>} - Transaction hash
- */
-const refundTx = async (ownerAddress, scriptUtxo) => {
-  try {
-    // Initialize Lucid
-    const lucid = await initLucid();
-    
-    // Load backend wallet from private key file
-    lucid.selectWalletFromPrivateKey(getBackendPrivateKey());
-    
-    // Build refund transaction
-    const tx = await lucid.newTx()
-      .collectFrom([scriptUtxo], { inline: Data.void() }) // Use appropriate redeemer
-      .payToAddress(ownerAddress, { lovelace: BigInt(scriptUtxo.assets.lovelace) })
-      .complete();
-    
-    const signedTx = await tx.sign().complete();
-    return await signedTx.submit();
-  } catch (error) {
-    console.error('Refund transaction error:', error);
-    throw new Error('Failed to issue refund');
-  }
-};
+  const tx = await lucid
+    .newTx()
+    .payToContract(scriptAddress, { inline: datum }, { lovelace: BigInt(2_000_000) })
+    .complete();
 
-/**
- * Fetch UTXOs at script address
- * @param {string} phoneHash - Phone hash to filter UTXOs
- * @returns {Promise<Array>} - Array of UTXOs
- */
-const fetchUtxos = async (phoneHash) => {
-  try {
-    // Initialize Lucid
-    const lucid = await initLucid();
-    
-    // Fetch all UTXOs at the script address
-    const utxos = await lucid.utxosAt(process.env.SCRIPT_ADDRESS);
-    
-    // Filter UTXOs by phone hash in datum
-    return utxos.filter(utxo => {
-      try {
-        if (!utxo.datum) return false;
-        
-        const datum = Data.from(utxo.datum, IdentityDatumSchema);
-        return toHex(datum.phone_hash) === phoneHash;
-      } catch (error) {
-        console.error('Error parsing datum:', error);
-        return false;
-      }
-    });
-  } catch (error) {
-    console.error('Fetch UTXOs error:', error);
-    throw new Error('Failed to fetch UTXOs');
-  }
-};
+  const signed = await tx.sign().complete();
+  const txHash = await signed.submit();
 
-export {
-  initLucid,
-  IdentityDatumSchema,
-  signupTxBuilder,
-  refundTx,
-  fetchUtxos
-};
+  console.log("✅ Signup transaction submitted:", txHash);
+  return txHash;
+}
+
+/* ----------------------------- REFUND TRANSACTION ----------------------------- */
+export async function refundTx(ownerAddress, utxo) {
+  const lucid = await initLucid();
+  const validator = loadValidator();
+  lucid.selectWalletFromPrivateKey(getBackendPrivateKey());
+
+  const redeemer = Data.to(
+    {
+      IdentityRedeemerType: {
+        ProcessRefund: { signature: fromText("backend_sig") },
+      },
+    },
+    K33pRedeemerSchema
+  );
+
+  const tx = await lucid
+    .newTx()
+    .collectFrom([utxo], redeemer)
+    .attachSpendingValidator(validator)
+    .payToAddress(ownerAddress, { lovelace: BigInt(utxo.assets.lovelace) })
+    .complete();
+
+  const signed = await tx.sign().complete();
+  const txHash = await signed.submit();
+
+  console.log("✅ Refund transaction submitted:", txHash);
+  return txHash;
+}
+
+/* ----------------------------- FETCH UTXOs BY PHONE HASH ----------------------------- */
+export async function fetchUtxos(phoneHashHex) {
+  const lucid = await initLucid();
+  const scriptAddress = await getScriptAddress();
+
+  const utxos = await lucid.utxosAt(scriptAddress);
+
+  // Example filter (depending on how phone_hash is stored)
+  return utxos.filter((u) => {
+    try {
+      const datum = Data.from(u.datum, K33pDatumSchema);
+      const phoneHex = toHex(datum?.IdentityDatumType?.SignupDatum?.user_id || "");
+      return phoneHex === phoneHashHex;
+    } catch (err) {
+      console.error("Error parsing UTXO datum:", err);
+      return false;
+    }
+  });
+}
