@@ -28,6 +28,13 @@
       "token": "mock-token-1",
       "expiresAt": "2025-12-31T23:59:59.999Z",
       "createdAt": "2025-05-31T00:59:16.356Z"
+    },
+    {
+      "id": "e72d7626-b9d0-4c38-8d95-9a2755ce5512",
+      "userId": "8dfe2d77-c46a-4089-b6d6-612b2528dcc7",
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjhkZmUyZDc3LWM0NmEtNDA4OS1iNmQ2LTYxMmIyNTI4ZGNjNyIsIndhbGxldEFkZHJlc3MiOiJhZGRyX3Rlc3QxcXp2dGdmOTA0Z3RudWx3NjV5MHMzc2Q1NDY0ZG5kZjUwdXprM2o0NzVyOHQ5eGNqMjVmamc0Nmt0cmVybjMyN3NnNjhycWF5eGtkd2Z0a3lsdmR4N2NybTdtdnFqZDRqaGYiLCJpYXQiOjE3NjEwNDM3NTYsImV4cCI6MTc2MTEzMDE1Nn0.ht3tK93pGG70PA6ZKBK15hd2Nfivc7jHTxuCv40NZgs",
+      "expiresAt": "2025-10-22T10:49:16.035Z",
+      "createdAt": "2025-10-21T10:49:16.036Z"
     }
   ],
   "scriptUtxos": [
