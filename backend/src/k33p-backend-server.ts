@@ -8,7 +8,7 @@ import { dbService } from './database/service.js';
 import { autoRefundMonitor } from './services/auto-refund-monitor.js';
 import { subscriptionService } from './services/subscription-service.js';
 import { MockDatabaseService } from './database/mock-service.js';
-import { testConnection } from './database/config.js';
+import { initializeDatabase, testConnection } from './database/config.js';
 import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
@@ -71,45 +71,64 @@ const logger = winston.createLogger({
 let k33pManager: EnhancedK33PManagerDB;
 let usingMockDatabase = false;
 
+
+
 async function initializeK33P() {
   try {
-    // Test PostgreSQL connection first
-    const dbConnected = await testConnection();
+    console.log('🔧 Initializing database connection to Supabase...');
     
-    if (!dbConnected) {
-      logger.warn('PostgreSQL connection failed, initializing mock database...');
+    // Initialize database first
+    const dbReady = await initializeDatabase();
+    
+    if (!dbReady) {
+      logger.warn('Database initialization failed, using mock database...');
       await MockDatabaseService.initialize();
       usingMockDatabase = true;
-      logger.info('✅ Mock database initialized successfully');
+    } else {
+      logger.info('✅ Database connected and schema ready');
+      usingMockDatabase = false;
     }
     
+    // Initialize K33P Manager - but skip Cardano if disabled
     k33pManager = new EnhancedK33PManagerDB();
-    if (process.env.DISABLE_CARDANO !== "true") {
-    await k33pManager.initialize();
-  } else {
-    console.log("🚫 Cardano features disabled via DISABLE_CARDANO");
-  }
-    logger.info('K33P Manager with Database initialized successfully');
     
-    // Initialize and start auto-refund monitor (only if PostgreSQL is available)
-    if (!usingMockDatabase) {
+    // Only initialize Cardano features if not disabled
+    if (process.env.DISABLE_CARDANO !== "true") {
       try {
-        await autoRefundMonitor.initialize();
-        await autoRefundMonitor.start();
-        logger.info('🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded');
-      } catch (error) {
-        logger.warn('Auto-Refund Monitor failed to start (using mock database):', error);
+        await k33pManager.initialize();
+        logger.info('✅ Cardano features initialized');
+      } catch (cardanoError) {
+        logger.warn('❌ Cardano initialization failed, continuing without Cardano features:', cardanoError.message);
       }
     } else {
-      logger.info('📝 Running in mock database mode - Auto-Refund Monitor disabled');
+      console.log("🚫 Cardano features disabled via DISABLE_CARDANO");
+      // Set a flag or property to indicate Cardano is disabled
+      (k33pManager as any).cardanoEnabled = false;
+    }
+    
+    logger.info('K33P Manager initialized successfully');
+    
+    // Initialize auto-refund monitor only if we have a real database AND Cardano is working
+    if (!usingMockDatabase) {
+      try {
+        // Only start auto-refund if Cardano is enabled and initialized
+        if (process.env.DISABLE_CARDANO !== "true" && (k33pManager as any).cardanoEnabled !== false) {
+          await autoRefundMonitor.initialize();
+          await autoRefundMonitor.start();
+          logger.info('🚀 Auto-Refund Monitor started');
+        } else {
+          logger.info('📝 Auto-Refund Monitor disabled (Cardano features disabled)');
+        }
+      } catch (error) {
+        logger.warn('Auto-Refund Monitor failed to start:', error);
+      }
     }
     
   } catch (error) {
-    logger.error('Failed to initialize K33P Manager with Database:', error);
+    logger.error('Failed to initialize K33P Manager:', error);
     throw error;
   }
 }
-
 // Create Express app
 const app = express();
 

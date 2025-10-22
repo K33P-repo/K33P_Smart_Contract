@@ -1,0 +1,17 @@
+                                       List of databases
+        Name        |  Owner   | Encoding |   Collate   |    Ctype    |   Access privileges    
+--------------------+----------+----------+-------------+-------------+------------------------
+ k33p_db            | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ postgres           | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | 
+ school_marketplace | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =Tc/postgres          +
+                    |          |          |             |             | postgres=CTc/postgres +
+                    |          |          |             |             | youruser=CTc/postgres
+ task_manager       | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =Tc/postgres          +
+                    |          |          |             |             | postgres=CTc/postgres +
+                    |          |          |             |             | task_user=CTc/postgres
+ template0          | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres           +
+                    |          |          |             |             | postgres=CTc/postgres
+ template1          | postgres | UTF8     | en_US.UTF-8 | en_US.UTF-8 | =c/postgres           +
+                    |          |          |             |             | postgres=CTc/postgres
+(6 rows)
+

@@ -835,3 +835,89 @@
 {"attempt":3,"error":"User not found","level":"warn","maxAttempts":3,"message":"updateUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-10-21T10:52:02.966Z"}
 {"error":"User not found","level":"error","message":"Failed to update user","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-10-21T10:52:02.967Z","userId":"8dfe2d77-c46a-4089-b6d6-612b2528dcc7"}
 {"code":"USER_CREATION_FAILED","details":null,"level":"error","message":"API Error: Failed to update existing user: User not found","service":"k33p-backend","stack":"K33PError: Failed to update existing user: User not found\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (/home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:745:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-21T10:52:02.968Z","userMessage":"Failed to update existing user: User not found"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"GET /","service":"k33p-backend","timestamp":"2025-10-21T16:30:43.720Z","userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:131.0) Gecko/20100101 Firefox/131.0"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T07:51:09.130Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T07:51:09.135Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T07:51:10.523Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T07:51:11.304Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:51:11.340Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T07:51:11.346Z"}
+{"level":"warn","message":"❌ Database initialization failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-10-22T07:51:13.604Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-10-22T07:51:26.890Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.000Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.001Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.255Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.327Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:51:34.335Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T07:51:34.335Z"}
+{"level":"warn","message":"❌ Database initialization failed, initializing mock database...","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.546Z"}
+{"level":"info","message":"✅ Mock database initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.546Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.547Z"}
+{"level":"info","message":"📝 Running in mock database mode - Auto-Refund Monitor disabled","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.547Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.550Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T07:51:34.550Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:52:34.500Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:53:35.631Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:54:34.353Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:55:34.380Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:56:34.516Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:57:34.648Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:58:34.585Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T07:59:34.367Z"}
+{"level":"info","message":"Running daily subscription renewal check","service":"k33p-backend","timestamp":"2025-10-22T08:00:00.155Z"}
+{"error":{"address":"2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3","code":"ENETUNREACH","errno":-101,"port":5432,"syscall":"connect"},"level":"error","message":"Failed to process expired subscriptions","service":"k33p-backend","timestamp":"2025-10-22T08:00:05.233Z"}
+{"error":{"address":"2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3","code":"ENETUNREACH","errno":-101,"port":5432,"syscall":"connect"},"level":"error","message":"Failed to send renewal reminders","service":"k33p-backend","timestamp":"2025-10-22T08:00:05.247Z"}
+{"error":{"address":"2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3","code":"ENETUNREACH","errno":-101,"port":5432,"syscall":"connect"},"level":"error","message":"Daily subscription check failed","service":"k33p-backend","timestamp":"2025-10-22T08:00:05.251Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T08:00:34.518Z"}
+{"error":"connect ENETUNREACH 2600:1f18:2e13:9d3e:4799:75f0:e491:bbb3:5432 - Local (:::0)","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T08:01:34.839Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:10:43.890Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:10:43.891Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:10:44.127Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T08:10:44.191Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T08:10:46.247Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T08:10:50.425Z"}
+{"level":"info","message":"K33P Manager with Database initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:10:50.426Z"}
+{"cause":{"code":"ETIMEDOUT"},"level":"warn","message":"Auto-Refund Monitor failed to start: fetch failed","service":"k33p-backend","stack":"TypeError: fetch failed\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Blockfrost.getProtocolParameters (file:///home/dee/K33P_Smart_Contract/backend/node_modules/lucid-cardano/esm/src/provider/blockfrost.js:22:24)\n    at async Lucid.new (file:///home/dee/K33P_Smart_Contract/backend/node_modules/lucid-cardano/esm/src/lucid/lucid.js:50:40)\n    at async EnhancedK33PManagerDB.initialize (/home/dee/K33P_Smart_Contract/backend/src/enhanced-k33p-manager-db.ts:231:20)\n    at async AutoRefundMonitor.initialize (/home/dee/K33P_Smart_Contract/backend/src/services/auto-refund-monitor.ts:105:7)\n    at async initializeK33P (/home/dee/K33P_Smart_Contract/backend/src/k33p-backend-server.ts:103:9)\n    at async startServer (/home/dee/K33P_Smart_Contract/backend/src/k33p-backend-server.ts:607:5)","timestamp":"2025-10-22T08:10:52.471Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T08:10:52.472Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T08:10:52.472Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:14:39.051Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:14:39.052Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:14:39.220Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T08:14:39.257Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T08:14:44.802Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T08:14:46.953Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:14:46.955Z"}
+{"level":"info","message":"📝 Auto-Refund Monitor disabled (Cardano features disabled)","service":"k33p-backend","timestamp":"2025-10-22T08:14:46.956Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T08:14:46.963Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T08:14:46.964Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-22T08:14:59.576Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"User stored successfully","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-10-22T08:15:00.674Z","userId":"user_test_123"}
+{"level":"info","message":"Generating ZK proof for user registration","service":"k33p-backend","timestamp":"2025-10-22T08:15:00.678Z","userId":"user_test_123"}
+{"error":"relation \"zk_proofs\" does not exist","level":"error","message":"Failed to generate and store ZK proof","service":"k33p-backend","timestamp":"2025-10-22T08:15:00.982Z","userId":"user_test_123"}
+{"code":"USER_CREATED","level":"info","message":"API Success: DID created successfully. Welcome to K33P!","service":"k33p-backend","statusCode":200,"timestamp":"2025-10-22T08:15:00.990Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:24:03.694Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:24:03.696Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:24:03.899Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T08:24:03.942Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T08:24:05.764Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T08:24:11.413Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:24:11.415Z"}
+{"level":"info","message":"📝 Auto-Refund Monitor disabled (Cardano features disabled)","service":"k33p-backend","timestamp":"2025-10-22T08:24:11.417Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T08:24:11.426Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T08:24:11.428Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:25:47.003Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T08:25:47.004Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:25:47.222Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T08:25:47.278Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T08:25:49.043Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T08:25:55.016Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T08:25:55.017Z"}
+{"level":"info","message":"📝 Auto-Refund Monitor disabled (Cardano features disabled)","service":"k33p-backend","timestamp":"2025-10-22T08:25:55.017Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T08:25:55.018Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T08:25:55.018Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-22T08:25:59.910Z","userAgent":"curl/7.81.0"}
+{"attempt":1,"error":"User not found","level":"warn","maxAttempts":3,"message":"updateUser attempt 1 failed","service":"storage-abstraction","timestamp":"2025-10-22T08:26:00.542Z"}
+{"attempt":2,"error":"User not found","level":"warn","maxAttempts":3,"message":"updateUser attempt 2 failed","service":"storage-abstraction","timestamp":"2025-10-22T08:26:01.872Z"}
+{"attempt":3,"error":"User not found","level":"warn","maxAttempts":3,"message":"updateUser attempt 3 failed","service":"storage-abstraction","timestamp":"2025-10-22T08:26:04.133Z"}
+{"error":"User not found","level":"error","message":"Failed to update user","service":"storage-abstraction","storage":"postgresql","timestamp":"2025-10-22T08:26:04.135Z","userId":"379666d3-59db-4cfb-8ed3-1071177e6fd7"}
+{"code":"USER_CREATION_FAILED","details":null,"level":"error","message":"API Error: Failed to update existing user: User not found","service":"k33p-backend","stack":"K33PError: Failed to update existing user: User not found\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (/home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:745:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-22T08:26:04.136Z","userMessage":"Failed to update existing user: User not found"}
