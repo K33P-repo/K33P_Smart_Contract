@@ -11,3 +11,5 @@ docs/
 .env
 .env.local
 .env.*.local
+backend/.env
+backend/.env.*
