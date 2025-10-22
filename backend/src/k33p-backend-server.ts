@@ -98,8 +98,13 @@ async function initializeK33P() {
         await k33pManager.initialize();
         logger.info('✅ Cardano features initialized');
       } catch (cardanoError) {
-        logger.warn('❌ Cardano initialization failed, continuing without Cardano features:', cardanoError.message);
+        if (cardanoError instanceof Error) {
+          logger.warn('❌ Cardano initialization failed, continuing without Cardano features:', cardanoError.message);
+        } else {
+          logger.warn('❌ Cardano initialization failed, continuing without Cardano features:', cardanoError);
+        }
       }
+      
     } else {
       console.log("🚫 Cardano features disabled via DISABLE_CARDANO");
       // Set a flag or property to indicate Cardano is disabled
