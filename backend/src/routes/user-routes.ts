@@ -2809,7 +2809,468 @@ router.post('/upgrade-pro/:userId',
     }
   })
 );
+// ============================================================================
+// USERNAME MANAGEMENT ROUTES
+// ============================================================================
 
+/**
+ * POST /api/users/username/create
+ * Create initial username for user (for new users without username)
+ */
+router.post('/username/create',
+  authenticateToken,
+  body('userName')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Username must be between 2 and 50 characters')
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
+  handleValidationErrors,
+  handleAsyncRoute(async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const { userName } = req.body;
+
+      logger.info(`Creating username for user: ${userId}`);
+
+      // Check if user exists and get current data
+      const client = await pool.connect();
+      let user: any = null;
+      
+      try {
+        const result = await client.query(
+          'SELECT * FROM users WHERE user_id = $1',
+          [userId]
+        );
+        
+        if (result.rows.length > 0) {
+          user = result.rows[0];
+        }
+      } finally {
+        client.release();
+      }
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+          error: 'USER_NOT_FOUND'
+        });
+      }
+
+      // Check if username already exists for this user
+      if (user.user_name) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username already exists for this user',
+          error: 'USERNAME_ALREADY_EXISTS'
+        });
+      }
+
+      // Check if username is available (not taken by other users)
+      const checkClient = await pool.connect();
+      let usernameExists = false;
+      
+      try {
+        const checkResult = await checkClient.query(
+          'SELECT user_id FROM users WHERE user_name = $1 AND user_id != $2',
+          [userName, userId]
+        );
+        usernameExists = checkResult.rows.length > 0;
+      } finally {
+        checkClient.release();
+      }
+
+      if (usernameExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username is already taken',
+          error: 'USERNAME_TAKEN'
+        });
+      }
+
+      // Update username
+      const updateClient = await pool.connect();
+      try {
+        await updateClient.query(
+          'UPDATE users SET user_name = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+          [userName, userId]
+        );
+      } finally {
+        updateClient.release();
+      }
+
+      // Log activity
+      logger.info(`Username created for user ${userId}: ${userName}`);
+
+      res.status(201).json({
+        success: true,
+        message: 'Username created successfully',
+        data: {
+          userId,
+          userName,
+          updatedAt: new Date().toISOString()
+        }
+      });
+
+    } catch (error: any) {
+      logger.error('Error creating username:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create username',
+        error: 'SERVER_ERROR'
+      });
+    }
+  })
+);
+
+/**
+ * PUT /api/users/username/edit
+ * Edit existing username
+ */
+router.put('/username/edit',
+  authenticateToken,
+  body('userName')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Username must be between 2 and 50 characters')
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
+  body('currentUserName')
+    .optional()
+    .isString()
+    .withMessage('Current username must be a string'),
+  handleValidationErrors,
+  handleAsyncRoute(async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const { userName, currentUserName } = req.body;
+
+      logger.info(`Editing username for user: ${userId}`);
+
+      // Get current user data
+      const client = await pool.connect();
+      let user: any = null;
+      
+      try {
+        const result = await client.query(
+          'SELECT user_name FROM users WHERE user_id = $1',
+          [userId]
+        );
+        
+        if (result.rows.length > 0) {
+          user = result.rows[0];
+        }
+      } finally {
+        client.release();
+      }
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+          error: 'USER_NOT_FOUND'
+        });
+      }
+
+      // Verify current username if provided
+      if (currentUserName && user.user_name !== currentUserName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Current username does not match',
+          error: 'INVALID_CURRENT_USERNAME'
+        });
+      }
+
+      // Check if new username is different from current
+      if (user.user_name === userName) {
+        return res.status(400).json({
+          success: false,
+          message: 'New username must be different from current username',
+          error: 'SAME_USERNAME'
+        });
+      }
+
+      // Check if new username is available
+      const checkClient = await pool.connect();
+      let usernameExists = false;
+      
+      try {
+        const checkResult = await checkClient.query(
+          'SELECT user_id FROM users WHERE user_name = $1 AND user_id != $2',
+          [userName, userId]
+        );
+        usernameExists = checkResult.rows.length > 0;
+      } finally {
+        checkClient.release();
+      }
+
+      if (usernameExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username is already taken',
+          error: 'USERNAME_TAKEN'
+        });
+      }
+
+      // Update username with cooldown check (prevent frequent changes)
+      const updateClient = await pool.connect();
+      try {
+        // Check last username change time (prevent changing more than once per week)
+        const lastChangeResult = await updateClient.query(
+          'SELECT updated_at FROM users WHERE user_id = $1',
+          [userId]
+        );
+        
+        const lastUpdate = lastChangeResult.rows[0]?.updated_at;
+        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        
+        if (lastUpdate && new Date(lastUpdate) > oneWeekAgo) {
+          return res.status(429).json({
+            success: false,
+            message: 'Username can only be changed once per week',
+            error: 'USERNAME_CHANGE_COOLDOWN',
+            cooldownRemaining: Math.ceil((new Date(lastUpdate).getTime() + 7 * 24 * 60 * 60 * 1000 - Date.now()) / (1000 * 60 * 60 * 24))
+          });
+        }
+
+        await updateClient.query(
+          'UPDATE users SET user_name = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+          [userName, userId]
+        );
+      } finally {
+        updateClient.release();
+      }
+
+      // Log activity
+      logger.info(`Username updated for user ${userId}: ${user.user_name} -> ${userName}`);
+
+      res.json({
+        success: true,
+        message: 'Username updated successfully',
+        data: {
+          userId,
+          oldUserName: user.user_name,
+          newUserName: userName,
+          updatedAt: new Date().toISOString(),
+          nextAllowedChange: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      });
+
+    } catch (error: any) {
+      logger.error('Error editing username:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update username',
+        error: 'SERVER_ERROR'
+      });
+    }
+  })
+);
+
+/**
+ * GET /api/users/username/check-availability
+ * Check if username is available
+ */
+router.get('/username/check-availability',
+  body('userName')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Username must be between 2 and 50 characters')
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('Username can only contain letters, numbers, underscores, and hyphens'),
+  handleValidationErrors,
+  handleAsyncRoute(async (req: Request, res: Response) => {
+    try {
+      const { userName } = req.query;
+      const userId = (req as any).user?.id; // Optional for logged-in users
+
+      if (!userName) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username parameter is required',
+          error: 'MISSING_USERNAME'
+        });
+      }
+
+      logger.info(`Checking username availability: ${userName}`);
+
+      const client = await pool.connect();
+      let isAvailable = true;
+      let currentUserHasThisName = false;
+      
+      try {
+        let query = 'SELECT user_id, user_name FROM users WHERE user_name = $1';
+        const params = [userName];
+        
+        if (userId) {
+          query += ' AND user_id != $2';
+          params.push(userId);
+        }
+        
+        const result = await client.query(query, params);
+        isAvailable = result.rows.length === 0;
+        
+        // Check if current user already has this username
+        if (userId && result.rows.length > 0) {
+          currentUserHasThisName = result.rows[0].user_id === userId;
+        }
+      } finally {
+        client.release();
+      }
+
+      // Validate username against reserved words
+      const reservedUsernames = [
+        'admin', 'administrator', 'root', 'system', 'support', 'help', 
+        'contact', 'info', 'security', 'verify', 'auth', 'login', 'signup',
+        'official', 'team', 'staff', 'moderator', 'owner', 'founder'
+      ];
+      
+      const isReserved = reservedUsernames.includes(userName.toLowerCase());
+
+      res.json({
+        success: true,
+        message: 'Username availability checked successfully',
+        data: {
+          userName,
+          available: isAvailable && !isReserved,
+          isReserved,
+          currentUserHasThisName,
+          suggestions: isReserved ? [
+            `${userName}123`,
+            `the_${userName}`,
+            `real_${userName}`,
+            `${userName}_user`
+          ] : undefined
+        }
+      });
+
+    } catch (error: any) {
+      logger.error('Error checking username availability:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to check username availability',
+        error: 'SERVER_ERROR'
+      });
+    }
+  })
+);
+
+/**
+ * DELETE /api/users/username/remove
+ * Remove username (revert to system-generated identifier)
+ */
+router.delete('/username/remove',
+  authenticateToken,
+  body('confirmPin')
+    .optional()
+    .isLength({ min: 4, max: 6 })
+    .isNumeric()
+    .withMessage('PIN must be 4-6 digits'),
+  body('confirmPassword')
+    .optional()
+    .isString()
+    .withMessage('Password confirmation must be a string'),
+  handleValidationErrors,
+  handleAsyncRoute(async (req: Request, res: Response) => {
+    try {
+      const userId = (req as any).user.id;
+      const { confirmPin, confirmPassword } = req.body;
+
+      logger.info(`Removing username for user: ${userId}`);
+
+      // Get current user data
+      const client = await pool.connect();
+      let user: any = null;
+      
+      try {
+        const result = await client.query(
+          'SELECT user_name, pin_hash FROM users WHERE user_id = $1',
+          [userId]
+        );
+        
+        if (result.rows.length > 0) {
+          user = result.rows[0];
+        }
+      } finally {
+        client.release();
+      }
+
+      if (!user) {
+        return res.status(404).json({
+          success: false,
+          message: 'User not found',
+          error: 'USER_NOT_FOUND'
+        });
+      }
+
+      if (!user.user_name) {
+        return res.status(400).json({
+          success: false,
+          message: 'No username exists to remove',
+          error: 'NO_USERNAME'
+        });
+      }
+
+      // Verify authentication
+      let isAuthValid = false;
+      if (confirmPin && user.pin_hash) {
+        isAuthValid = verifyPin(confirmPin, user.pin_hash);
+      } else if (confirmPassword) {
+        // TODO: Implement password verification if needed
+        // For now, we'll require PIN for username removal
+        return res.status(400).json({
+          success: false,
+          message: 'PIN confirmation is required for username removal',
+          error: 'PIN_REQUIRED'
+        });
+      }
+
+      if (!isAuthValid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Authentication failed',
+          error: 'INVALID_CREDENTIALS'
+        });
+      }
+
+      const oldUserName = user.user_name;
+
+      // Remove username
+      const updateClient = await pool.connect();
+      try {
+        await updateClient.query(
+          'UPDATE users SET user_name = NULL, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1',
+          [userId]
+        );
+      } finally {
+        updateClient.release();
+      }
+
+      // Log activity
+      logger.info(`Username removed for user ${userId}: ${oldUserName}`);
+
+      res.json({
+        success: true,
+        message: 'Username removed successfully',
+        data: {
+          userId,
+          removedUserName: oldUserName,
+          removedAt: new Date().toISOString(),
+          note: 'You can create a new username at any time using the create username endpoint'
+        }
+      });
+
+    } catch (error: any) {
+      logger.error('Error removing username:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to remove username',
+        error: 'SERVER_ERROR'
+      });
+    }
+  })
+);
 /**
  * PUT /api/users/auth-methods/:userId
  * Update authentication methods

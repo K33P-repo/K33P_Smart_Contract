@@ -13,7 +13,7 @@ import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
 import { globalErrorHandler } from './middleware/error-handler.js';
-
+import swaggerUi from 'swagger-ui-express';
 // Import routes
 // @ts-ignore
 import zkRoutes from './routes/zk-postgres.js';
@@ -39,6 +39,7 @@ import autoRefundRoutes from './routes/auto-refund-routes.js';
 import paymentRoutes from './routes/payment.js';
 // @ts-ignore
 import subscriptionRoutes from './routes/subscription.js';
+import swaggerSpec from './swagger.js';
 
 
 // Load environment variables
@@ -142,6 +143,17 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  explorer: true,
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'K33P API Documentation'
+}));
+
+// Optional: Add a JSON endpoint for the swagger spec
+app.get('/api-docs.json', (req: Request, res: Response) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
   logger.info(`${req.method} ${req.url}`, {

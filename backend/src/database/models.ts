@@ -79,6 +79,34 @@ export interface AuthData {
   last_used?: Date;
 }
 
+export interface AuthMethod {
+  type: 'pin' | 'face' | 'fingerprint' | 'voice' | 'iris' | 'phone';
+  data?: string; // hashed PIN for 'pin', biometric data for 'face', null for others
+  createdAt: Date;
+  lastUsed?: Date;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface User {
+  id?: string;
+  user_id: string;
+  email?: string;
+  name?: string;
+  wallet_address?: string;
+  phone_hash?: string;
+  zk_commitment?: string;
+  auth_methods: AuthMethod[]; 
+  folders: Folder[];
+  created_at?: Date;
+  updated_at?: Date;
+}
+
 // ============================================================================
 // USER MODEL
 // ============================================================================
