@@ -87,11 +87,18 @@ export interface User {
   user_id: string;
   email?: string;
   name?: string;
+  username?: string;       
   wallet_address?: string;
   phone_hash?: string;
+  phone_number?: string;    
+  pin_hash?: string;        
   zk_commitment?: string;
-  auth_methods: AuthMethod[]; 
+  auth_methods: AuthMethod[];
   folders: Folder[];
+  verification_method?: string;        
+  biometric_type?: string;             
+  sender_wallet_address?: string;      
+  verified?: boolean;                  
   created_at?: Date;
   updated_at?: Date;
 }
@@ -691,6 +698,10 @@ export class AuthDataModel {
 // DATABASE MIGRATION AND INITIALIZATION
 // ============================================================================
 
+// ============================================================================
+// DATABASE MIGRATION AND INITIALIZATION
+// ============================================================================
+
 export class DatabaseManager {
   static async initializeDatabase(): Promise<void> {
     const client = await pool.connect();
@@ -723,76 +734,277 @@ export class DatabaseManager {
       const __filename = fileURLToPath(import.meta.url);
       const __dirname = path.dirname(__filename);
       
+      // Helper function to create default auth methods
+      const createDefaultAuthMethods = (): AuthMethod[] => [
+        {
+          type: 'phone',
+          createdAt: new Date()
+        },
+        {
+          type: 'pin',
+          data: 'default-hash-placeholder', // Will be updated with real hash later
+          createdAt: new Date()
+        },
+        {
+          type: 'fingerprint',
+          createdAt: new Date()
+        }
+      ];
+
+      let totalUsersMigrated = 0;
+      let totalDepositsMigrated = 0;
+
       // Migrate user-deposits.json
       const depositsPath = path.join(__dirname, '../../user-deposits.json');
       if (fs.existsSync(depositsPath)) {
+        console.log('📦 Migrating user deposits from JSON...');
         const depositsData = JSON.parse(fs.readFileSync(depositsPath, 'utf8'));
         
         for (const deposit of depositsData) {
-          // Create user if not exists
-          const existingUser = await UserModel.findByUserId(deposit.userId);
-          if (!existingUser) {
-            await UserModel.create({
-              user_id: deposit.userId,
-              wallet_address: deposit.userAddress,
-              phone_hash: deposit.phoneHash
-            });
-          }
-          
-          // Create deposit record
-          const existingDeposit = await UserDepositModel.findByUserAddress(deposit.userAddress);
-          if (!existingDeposit) {
-            await UserDepositModel.create({
-              user_address: deposit.userAddress,
-              user_id: deposit.userId,
-              phone_hash: deposit.phoneHash,
-              zk_proof: deposit.zkProof,
-              zk_commitment: deposit.zkCommitment,
-              tx_hash: deposit.txHash,
-              amount: BigInt(deposit.amount || '0'),
-              refunded: deposit.refunded || false,
-              signup_completed: deposit.signupCompleted || false,
-              verified: deposit.verified || false,
-              verification_attempts: deposit.verificationAttempts || 0,
-              last_verification_attempt: deposit.lastVerificationAttempt ? new Date(deposit.lastVerificationAttempt) : undefined,
-              pin_hash: deposit.pinHash,
-              biometric_hash: deposit.biometricHash,
-              biometric_type: deposit.biometricType,
-              verification_method: deposit.verificationMethod,
-              refund_tx_hash: deposit.refundTxHash,
-              refund_timestamp: deposit.refundTimestamp ? new Date(deposit.refundTimestamp) : undefined,
-              sender_wallet_address: deposit.senderWalletAddress
-            });
+          try {
+            // Create user if not exists - WITH REQUIRED FIELDS
+            const existingUser = await UserModel.findByUserId(deposit.userId);
+            if (!existingUser) {
+              await UserModel.create({
+                user_id: deposit.userId,
+                wallet_address: deposit.userAddress,
+                phone_hash: deposit.phoneHash,
+                auth_methods: createDefaultAuthMethods(), // ✅ REQUIRED FIELD
+                folders: [] // ✅ REQUIRED FIELD
+              });
+              totalUsersMigrated++;
+              console.log(`✅ Created user: ${deposit.userId}`);
+            }
+            
+            // Create deposit record
+            const existingDeposit = await UserDepositModel.findByUserAddress(deposit.userAddress);
+            if (!existingDeposit) {
+              await UserDepositModel.create({
+                user_address: deposit.userAddress,
+                user_id: deposit.userId,
+                phone_hash: deposit.phoneHash,
+                zk_proof: deposit.zkProof,
+                zk_commitment: deposit.zkCommitment,
+                tx_hash: deposit.txHash,
+                amount: BigInt(deposit.amount || '0'),
+                refunded: deposit.refunded || false,
+                signup_completed: deposit.signupCompleted || false,
+                verified: deposit.verified || false,
+                verification_attempts: deposit.verificationAttempts || 0,
+                last_verification_attempt: deposit.lastVerificationAttempt ? new Date(deposit.lastVerificationAttempt) : undefined,
+                pin_hash: deposit.pinHash,
+                biometric_hash: deposit.biometricHash,
+                biometric_type: deposit.biometricType,
+                verification_method: deposit.verificationMethod,
+                refund_tx_hash: deposit.refundTxHash,
+                refund_timestamp: deposit.refundTimestamp ? new Date(deposit.refundTimestamp) : undefined,
+                sender_wallet_address: deposit.senderWalletAddress
+              });
+              totalDepositsMigrated++;
+            }
+          } catch (error) {
+            console.error(`❌ Failed to migrate deposit for user ${deposit.userId}:`, error);
+            // Continue with next deposit
           }
         }
         
         console.log(`✅ Migrated ${depositsData.length} deposits from JSON to database`);
+      } else {
+        console.log('ℹ️  No user-deposits.json file found, skipping deposits migration');
       }
       
       // Migrate mock-db.json
       const mockDbPath = path.join(__dirname, '../utils/mock-db.json');
       if (fs.existsSync(mockDbPath)) {
+        console.log('👥 Migrating mock users from JSON...');
         const mockData = JSON.parse(fs.readFileSync(mockDbPath, 'utf8'));
         
         for (const user of mockData.users || []) {
-          const existingUser = await UserModel.findByUserId(user.id);
-          if (!existingUser) {
-            await UserModel.create({
-              user_id: user.id,
-              email: user.email,
-              name: user.name,
-              wallet_address: user.walletAddress,
-              phone_hash: user.phoneHash,
-              zk_commitment: user.zkCommitment
-            });
+          try {
+            const existingUser = await UserModel.findByUserId(user.id);
+            if (!existingUser) {
+              await UserModel.create({
+                user_id: user.id,
+                email: user.email,
+                name: user.name,
+                wallet_address: user.walletAddress,
+                phone_hash: user.phoneHash,
+                zk_commitment: user.zkCommitment,
+                auth_methods: createDefaultAuthMethods(), // ✅ REQUIRED FIELD
+                folders: [] // ✅ REQUIRED FIELD
+              });
+              totalUsersMigrated++;
+              console.log(`✅ Created mock user: ${user.id}`);
+            }
+          } catch (error) {
+            console.error(`❌ Failed to migrate mock user ${user.id}:`, error);
+            // Continue with next user
           }
         }
         
         console.log(`✅ Migrated ${mockData.users?.length || 0} users from mock database`);
+      } else {
+        console.log('ℹ️  No mock-db.json file found, skipping mock users migration');
       }
+
+      // Final summary
+      console.log('\n📊 Migration Summary:');
+      console.log(`✅ Total users migrated: ${totalUsersMigrated}`);
+      console.log(`✅ Total deposits migrated: ${totalDepositsMigrated}`);
+      console.log('🎉 JSON to database migration completed successfully!');
       
     } catch (error) {
       console.error('❌ Failed to migrate data from JSON:', error);
+      throw error;
+    }
+  }
+
+  // NEW: Run specific migration for auth_methods and folders
+  static async runAuthMethodsMigration(): Promise<void> {
+    const client = await pool.connect();
+    try {
+      console.log('🔄 Running auth_methods and folders migration...');
+      
+      // Check if columns already exist
+      const checkColumns = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'users' 
+        AND column_name IN ('auth_methods', 'folders')
+      `;
+      const existingColumns = await client.query(checkColumns);
+      
+      if (existingColumns.rows.length === 2) {
+        console.log('✅ auth_methods and folders columns already exist');
+      } else {
+        // Add columns if they don't exist
+        const addColumns = `
+          ALTER TABLE users 
+          ADD COLUMN IF NOT EXISTS auth_methods JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS folders JSONB NOT NULL DEFAULT '[]'::jsonb
+        `;
+        await client.query(addColumns);
+        console.log('✅ Added auth_methods and folders columns');
+      }
+      
+      // Create indexes
+      const createIndexes = `
+        CREATE INDEX IF NOT EXISTS idx_users_auth_methods ON users USING gin (auth_methods);
+        CREATE INDEX IF NOT EXISTS idx_users_folders ON users USING gin (folders);
+      `;
+      await client.query(createIndexes);
+      console.log('✅ Created indexes for auth_methods and folders');
+      
+      // Update existing users with default auth methods
+      const updateUsers = `
+        UPDATE users 
+        SET auth_methods = $1::jsonb
+        WHERE auth_methods = '[]'::jsonb OR auth_methods IS NULL
+      `;
+      const defaultAuthMethods = [
+        {
+          type: 'phone',
+          createdAt: new Date().toISOString()
+        },
+        {
+          type: 'pin',
+          data: 'default-hash-placeholder',
+          createdAt: new Date().toISOString()
+        },
+        {
+          type: 'fingerprint',
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      const result = await client.query(updateUsers, [JSON.stringify(defaultAuthMethods)]);
+      console.log(`✅ Updated ${result.rowCount} users with default auth methods`);
+      
+      console.log('🎉 Auth methods migration completed successfully!');
+      
+    } catch (error) {
+      console.error('❌ Auth methods migration failed:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // NEW: Check database health and migration status
+  static async checkDatabaseHealth(): Promise<{
+    users: number;
+    usersWithAuthMethods: number;
+    usersWithFolders: number;
+    deposits: number;
+    transactions: number;
+    healthy: boolean;
+  }> {
+    const client = await pool.connect();
+    try {
+      const healthQuery = `
+        SELECT 
+          (SELECT COUNT(*) FROM users) as users_count,
+          (SELECT COUNT(*) FROM users WHERE jsonb_array_length(auth_methods) >= 3) as users_with_auth_methods,
+          (SELECT COUNT(*) FROM users WHERE jsonb_array_length(folders) >= 0) as users_with_folders,
+          (SELECT COUNT(*) FROM user_deposits) as deposits_count,
+          (SELECT COUNT(*) FROM transactions) as transactions_count
+      `;
+      
+      const result = await client.query(healthQuery);
+      const row = result.rows[0];
+      
+      const health = {
+        users: parseInt(row.users_count),
+        usersWithAuthMethods: parseInt(row.users_with_auth_methods),
+        usersWithFolders: parseInt(row.users_with_folders),
+        deposits: parseInt(row.deposits_count),
+        transactions: parseInt(row.transactions_count),
+        healthy: parseInt(row.users_with_auth_methods) === parseInt(row.users_count)
+      };
+      
+      console.log('🏥 Database Health Check:');
+      console.log(`   Total Users: ${health.users}`);
+      console.log(`   Users with Auth Methods: ${health.usersWithAuthMethods}`);
+      console.log(`   Users with Folders: ${health.usersWithFolders}`);
+      console.log(`   Total Deposits: ${health.deposits}`);
+      console.log(`   Total Transactions: ${health.transactions}`);
+      console.log(`   Overall Health: ${health.healthy ? '✅ HEALTHY' : '❌ NEEDS ATTENTION'}`);
+      
+      return health;
+      
+    } catch (error) {
+      console.error('❌ Database health check failed:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // NEW: Run all migrations in sequence
+  static async runAllMigrations(): Promise<void> {
+    try {
+      console.log('🚀 Starting all database migrations...\n');
+      
+      // 1. Initialize database schema
+      await this.initializeDatabase();
+      console.log('');
+      
+      // 2. Run auth methods migration
+      await this.runAuthMethodsMigration();
+      console.log('');
+      
+      // 3. Migrate data from JSON files
+      await this.migrateFromJSON();
+      console.log('');
+      
+      // 4. Check final database health
+      await this.checkDatabaseHealth();
+      console.log('');
+      
+      console.log('🎉 All migrations completed successfully!');
+      
+    } catch (error) {
+      console.error('❌ Migration process failed:', error);
       throw error;
     }
   }

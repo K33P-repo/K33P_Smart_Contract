@@ -1011,3 +1011,53 @@
 {"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-22T17:00:06.818Z"}
 {"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T17:00:06.820Z"}
 {"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T17:00:06.820Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:44:17.941Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:44:17.942Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:44:18.156Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T17:44:18.219Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T17:44:23.397Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T17:44:28.818Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2025-10-22T17:44:40.487Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:44:40.488Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-22T17:44:46.227Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T17:44:46.229Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T17:44:46.229Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:45:55.083Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:45:55.085Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:45:55.337Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T17:45:55.393Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T17:45:58.051Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T17:46:03.639Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-22T17:46:05.772Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:46:05.773Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-22T17:46:07.378Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T17:46:07.380Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T17:46:07.380Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:48:58.027Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:48:58.028Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:48:58.240Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T17:48:58.287Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T17:49:02.643Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T17:49:08.267Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-22T17:49:10.307Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:49:10.308Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-22T17:49:12.038Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T17:49:12.040Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T17:49:12.040Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:55:55.980Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T17:55:55.981Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:55:56.165Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T17:55:56.209Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T17:55:58.688Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T17:56:01.535Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-22T17:56:06.860Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T17:56:06.861Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-22T17:56:08.729Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T17:56:08.735Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T17:56:08.735Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T18:14:20.235Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T18:14:20.237Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T18:14:20.467Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T18:14:20.523Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T18:14:23.898Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T18:14:52.667Z"}

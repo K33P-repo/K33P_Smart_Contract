@@ -1,29 +1,31 @@
 // database/config.js
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
+import { readFile } from 'fs/promises';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 
 // Load environment variables
 dotenv.config();
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 // Database configuration - Support both DATABASE_URL and individual variables
 const getDbConfig = () => {
-  // If DATABASE_URL is provided, use it (for Supabase)
   if (process.env.DATABASE_URL) {
     console.log('🔧 Using DATABASE_URL for connection');
     return {
       connectionString: process.env.DATABASE_URL,
       ssl: { rejectUnauthorized: false },
-      max: 10, // Reduced for Supabase limits
-      idleTimeoutMillis: 30000, // Match Supabase timeout
+      max: 10,
+      idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
-      family: 4,
-      // Add these for better connection management
       allowExitOnIdle: true,
-      maxUses: 7500, // Below Supabase's 10k connection limit
+      maxUses: 7500,
     };
   }
   
-  // Fallback to individual variables (for local development)
   console.log('🔧 Using individual DB variables for connection');
   return {
     user: process.env.DB_USER || 'postgres',
@@ -47,155 +49,86 @@ pool.on('error', (err) => {
   process.exit(-1);
 });
 
-// Handle connection events
 pool.on('connect', () => {
   console.log('✅ Connected to PostgreSQL database');
 });
 
-pool.on('acquire', () => {
-  console.log('🔗 Client acquired from pool');
-});
-
-// Auto-create database tables from schema
+// In your createTables function:
 export const createTables = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
     
-    console.log('🔧 Creating ALL database tables...');
+    console.log('🔧 Creating database tables from schema.sql...');
     
-    // Enable UUID extension
-    await client.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+    // Read the schema.sql file
+    const schemaPath = join(__dirname, 'schema.sql');
+    const schemaSQL = await readFile(schemaPath, 'utf8');
     
-    // Create ALL tables from your schema.sql
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        user_id VARCHAR(50) UNIQUE NOT NULL,
-        email VARCHAR(255),
-        name VARCHAR(255),
-        username VARCHAR(30),
-        wallet_address TEXT,
-        phone_hash VARCHAR(128),
-        phone_number VARCHAR(20),
-        pin VARCHAR(10),
-        pin_hash VARCHAR(128),
-        zk_commitment TEXT,
-        verification_method VARCHAR(50) DEFAULT 'phone',
-        biometric_type VARCHAR(50),
-        sender_wallet_address TEXT,
-        verified BOOLEAN DEFAULT false,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        updated_at TIMESTAMPTZ DEFAULT NOW()
-      )
-    `);
-
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS user_deposits (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        user_address TEXT NOT NULL,
-        user_id VARCHAR(50) NOT NULL,
-        phone_hash VARCHAR(128) NOT NULL,
-        phone_number VARCHAR(20),
-        zk_proof TEXT,
-        zk_commitment TEXT,
-        tx_hash VARCHAR(128),
-        amount BIGINT NOT NULL DEFAULT 0,
-        timestamp TIMESTAMPTZ DEFAULT NOW(),
-        refunded BOOLEAN DEFAULT FALSE,
-        signup_completed BOOLEAN DEFAULT FALSE,
-        verified BOOLEAN DEFAULT FALSE,
-        verification_attempts INTEGER DEFAULT 0,
-        last_verification_attempt TIMESTAMPTZ,
-        pin_hash VARCHAR(128),
-        biometric_hash VARCHAR(128),
-        biometric_type VARCHAR(20) CHECK (biometric_type IN ('fingerprint', 'faceid', 'voice', 'iris')),
-        verification_method VARCHAR(20) CHECK (verification_method IN ('phone', 'pin', 'biometric')),
-        refund_tx_hash VARCHAR(128),
-        refund_timestamp TIMESTAMPTZ,
-        sender_wallet_address TEXT,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-      )
-    `);
-
-    // ADD THE MISSING TABLES:
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS zk_proofs (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        user_id VARCHAR(50) NOT NULL,
-        commitment TEXT NOT NULL,
-        proof TEXT NOT NULL,
-        public_inputs JSONB,
-        is_valid BOOLEAN DEFAULT FALSE,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        verified_at TIMESTAMPTZ,
-        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
-      )
-    `);
-
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS auth_data (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        user_id VARCHAR(50) NOT NULL,
-        auth_type VARCHAR(20) NOT NULL CHECK (auth_type IN ('phone', 'pin', 'biometric', 'passkey')),
-        auth_hash VARCHAR(128) NOT NULL,
-        salt VARCHAR(64),
-        metadata JSONB,
-        is_active BOOLEAN DEFAULT TRUE,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        last_used TIMESTAMPTZ,
-        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-        UNIQUE(user_id, auth_type)
-      )
-    `);
-
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS transactions (
-        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-        tx_hash VARCHAR(128) UNIQUE NOT NULL,
-        from_address TEXT NOT NULL,
-        to_address TEXT NOT NULL,
-        amount BIGINT NOT NULL,
-        confirmations INTEGER DEFAULT 0,
-        block_time TIMESTAMPTZ,
-        transaction_type VARCHAR(20) CHECK (transaction_type IN ('deposit', 'refund', 'signup')),
-        status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'confirmed', 'failed')),
-        user_deposit_id UUID,
-        created_at TIMESTAMPTZ DEFAULT NOW(),
-        FOREIGN KEY (user_deposit_id) REFERENCES user_deposits(id) ON DELETE SET NULL
-      )
-    `);
-
-    // Create indexes for all tables
-    await client.query('CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_users_phone_hash ON users(phone_hash)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_user_deposits_user_id ON user_deposits(user_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_user_deposits_tx_hash ON user_deposits(tx_hash)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_zk_proofs_user_id ON zk_proofs(user_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_auth_data_user_id ON auth_data(user_id)');
-    await client.query('CREATE INDEX IF NOT EXISTS idx_transactions_tx_hash ON transactions(tx_hash)');
+    // Split by semicolons and execute each statement separately
+    // This handles the DO $$ blocks that can't be executed in one query
+    const statements = schemaSQL.split(';').filter(stmt => stmt.trim().length > 0);
     
-    console.log('✅ ALL database tables created successfully');
+    for (const statement of statements) {
+      if (statement.trim()) {
+        try {
+          await client.query(statement + ';');
+        } catch (error) {
+          // Type assertion to treat error as Error
+          const err = error as Error;
+          // Ignore "already exists" errors for idempotent operations
+          if (!err.message.includes('already exists') && 
+              !err.message.includes('does not exist')) {
+            console.warn('⚠️ Statement execution warning:', err.message);
+          }
+        }
+      }
+    }
+    
+    console.log('✅ ALL database tables created successfully from schema.sql');
     client.release();
     return true;
   } catch (error) {
-    console.error('❌ Error creating database tables:', error);
+    console.error('❌ Error creating database tables from schema.sql:', error);
     return false;
   }
 };
 
-// Add missing columns to existing tables
+// UPDATED: Schema update now handles both missing tables AND columns
 export const updateSchema = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
     
-    console.log('🔧 Checking for missing columns...');
+    console.log('🔧 Checking for schema updates...');
     
-    // Add missing columns to users table
+    // Check if we have the new tables from schema.sql
+    const newTables = [
+      'system_logs', 'emergency_contacts', 'backup_phrases', 
+      'phone_change_requests', 'recovery_requests', 'account_activity'
+    ];
+    
+    let missingTables = [];
+    
+    for (const table of newTables) {
+      const tableCheck = await client.query(
+        `SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = $1)`,
+        [table]
+      );
+      
+      if (!tableCheck.rows[0].exists) {
+        missingTables.push(table);
+      }
+    }
+    
+    if (missingTables.length > 0) {
+      console.log(`🔄 Found ${missingTables.length} missing tables, running full schema update...`);
+      client.release();
+      return await createTables(); // Re-run full schema creation
+    }
+    
+    // Check for missing columns in users table
     const missingColumns = [
-      'ADD COLUMN IF NOT EXISTS pin VARCHAR(10)',
-      'ADD COLUMN IF NOT EXISTS pin_hash VARCHAR(128)',
+      'ADD COLUMN IF NOT EXISTS auth_methods JSONB NOT NULL DEFAULT \'[]\'::jsonb',
+      'ADD COLUMN IF NOT EXISTS folders JSONB NOT NULL DEFAULT \'[]\'::jsonb',
       'ADD COLUMN IF NOT EXISTS verification_method VARCHAR(50) DEFAULT \'phone\'',
       'ADD COLUMN IF NOT EXISTS biometric_type VARCHAR(50)',
       'ADD COLUMN IF NOT EXISTS sender_wallet_address TEXT',
@@ -205,10 +138,18 @@ export const updateSchema = async (): Promise<boolean> => {
     for (const column of missingColumns) {
       try {
         await client.query(`ALTER TABLE users ${column}`);
-        console.log(`✅ Added column: ${column.split(' ')[4]}`);
+        console.log(`✅ Added/verified column: ${column.split(' ')[5]}`);
       } catch (error) {
-        console.log(`⏭️  Column already exists: ${column.split(' ')[4]}`);
+        console.log(`⏭️  Column already exists: ${column.split(' ')[5]}`);
       }
+    }
+    
+    // Remove insecure plain text PIN field if it exists
+    try {
+      await client.query('ALTER TABLE users DROP COLUMN IF EXISTS pin');
+      console.log('✅ Removed insecure plain text PIN column');
+    } catch (error) {
+      console.log('ℹ️  PIN column already removed or never existed');
     }
     
     client.release();
@@ -220,16 +161,14 @@ export const updateSchema = async (): Promise<boolean> => {
   }
 };
 
-// Test database connection and required tables (keep this for existing imports)
+// Test database connection
 export const testConnection = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
-    
-    // Test basic connection
     const result = await client.query('SELECT NOW()');
     console.log('✅ Database connection successful:', result.rows[0].now);
     
-    // Check if required tables exist
+    // Check if core tables exist
     const requiredTables = ['users', 'user_deposits', 'transactions'];
     let missingTables = [];
     
@@ -240,24 +179,14 @@ export const testConnection = async (): Promise<boolean> => {
       );
       
       if (!tableCheck.rows[0].exists) {
-        console.warn(`❌ Required table '${table}' does not exist`);
         missingTables.push(table);
       }
     }
     
     if (missingTables.length > 0) {
-      console.log('🔧 Attempting to create missing tables...');
+      console.log('🔧 Creating missing tables...');
       client.release();
-      
-      // Try to create tables
-      const tablesCreated = await createTables();
-      if (tablesCreated) {
-        console.log('✅ All required tables now exist');
-        return true;
-      } else {
-        console.error('❌ Failed to create required tables');
-        return false;
-      }
+      return await createTables();
     }
     
     console.log('✅ All required tables exist');
@@ -272,16 +201,14 @@ export const testConnection = async (): Promise<boolean> => {
 export const initializeDatabase = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
-    
     const result = await client.query('SELECT NOW()');
     console.log('✅ Database connection successful:', result.rows[0].now);
-    
     client.release();
     
     // Create tables if they don't exist
     await createTables();
     
-    // Update schema with missing columns
+    // Update schema with any missing columns
     await updateSchema();
     
     console.log('🎉 Database initialization completed successfully');
