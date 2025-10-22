@@ -5,17 +5,6 @@ import { PoolClient } from 'pg';
 // INTERFACES
 // ============================================================================
 
-export interface User {
-  id?: string;
-  user_id: string;
-  email?: string;
-  name?: string;
-  wallet_address?: string;
-  phone_hash?: string;
-  zk_commitment?: string;
-  created_at?: Date;
-  updated_at?: Date;
-}
 
 export interface UserDeposit {
   id?: string;
@@ -115,14 +104,28 @@ export class UserModel {
   static async create(user: Omit<User, 'id' | 'created_at' | 'updated_at'>): Promise<User> {
     const client = await pool.connect();
     try {
+      // Validate minimum 3 auth methods
+      if (!user.auth_methods || user.auth_methods.length < 3) {
+        throw new Error('At least 3 authentication methods are required');
+      }
+
       const query = `
-        INSERT INTO users (user_id, email, name, wallet_address, phone_hash, zk_commitment)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO users (user_id, email, name, wallet_address, phone_hash, zk_commitment, auth_methods, folders)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
       `;
-      const values = [user.user_id, user.email, user.name, user.wallet_address, user.phone_hash, user.zk_commitment];
+      const values = [
+        user.user_id, 
+        user.email, 
+        user.name, 
+        user.wallet_address, 
+        user.phone_hash, 
+        user.zk_commitment,
+        JSON.stringify(user.auth_methods), // Store as JSONB
+        JSON.stringify(user.folders || []) // Store as JSONB
+      ];
       const result = await client.query(query, values);
-      return result.rows[0];
+      return this.parseUser(result.rows[0]);
     } finally {
       client.release();
     }
@@ -133,7 +136,7 @@ export class UserModel {
     try {
       const query = 'SELECT * FROM users WHERE user_id = $1';
       const result = await client.query(query, [userId]);
-      return result.rows[0] || null;
+      return result.rows[0] ? this.parseUser(result.rows[0]) : null;
     } finally {
       client.release();
     }
@@ -144,7 +147,7 @@ export class UserModel {
     try {
       const query = 'SELECT * FROM users WHERE wallet_address = $1';
       const result = await client.query(query, [walletAddress]);
-      return result.rows[0] || null;
+      return result.rows[0] ? this.parseUser(result.rows[0]) : null;
     } finally {
       client.release();
     }
@@ -153,9 +156,19 @@ export class UserModel {
   static async update(userId: string, updates: Partial<User>): Promise<User | null> {
     const client = await pool.connect();
     try {
+      // Validate auth methods if being updated
+      if (updates.auth_methods && updates.auth_methods.length < 3) {
+        throw new Error('At least 3 authentication methods are required');
+      }
+
       const setClause = Object.keys(updates)
         .filter(key => key !== 'id' && key !== 'user_id' && key !== 'created_at')
-        .map((key, index) => `${key} = $${index + 2}`)
+        .map((key, index) => {
+          if (key === 'auth_methods' || key === 'folders') {
+            return `${key} = $${index + 2}::jsonb`;
+          }
+          return `${key} = $${index + 2}`;
+        })
         .join(', ');
       
       if (!setClause) return null;
@@ -166,16 +179,90 @@ export class UserModel {
         WHERE user_id = $1
         RETURNING *
       `;
+      
       const values = [userId, ...Object.values(updates).filter((_, index) => {
         const key = Object.keys(updates)[index];
         return key !== 'id' && key !== 'user_id' && key !== 'created_at';
+      }).map((value, index) => {
+        const key = Object.keys(updates).filter(k => k !== 'id' && k !== 'user_id' && k !== 'created_at')[index];
+        if (key === 'auth_methods' || key === 'folders') {
+          return JSON.stringify(value);
+        }
+        return value;
       })];
       
       const result = await client.query(query, values);
-      return result.rows[0] || null;
+      return result.rows[0] ? this.parseUser(result.rows[0]) : null;
     } finally {
       client.release();
     }
+  }
+
+  // NEW: Update authentication methods
+  static async updateAuthMethods(userId: string, authMethods: AuthMethod[]): Promise<User | null> {
+    if (authMethods.length < 3) {
+      throw new Error('At least 3 authentication methods are required');
+    }
+
+    return await this.update(userId, { auth_methods: authMethods });
+  }
+
+  // NEW: Add a single authentication method
+  static async addAuthMethod(userId: string, authMethod: AuthMethod): Promise<User | null> {
+    const user = await this.findByUserId(userId);
+    if (!user) return null;
+
+    const updatedMethods = [...user.auth_methods, authMethod];
+    return await this.updateAuthMethods(userId, updatedMethods);
+  }
+
+  // NEW: Remove an authentication method (ensure minimum 3)
+  static async removeAuthMethod(userId: string, authType: AuthMethod['type']): Promise<User | null> {
+    const user = await this.findByUserId(userId);
+    if (!user) return null;
+
+    const updatedMethods = user.auth_methods.filter(method => method.type !== authType);
+    if (updatedMethods.length < 3) {
+      throw new Error(`Cannot remove ${authType}. Minimum 3 authentication methods required.`);
+    }
+
+    return await this.updateAuthMethods(userId, updatedMethods);
+  }
+
+  // NEW: Manage folders
+  static async addFolder(userId: string, folder: Omit<Folder, 'createdAt' | 'updatedAt'>): Promise<User | null> {
+    const user = await this.findByUserId(userId);
+    if (!user) return null;
+
+    const newFolder: Folder = {
+      ...folder,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const updatedFolders = [...user.folders, newFolder];
+    return await this.update(userId, { folders: updatedFolders });
+  }
+
+  static async updateFolder(userId: string, folderId: string, updates: Partial<Omit<Folder, 'id' | 'createdAt'>>): Promise<User | null> {
+    const user = await this.findByUserId(userId);
+    if (!user) return null;
+
+    const updatedFolders = user.folders.map(folder => 
+      folder.id === folderId 
+        ? { ...folder, ...updates, updatedAt: new Date() }
+        : folder
+    );
+
+    return await this.update(userId, { folders: updatedFolders });
+  }
+
+  static async removeFolder(userId: string, folderId: string): Promise<User | null> {
+    const user = await this.findByUserId(userId);
+    if (!user) return null;
+
+    const updatedFolders = user.folders.filter(folder => folder.id !== folderId);
+    return await this.update(userId, { folders: updatedFolders });
   }
 
   static async getAll(): Promise<User[]> {
@@ -183,12 +270,22 @@ export class UserModel {
     try {
       const query = 'SELECT * FROM users ORDER BY created_at DESC';
       const result = await client.query(query);
-      return result.rows;
+      return result.rows.map(row => this.parseUser(row));
     } finally {
       client.release();
     }
   }
+
+  // Helper method to parse JSON fields
+  private static parseUser(row: any): User {
+    return {
+      ...row,
+      auth_methods: row.auth_methods ? JSON.parse(row.auth_methods) : [],
+      folders: row.folders ? JSON.parse(row.folders) : []
+    };
+  }
 }
+
 
 // ============================================================================
 // USER DEPOSIT MODEL
