@@ -580,9 +580,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     const { 
       userAddress, 
       userId, 
-      phoneHash,
-      phone, // ✅ Make sure phone is extracted
-      pinHash,  
+      phoneHash, // This is actually encrypted data from frontend
+      pinHash,   // This is actually encrypted data from frontend  
       authMethods, 
       zkCommitment, 
       zkProof,      
@@ -600,7 +599,6 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       userAddress, 
       userId, 
       hasPhoneHash: !!phoneHash,
-      hasPhone: !!phone, // ✅ Check if phone is provided
       hasPinHash: !!pinHash,
       authMethodsCount: authMethods?.length || 0,
       hasZkCommitment: !!zkCommitment,
@@ -610,28 +608,21 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       biometricType
     });
 
-    // Support both new and legacy request formats
     const finalUserAddress = userAddress || walletAddress;
-    const finalPhoneHash = phoneHash || (phone ? crypto.createHash('sha256').update(phone).digest('hex') : null);
-    const finalPhone = phone; // ✅ Store the actual phone number
+    const finalPhoneHash = phoneHash; // Store encrypted data as-is
+    const finalPinHash = pinHash; // Store encrypted data as-is
     const finalBiometricData = biometricData || biometric;
 
     console.log('Final processed fields:', {
       finalUserAddress,
-      hasFinalPhone: !!finalPhone, // ✅ Log phone presence
       hasFinalPhoneHash: !!finalPhoneHash,
-      hasFinalBiometricData: !!finalBiometricData,
+      hasFinalPinHash: !!finalPinHash,
       authMethods: authMethods?.map(m => m.type) || []
     });
 
-    // ============================================================================
-    // VALIDATION
-    // ============================================================================
-
-    // Validate required fields - UPDATED to require phone
-    if (!finalPhone) {
-      console.log('Validation failed: Phone is required');
-      return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED, null, 'Phone is required');
+    if (!finalPhoneHash) {
+      console.log('Validation failed: Phone encrypted data is required');
+      return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED, null, 'Phone encrypted data is required');
     }
 
     if (!userId) {
@@ -639,7 +630,6 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       return ResponseUtils.error(res, ErrorCodes.IDENTIFIER_REQUIRED);
     }
 
-    // Validate ZK commitment and proof (required from frontend)
     if (!zkCommitment) {
       console.log('Validation failed: ZK commitment is required');
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'ZK commitment is required');
@@ -650,13 +640,11 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'ZK proof is required');
     }
 
-    // Validate auth methods
     if (!authMethods || !Array.isArray(authMethods) || authMethods.length < 3) {
       console.log('Validation failed: At least 3 authentication methods are required');
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'At least 3 authentication methods are required');
     }
 
-    // Validate each auth method
     for (const method of authMethods) {
       if (!method.type) {
         console.log('Validation failed: Auth method missing type');
@@ -668,23 +656,21 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a createdAt timestamp');
       }
 
-      // Validate specific auth method requirements
       if (method.type === 'pin' && !method.data) {
-        console.log('Validation failed: PIN auth method must have data field with hashed PIN');
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN authentication method must include hashed PIN data');
+        console.log('Validation failed: PIN auth method must have data field');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN authentication method must include data');
       }
 
       if (method.type === 'face' && !method.data) {
-        console.log('Validation failed: Face auth method must have data field with biometric hash');
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Face authentication method must include biometric data hash');
+        console.log('Validation failed: Face auth method must have data field');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Face authentication method must include data');
       }
 
       if (method.type === 'voice' && !method.data) {
-        console.log('Validation failed: Voice auth method must have data field with voice hash');
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Voice authentication method must include voice data hash');
+        console.log('Validation failed: Voice auth method must have data field');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Voice authentication method must include data');
       }
 
-      // Validate allowed auth method types
       const allowedTypes = ['phone', 'pin', 'fingerprint', 'face', 'voice', 'iris'];
       if (!allowedTypes.includes(method.type)) {
         console.log('Validation failed: Invalid auth method type:', method.type);
@@ -692,31 +678,16 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       }
     }
 
-    // User ID validation
     if (userId.length < 3 || userId.length > 50) {
       console.log('Validation failed: User ID must be 3-50 characters');
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'User ID must be between 3 and 50 characters');
     }
 
-    // Wallet address validation (if provided)
     if (finalUserAddress && finalUserAddress.length < 10) {
       console.log('Validation failed: Invalid wallet address format');
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid wallet address format');
     }
 
-    // Phone validation - basic format check
-    if (finalPhone && finalPhone.length < 10) {
-      console.log('Validation failed: Invalid phone number format');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid phone number format');
-    }
-
-    // Phone hash validation (should be 64 chars for SHA-256)
-    if (finalPhoneHash && finalPhoneHash.length !== 64) {
-      console.log('Validation failed: Phone hash must be 64 characters (SHA-256)');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid phone hash format');
-    }
-
-    // ZK commitment validation
     if (zkCommitment) {
       const commitmentRegex = /^[a-f0-9]+-[a-f0-9]+$/;
       if (!commitmentRegex.test(zkCommitment)) {
@@ -733,15 +704,10 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
     console.log('✅ All validation passed');
 
-    // ============================================================================
-    // EXISTING USER CHECK
-    // ============================================================================
-
     console.log('Step 1: Checking for existing user...');
     
     let existingUser = null;
     
-    // First check by user ID
     if (userId) {
       console.log('Checking for existing user by ID:', userId);
       existingUser = await dbService.getUserById(userId);
@@ -752,7 +718,21 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       }
     }
     
-    // If no user found by ID, check by wallet address
+    if (!existingUser && finalPhoneHash) {
+      console.log('Checking for existing user by phone hash (encrypted data):', finalPhoneHash.substring(0, 20) + '...');
+      try {
+        existingUser = await dbService.getUserByPhoneHash(finalPhoneHash);
+        if (existingUser) {
+          console.log('Existing user found by phone hash');
+        } else {
+          console.log('No existing user found by phone hash');
+        }
+      } catch (phoneHashCheckError) {
+        console.error('Error checking phone hash, continuing with new user creation:', phoneHashCheckError.message);
+        existingUser = null;
+      }
+    }
+
     if (!existingUser && finalUserAddress) {
       console.log('Checking for existing user by wallet address:', finalUserAddress);
       try {
@@ -771,14 +751,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     if (existingUser) {
       console.log('Existing user found - updating with new data');
       
-      // ============================================================================
-      // UPDATE EXISTING USER
-      // ============================================================================
-
-      // Prepare updates for existing user
       const updates = {
-        phone_number: finalPhone, // ✅ Update phone number
-        phone_hash: finalPhoneHash,
+        phone_hash: finalPhoneHash, // Store encrypted data as-is
         zk_commitment: zkCommitment,
         verification_method: verificationMethod,
         biometric_type: biometricType || null,
@@ -787,19 +761,18 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         updated_at: new Date()
       };
       
-      // Update PIN hash if provided separately
-      if (pinHash) {
-        updates.pin_hash = pinHash;
+      if (finalPinHash) {
+        updates.pin_hash = finalPinHash; // Store encrypted data as-is
       }
 
-      // Update wallet address if provided and different
       if (finalUserAddress && finalUserAddress !== existingUser.wallet_address) {
         updates.wallet_address = finalUserAddress;
       }
 
       console.log('Updating existing user with data:', {
         ...updates,
-        phone_number: finalPhone ? `${finalPhone.substring(0, 10)}...` : null,
+        phone_hash: finalPhoneHash ? `${finalPhoneHash.substring(0, 20)}...` : null,
+        pin_hash: finalPinHash ? `${finalPinHash.substring(0, 20)}...` : null,
         auth_methods: authMethods.map(m => ({ type: m.type, hasData: !!m.data }))
       });
       
@@ -812,10 +785,6 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
       console.log('Existing user updated successfully');
 
-      // ============================================================================
-      // STORE ZK PROOF FOR EXISTING USER
-      // ============================================================================
-
       console.log('Storing ZK proof for user update...');
       try {
         await dbService.createZKProof({
@@ -824,7 +793,6 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
           proof: zkProof,
           public_inputs: {
             phoneHash: finalPhoneHash,
-            phoneNumber: finalPhone, // ✅ Include phone number
             userAddress: finalUserAddress,
             verificationMethod,
             isUpdate: true,
@@ -838,48 +806,12 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         console.error('Failed to store ZK proof for user update:', zkError);
       }
 
-      // ============================================================================
-      // PROCESS REFUND FOR EXISTING USER
-      // ============================================================================
-
-      console.log('Processing 2 ADA refund for existing user...');
-      try {
-        const k33pManager = new EnhancedK33PManagerDB();
-        await k33pManager.initialize();
-        
-        const refundAddress = senderWalletAddress || finalUserAddress || existingUser.wallet_address;
-        
-        if (refundAddress) {
-          const refundResult = await k33pManager.processRefund(refundAddress, {
-            userId: existingUser.user_id,
-            reason: 'Existing user signup update',
-            zkCommitment: zkCommitment,
-            zkProof: zkProof
-          });
-          
-          if (refundResult.success) {
-            console.log('2 ADA refund processed successfully for existing user:', refundResult.txHash);
-          } else {
-            console.log('Refund processing failed but continuing:', refundResult.error);
-          }
-        } else {
-          console.log('No refund address available for existing user');
-        }
-      } catch (refundError) {
-        console.error('Error processing refund for existing user:', refundError);
-      }
-
-      // ============================================================================
-      // GENERATE JWT TOKEN FOR UPDATED USER
-      // ============================================================================
-
       console.log('Generating JWT token for updated user...');
       const token = jwt.sign(
         { 
           id: existingUser.id, 
           userId: existingUser.user_id,
           walletAddress: finalUserAddress || existingUser.wallet_address,
-          phoneNumber: finalPhone, // ✅ Include phone in token
           authMethods: authMethods.map(m => m.type)
         },
         process.env.JWT_SECRET || 'default-secret',
@@ -888,25 +820,20 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
       console.log('JWT token generated successfully');
 
-      // ============================================================================
-      // BUILD SUCCESS RESPONSE FOR EXISTING USER
-      // ============================================================================
-
       const response = {
         success: true,
         data: {
           verified: existingUser.verified || false,
           userId: existingUser.user_id,
-          phoneNumber: finalPhone, // ✅ Return phone number
           verificationMethod,
           authMethods: authMethods,
-          message: 'User account updated successfully. Your refund has been processed.',
+          message: 'User account updated successfully.',
           depositAddress: finalUserAddress || existingUser.wallet_address,
           isUpdate: true,
           zkCommitment: zkCommitment,
           requiresDeposit: verificationMethod === 'phone'
         },
-        message: 'User account updated successfully. Your refund has been processed.',
+        message: 'User account updated successfully.',
         token
       };
 
@@ -914,31 +841,24 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, response.data, response.message);
     }
 
-    // ============================================================================
-    // CREATE NEW USER
-    // ============================================================================
-
     console.log('Step 2: Creating new user with DatabaseService...');
 
     console.log('User creation data:', {
       userId: userId,
       walletAddress: finalUserAddress,
-      phoneNumber: finalPhone, // ✅ Include phone
-      phoneHash: finalPhoneHash ? `${finalPhoneHash.substring(0, 16)}...` : null,
-      pinHash: pinHash ? `${pinHash.substring(0, 16)}...` : null,
+      phoneHash: finalPhoneHash ? `${finalPhoneHash.substring(0, 20)}...` : null,
+      pinHash: finalPinHash ? `${finalPinHash.substring(0, 20)}...` : null,
       zkCommitment: zkCommitment,
       authMethods: authMethods.map(m => ({ type: m.type, hasData: !!m.data, hasCreatedAt: !!m.createdAt })),
       verificationMethod: verificationMethod
     });
 
     try {
-      // Create new user with phone number and phone hash
       const newUser = await dbService.createUser({
         userId: userId,
         walletAddress: finalUserAddress,
-        phoneNumber: finalPhone, // ✅ Store actual phone number
-        phoneHash: finalPhoneHash,
-        pinHash: pinHash,
+        phoneHash: finalPhoneHash, // Store encrypted data as-is
+        pinHash: finalPinHash, // Store encrypted data as-is
         zkCommitment: zkCommitment, 
         authMethods: authMethods, 
         folders: [],
@@ -948,12 +868,9 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       });
 
       console.log('✅ User created successfully with ID:', newUser.user_id);
-      console.log('Phone number stored:', finalPhone ? `${finalPhone.substring(0, 10)}...` : null);
+      console.log('Phone encrypted data stored:', finalPhoneHash ? `${finalPhoneHash.substring(0, 20)}...` : null);
+      console.log('PIN encrypted data stored:', finalPinHash ? `${finalPinHash.substring(0, 20)}...` : null);
       console.log('Auth methods saved:', authMethods.map(m => m.type));
-
-      // ============================================================================
-      // STORE ZK PROOF FOR NEW USER
-      // ============================================================================
 
       console.log('Storing ZK proof for new user...');
       try {
@@ -963,7 +880,6 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
           proof: zkProof,
           public_inputs: {
             phoneHash: finalPhoneHash,
-            phoneNumber: finalPhone, // ✅ Include phone number
             userAddress: finalUserAddress,
             verificationMethod,
             isNewUser: true,
@@ -977,17 +893,12 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         console.error('Failed to store ZK proof for new user:', zkError);
       }
 
-      // ============================================================================
-      // GENERATE JWT TOKEN FOR NEW USER
-      // ============================================================================
-
       console.log('Generating JWT token for new user...');
       const token = jwt.sign(
         { 
           id: newUser.id, 
           userId: newUser.user_id,
           walletAddress: newUser.wallet_address,
-          phoneNumber: finalPhone, // ✅ Include phone in token
           authMethods: authMethods.map(m => m.type) 
         },
         process.env.JWT_SECRET || 'default-secret',
@@ -996,16 +907,11 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
       console.log('JWT token generated successfully');
 
-      // ============================================================================
-      // BUILD SUCCESS RESPONSE FOR NEW USER
-      // ============================================================================
-
       const response = {
         success: true,
         data: {
           verified: verificationMethod === 'phone' ? false : true, 
           userId: newUser.user_id,
-          phoneNumber: finalPhone, // ✅ Return phone number
           verificationMethod,
           authMethods: authMethods, 
           message: 'DID created successfully. Welcome to K33P!',

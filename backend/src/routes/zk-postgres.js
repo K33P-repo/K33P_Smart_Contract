@@ -383,26 +383,21 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
 router.post('/find-user', async (req, res) => {
   try {
     console.log('=== FIND USER DEBUG START ===');
-    const { phoneHash } = req.body;
+    const { phoneHash } = req.body; // This now contains encrypted data
 
     console.log('Request body:', { phoneHash });
 
     if (!phoneHash) {
-      console.log('Validation failed: Phone hash is required');
+      console.log('Validation failed: Phone encrypted data is required');
       return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
     }
 
-    if (phoneHash.length !== 64) {
-      console.log('Validation failed: Phone hash must be 64 characters');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid phone hash format');
-    }
-
-    console.log('Finding user by phone hash...');
+    console.log('Finding user by phone hash (encrypted data)...');
     
     const user = await ZKProofService.getUserByPhoneHash(phoneHash);
     
     if (!user) {
-      console.log('No user found with this phone hash');
+      console.log('No user found with this phone encrypted data');
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'No user found');
     }
 
@@ -417,7 +412,7 @@ router.post('/find-user', async (req, res) => {
 
     const authMethods = user.auth_methods?.map(method => ({
       type: method.type,
-      data: method.data,
+      data: method.data, // This contains encrypted data
       createdAt: method.createdAt,
       lastUsed: method.lastUsed || method.createdAt
     })) || [];
@@ -430,7 +425,6 @@ router.post('/find-user', async (req, res) => {
 
     const responseData = {
       userId: user.user_id,
-      phoneNumber: user.phone_number,
       walletAddress: user.wallet_address,
       verificationMethod: user.verification_method,
       zkCommitment: user.zk_commitment,
@@ -464,9 +458,9 @@ router.post('/login-with-pin', async (req, res) => {
   try {
     console.log('=== LOGIN DEBUG START ===');
     const { 
-      phoneHash, 
+      phoneHash, // This now contains encrypted data
       authMethod, 
-      pinHash, 
+      pinHash, // This now contains encrypted data
       biometricHash, 
       biometricType,
       authMethods
@@ -482,7 +476,7 @@ router.post('/login-with-pin', async (req, res) => {
     });
 
     if (!phoneHash) {
-      console.log('Validation failed: Phone hash is required');
+      console.log('Validation failed: Phone encrypted data is required');
       return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
     }
 
@@ -497,7 +491,7 @@ router.post('/login-with-pin', async (req, res) => {
     }
 
     if (authMethod === 'pin' && !pinHash) {
-      console.log('Validation failed: PIN hash is required for PIN authentication');
+      console.log('Validation failed: PIN encrypted data is required for PIN authentication');
       return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
     }
 
@@ -506,11 +500,11 @@ router.post('/login-with-pin', async (req, res) => {
       return ResponseUtils.error(res, ErrorCodes.BIOMETRIC_DATA_REQUIRED);
     }
 
-    console.log('Finding user by phone hash...');
+    console.log('Finding user by phone hash (encrypted data)...');
     const user = await ZKProofService.getUserByPhoneHash(phoneHash);
     
     if (!user) {
-      console.log('No user found with this phone hash');
+      console.log('No user found with this phone encrypted data');
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
     }
 
@@ -537,7 +531,7 @@ router.post('/login-with-pin', async (req, res) => {
       
       const methodMatch = 
         providedMethod.type === storedMethod.type &&
-        providedMethod.data === storedMethod.data &&
+        providedMethod.data === storedMethod.data && // Comparing encrypted data
         providedMethod.createdAt === storedMethod.createdAt;
       
       methodComparison.push({
@@ -574,6 +568,7 @@ router.post('/login-with-pin', async (req, res) => {
     switch (authMethod) {
       case 'pin':
         if (pinHash) {
+          // Compare encrypted PIN data directly
           authenticationSuccessful = userAuthMethod.data === pinHash;
           authDetails = { 
             method: 'pin', 
@@ -586,6 +581,7 @@ router.post('/login-with-pin', async (req, res) => {
       case 'face':
       case 'voice':
         if (biometricHash) {
+          // Compare biometric hashes (these are still hashes, not encrypted)
           authenticationSuccessful = userAuthMethod.data === biometricHash;
           authDetails = { 
             method: authMethod, 

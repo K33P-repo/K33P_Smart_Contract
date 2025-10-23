@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(30),
     wallet_address TEXT,
     phone_hash VARCHAR(128),
-    phone_number VARCHAR(20),
     pin_hash VARCHAR(128)
     zk_commitment TEXT,
     auth_methods JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -33,7 +32,6 @@ CREATE TABLE IF NOT EXISTS user_deposits (
     user_address TEXT NOT NULL,
     user_id VARCHAR(50) NOT NULL,
     phone_hash VARCHAR(128) NOT NULL,
-    phone_number VARCHAR(20),
     zk_proof TEXT,
     zk_commitment TEXT,
     tx_hash VARCHAR(128),
@@ -197,7 +195,6 @@ CREATE TABLE IF NOT EXISTS account_activity (
 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
-CREATE INDEX IF NOT EXISTS idx_users_phone_number ON users(phone_number);
 CREATE INDEX IF NOT EXISTS idx_users_auth_methods ON users USING gin (auth_methods);
 CREATE INDEX IF NOT EXISTS idx_users_folders ON users USING gin (folders);
 
