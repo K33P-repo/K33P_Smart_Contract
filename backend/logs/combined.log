@@ -1227,3 +1227,22 @@
 {"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:45:40.943Z"}
 {"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:45:40.951Z"}
 {"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:45:40.953Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:47:16.608Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:47:16.609Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:47:16.922Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:47:17.011Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:47:20.583Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:47:42.335Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:47:44.342Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:47:44.342Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:47:46.177Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:47:46.184Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:47:46.186Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T06:48:03.786Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-10-23T06:48:03.813Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-10-23T06:48:03.817Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-10-23T06:48:03.820Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T06:48:03.825Z"}
+{"code":"VALIDATION_ERROR","details":null,"level":"error","message":"API Error: Invalid ZK commitment format","service":"k33p-backend","stack":"K33PError: Invalid ZK commitment format\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:714:28)\n    at file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:105:10\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at /home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/index.js:284:15\n    at Function.process_params (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/index.js:280:10)","statusCode":400,"timestamp":"2025-10-23T06:48:03.827Z","userMessage":"Invalid ZK commitment format"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T06:48:03.832Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T06:48:04.106Z"}

@@ -3083,7 +3083,7 @@ router.get('/username/check-availability',
   handleAsyncRoute(async (req: Request, res: Response) => {
     try {
       const { userName } = req.query;
-      const userId = (req as any).user?.id; // Optional for logged-in users
+      const userId = (req as any).user?.id;
 
       if (!userName) {
         return res.status(400).json({
@@ -3093,7 +3093,29 @@ router.get('/username/check-availability',
         });
       }
 
-      logger.info(`Checking username availability: ${userName}`);
+      // Ensure userName is a string and handle all possible types
+      let userNameString: string;
+      
+      if (Array.isArray(userName)) {
+        userNameString = userName[0] as string;
+      } else if (typeof userName === 'string') {
+        userNameString = userName;
+      } else {
+        userNameString = String(userName);
+      }
+      
+      // Trim and validate the string
+      userNameString = userNameString.trim();
+      
+      if (!userNameString) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid username format',
+          error: 'INVALID_USERNAME_FORMAT'
+        });
+      }
+
+      logger.info(`Checking username availability: ${userNameString}`);
 
       const client = await pool.connect();
       let isAvailable = true;
@@ -3101,7 +3123,7 @@ router.get('/username/check-availability',
       
       try {
         let query = 'SELECT user_id, user_name FROM users WHERE user_name = $1';
-        const params = [userName];
+        const params = [userNameString];
         
         if (userId) {
           query += ' AND user_id != $2';
@@ -3111,7 +3133,6 @@ router.get('/username/check-availability',
         const result = await client.query(query, params);
         isAvailable = result.rows.length === 0;
         
-        // Check if current user already has this username
         if (userId && result.rows.length > 0) {
           currentUserHasThisName = result.rows[0].user_id === userId;
         }
@@ -3119,28 +3140,28 @@ router.get('/username/check-availability',
         client.release();
       }
 
-      // Validate username against reserved words
       const reservedUsernames = [
         'admin', 'administrator', 'root', 'system', 'support', 'help', 
         'contact', 'info', 'security', 'verify', 'auth', 'login', 'signup',
         'official', 'team', 'staff', 'moderator', 'owner', 'founder'
       ];
       
-      const isReserved = reservedUsernames.includes(userName.toLowerCase());
+      // Now userNameString is guaranteed to be a string
+      const isReserved = reservedUsernames.includes(userNameString.toLowerCase());
 
       res.json({
         success: true,
         message: 'Username availability checked successfully',
         data: {
-          userName,
+          userName: userNameString,
           available: isAvailable && !isReserved,
           isReserved,
           currentUserHasThisName,
           suggestions: isReserved ? [
-            `${userName}123`,
-            `the_${userName}`,
-            `real_${userName}`,
-            `${userName}_user`
+            `${userNameString}123`,
+            `the_${userNameString}`,
+            `real_${userNameString}`,
+            `${userNameString}_user`
           ] : undefined
         }
       });

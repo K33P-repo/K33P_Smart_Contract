@@ -473,7 +473,8 @@ export class AutoRefundMonitor {
           name: 'Auto Refund User',
           email: undefined,
           phoneHash: undefined,
-          zkCommitment: undefined
+          zkCommitment: undefined,
+          authMethods: [] 
         });
         logger.info(`✅ Created user record for automatic refund: ${userId}`);
       }
@@ -481,9 +482,7 @@ export class AutoRefundMonitor {
       logger.error(`❌ Error creating user record for ${userId}:`, error);
       throw error;
     }
-  }
-
-  /**
+  }  /**
    * Process automatic refund for an incoming transaction
    */
   private async processAutomaticRefund(transaction: IncomingTransaction): Promise<RefundProcessingResult> {
