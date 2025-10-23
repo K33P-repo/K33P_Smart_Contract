@@ -708,10 +708,18 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid phone hash format');
     }
 
-    // ZK commitment validation
-    if (zkCommitment && zkCommitment.length !== 64) {
-      console.log('Validation failed: ZK commitment must be 64 characters (SHA-256)');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid ZK commitment format');
+    if (zkCommitment) {
+      const commitmentRegex = /^[a-f0-9]+-[a-f0-9]+$/;
+      if (!commitmentRegex.test(zkCommitment)) {
+        console.log('Validation failed: ZK commitment format invalid');
+        console.log('Received commitment:', zkCommitment);
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid ZK commitment format');
+      }
+      
+      if (zkCommitment.length < 40) {
+        console.log('Validation failed: ZK commitment too short');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid ZK commitment format');
+      }
     }
 
     // ============================================================================
