@@ -4,7 +4,7 @@ import crypto from 'crypto';
 const BASE_URL = 'http://localhost:3000';
 
 const TEST_USER = {
-  phoneNumber: '+1234567890',
+  phoneNumber: '+2348012345678', // Changed to 13-digit format
   userId: 'test-user-' + Date.now(),
   walletAddress: '0x' + 'a'.repeat(40),
   pin: '123456',
@@ -174,24 +174,26 @@ async function testSignup() {
     const phoneHash = generateSHA256Hash(TEST_USER.phoneNumber);
     const pinHash = generateSHA256Hash(TEST_USER.pin);
     
+    // Create consistent timestamps for auth methods
+    const now = new Date().toISOString();
     const authMethods = [
       {
         type: 'pin',
         data: pinHash,
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
+        createdAt: now,
+        lastUsed: now
       },
       {
         type: 'face',
         data: generateSHA256Hash(TEST_USER.biometric),
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
+        createdAt: now,
+        lastUsed: now
       },
       {
         type: 'phone',
         data: phoneHash,
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
+        createdAt: now,
+        lastUsed: now
       }
     ];
 
@@ -203,10 +205,20 @@ async function testSignup() {
       authMethods: authMethods,
       zkCommitment: zkCommitment,
       zkProof: zkProof,
-      verificationMethod: 'phone'
+      verificationMethod: 'phone',
+      phone: TEST_USER.phoneNumber // Make sure this is included
     };
 
     console.log('Sending signup request...');
+    console.log('Signup data:', {
+      userId: signupData.userId,
+      phone: signupData.phone,
+      hasPhoneHash: !!signupData.phoneHash,
+      authMethodsCount: signupData.authMethods.length,
+      hasZkCommitment: !!signupData.zkCommitment,
+      hasZkProof: !!signupData.zkProof
+    });
+
     const response = await makeRequest('POST', '/api/auth/signup', signupData);
     
     console.log(`Status: ${response.status}`);
@@ -229,6 +241,7 @@ async function testSignup() {
       } else {
         console.log(`❌ Error: ${response.body.error?.message}`);
         console.log(`❌ Error Code: ${response.body.error?.code}`);
+        console.log(`❌ Error Details: ${JSON.stringify(response.body.error?.details)}`);
         return false;
       }
     } else {
@@ -247,6 +260,8 @@ async function testFindUser() {
   try {
     const phoneHash = generateSHA256Hash(TEST_USER.phoneNumber);
     
+    console.log('Finding user with phone hash:', phoneHash.substring(0, 20) + '...');
+    
     const response = await makeRequest('POST', '/api/zk/find-user', {
       phoneHash: phoneHash
     });
@@ -261,6 +276,13 @@ async function testFindUser() {
         console.log(`✅ Wallet: ${response.body.data.walletAddress}`);
         console.log(`✅ Auth Methods: ${response.body.data.authMethods?.length || 0}`);
         console.log(`✅ ZK Commitment: ${response.body.data.zkCommitment?.substring(0, 20)}...`);
+        
+        // Store the actual auth methods from the response for login test
+        if (response.body.data.authMethods) {
+          TEST_USER.storedAuthMethods = response.body.data.authMethods;
+          console.log('✅ Stored auth methods for login test');
+        }
+        
         return true;
       } else {
         console.log(`❌ Error: ${response.body.error?.message}`);
@@ -283,33 +305,53 @@ async function testLoginWithPin() {
     const phoneHash = generateSHA256Hash(TEST_USER.phoneNumber);
     const pinHash = generateSHA256Hash(TEST_USER.pin);
     
-    const authMethods = [
-      {
-        type: 'pin',
-        data: pinHash,
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
-      },
-      {
-        type: 'face',
-        data: generateSHA256Hash(TEST_USER.biometric),
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
-      },
-      {
-        type: 'phone',
-        data: phoneHash,
-        createdAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
-      }
-    ];
+    // Use the EXACT auth methods that were stored during signup
+    let authMethods;
+    if (TEST_USER.storedAuthMethods) {
+      // Use the stored auth methods exactly as they are
+      authMethods = TEST_USER.storedAuthMethods;
+      console.log('✅ Using stored auth methods from find-user response');
+    } else {
+      // Fallback: create auth methods with the same structure
+      const now = new Date().toISOString();
+      authMethods = [
+        {
+          type: 'pin',
+          data: pinHash,
+          createdAt: now,
+          lastUsed: now
+        },
+        {
+          type: 'face',
+          data: generateSHA256Hash(TEST_USER.biometric),
+          createdAt: now,
+          lastUsed: now
+        },
+        {
+          type: 'phone',
+          data: phoneHash,
+          createdAt: now,
+          lastUsed: now
+        }
+      ];
+      console.log('⚠️ Using newly created auth methods (may not match stored)');
+    }
 
-    const response = await makeRequest('POST', '/api/zk/login-with-pin', {
+    console.log('Login auth methods:', authMethods.map(m => ({
+      type: m.type,
+      hasData: !!m.data,
+      createdAt: m.createdAt
+    })));
+
+    const loginData = {
       phoneHash: phoneHash,
       authMethod: 'pin',
       pinHash: pinHash,
       authMethods: authMethods
-    });
+    };
+
+    console.log('Sending login request...');
+    const response = await makeRequest('POST', '/api/zk/login-with-pin', loginData);
     
     console.log(`Status: ${response.status}`);
     
@@ -329,6 +371,7 @@ async function testLoginWithPin() {
         return true;
       } else {
         console.log(`❌ Error: ${response.body.error?.message}`);
+        console.log(`❌ Error Details: ${JSON.stringify(response.body.error?.details)}`);
         return false;
       }
     } else {
@@ -376,6 +419,7 @@ async function testZKVerification() {
 async function runCompleteTests() {
   console.log('Starting Complete Authentication Flow Tests...');
   console.log('Test User ID:', TEST_USER.userId);
+  console.log('Test Phone:', TEST_USER.phoneNumber);
   console.log('='.repeat(50));
   
   const serverConnected = await testServerConnection();

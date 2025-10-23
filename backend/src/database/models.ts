@@ -167,9 +167,15 @@ export class UserModel {
       if (updates.auth_methods && updates.auth_methods.length < 3) {
         throw new Error('At least 3 authentication methods are required');
       }
-
-      const setClause = Object.keys(updates)
-        .filter(key => key !== 'id' && key !== 'user_id' && key !== 'created_at')
+  
+      // Filter out fields that shouldn't be updated directly
+      const filteredUpdates = { ...updates };
+      delete filteredUpdates.id;
+      delete filteredUpdates.user_id;
+      delete filteredUpdates.created_at;
+      delete filteredUpdates.updated_at; // Remove updated_at from updates
+  
+      const setClause = Object.keys(filteredUpdates)
         .map((key, index) => {
           if (key === 'auth_methods' || key === 'folders') {
             return `${key} = $${index + 2}::jsonb`;
@@ -180,23 +186,26 @@ export class UserModel {
       
       if (!setClause) return null;
       
+      // Add updated_at separately at the end
+      const finalSetClause = `${setClause}, updated_at = CURRENT_TIMESTAMP`;
+      
       const query = `
         UPDATE users 
-        SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+        SET ${finalSetClause}
         WHERE user_id = $1
         RETURNING *
       `;
       
-      const values = [userId, ...Object.values(updates).filter((_, index) => {
-        const key = Object.keys(updates)[index];
-        return key !== 'id' && key !== 'user_id' && key !== 'created_at';
-      }).map((value, index) => {
-        const key = Object.keys(updates).filter(k => k !== 'id' && k !== 'user_id' && k !== 'created_at')[index];
+      const values = [userId, ...Object.values(filteredUpdates).map((value, index) => {
+        const key = Object.keys(filteredUpdates)[index];
         if (key === 'auth_methods' || key === 'folders') {
           return JSON.stringify(value);
         }
         return value;
       })];
+      
+      console.log('Update query:', query);
+      console.log('Update values count:', values.length);
       
       const result = await client.query(query, values);
       return result.rows[0] ? this.parseUser(result.rows[0]) : null;
@@ -284,7 +293,6 @@ export class UserModel {
   }
 
 private static parseUser(row: any): User {
-  // Helper function to safely parse JSON data
   const safeJsonParse = (data: any): any => {
     if (!data) return [];
     if (typeof data === 'object') return data; // Already parsed
