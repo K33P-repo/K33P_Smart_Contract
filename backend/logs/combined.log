@@ -1846,3 +1846,30 @@
 {"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T19:40:49.135Z"}
 {"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T19:41:49.130Z"}
 {"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T19:43:49.130Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T21:49:50.937Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T21:49:50.939Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T21:49:51.204Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T21:49:51.297Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T21:49:53.895Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T21:50:14.018Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T21:50:16.295Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T21:50:16.295Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T21:50:18.166Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T21:50:18.173Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T21:50:18.174Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T21:50:40.287Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-10-23T21:50:40.314Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-10-23T21:50:40.319Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-10-23T21:50:40.321Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T21:50:40.325Z"}
+{"code":"USER_UPDATED","level":"info","message":"API Success: User account updated successfully.","service":"k33p-backend","statusCode":200,"timestamp":"2025-10-23T21:50:41.203Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T21:50:41.206Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T21:50:41.485Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T21:51:02.033Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-10-23T21:51:02.042Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-10-23T21:51:02.046Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-10-23T21:51:02.051Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T21:51:02.056Z"}
+{"code":"USER_UPDATED","level":"info","message":"API Success: User account updated successfully.","service":"k33p-backend","statusCode":200,"timestamp":"2025-10-23T21:51:03.014Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T21:51:03.018Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T21:51:03.397Z"}

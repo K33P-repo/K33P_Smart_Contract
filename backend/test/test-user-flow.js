@@ -260,8 +260,7 @@ async function testSignup() {
         lastUsed: now
       },
       {
-        type: 'face',
-        data: generateSHA256Hash(TEST_USER.biometric), // Keep biometric as hash
+        type: 'fingerprint',
         createdAt: now,
         lastUsed: now
       },
@@ -429,8 +428,7 @@ async function testLoginWithPin() {
           lastUsed: now
         },
         {
-          type: 'face',
-          data: generateSHA256Hash(TEST_USER.biometric),
+          type: 'fingerprint',
           createdAt: now,
           lastUsed: now
         },

@@ -34,12 +34,14 @@ const ErrorCodes = {
   AUTHENTICATION_FAILED: 'AUTHENTICATION_FAILED',
   SERVER_ERROR: 'SERVER_ERROR',
   PIN_REQUIRED: 'PIN_REQUIRED',
-  BIOMETRIC_DATA_REQUIRED: 'BIOMETRIC_DATA_REQUIRED'
+  BIOMETRIC_DATA_REQUIRED: 'BIOMETRIC_DATA_REQUIRED',
+  INVALID_PIN: 'INVALID_PIN'
 };
 
 const SuccessCodes = {
   USER_FOUND: 'USER_FOUND',
-  LOGIN_SUCCESS: 'LOGIN_SUCCESS'
+  LOGIN_SUCCESS: 'LOGIN_SUCCESS',
+  PIN_CONFIRMED: 'PIN_CONFIRMED'
 };
 
 const router = express.Router();
@@ -54,6 +56,98 @@ async function findUserInPostgres(query) {
   }
   return null;
 }
+
+router.post('/confirm-pin', async (req, res) => {
+  try {
+    console.log('=== CONFIRM PIN DEBUG START ===');
+    const { phoneHash, pinHash } = req.body;
+
+    console.log('Request body:', { 
+      phoneHash: phoneHash ? `${phoneHash.substring(0, 20)}...` : null,
+      pinHash: pinHash ? `${pinHash.substring(0, 20)}...` : null
+    });
+
+    if (!phoneHash) {
+      console.log('Validation failed: Phone encrypted data is required');
+      return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
+    }
+
+    if (!pinHash) {
+      console.log('Validation failed: PIN encrypted data is required');
+      return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
+    }
+
+    console.log('Finding user by phone hash...');
+    const user = await ZKProofService.getUserByPhoneHash(phoneHash);
+    
+    if (!user) {
+      console.log('No user found with this phone encrypted data');
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
+    }
+
+    console.log('User found:', {
+      userId: user.user_id,
+      hasStoredPinHash: !!user.pin_hash
+    });
+
+    if (!user.pin_hash) {
+      console.log('User does not have a PIN stored');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'User does not have a PIN registered');
+    }
+
+    console.log('Comparing provided PIN hash with stored PIN hash...');
+    console.log('Provided PIN hash:', pinHash.substring(0, 20) + '...');
+    console.log('Stored PIN hash:', user.pin_hash.substring(0, 20) + '...');
+
+    const pinMatches = user.pin_hash === pinHash;
+
+    console.log('PIN comparison result:', pinMatches);
+
+    if (!pinMatches) {
+      console.log('PIN confirmation failed - hashes do not match');
+      return ResponseUtils.error(res, ErrorCodes.INVALID_PIN, null, 'Invalid PIN');
+    }
+
+    console.log('PIN confirmed successfully, generating JWT token...');
+    
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        userId: user.user_id,
+        walletAddress: user.wallet_address,
+        authMethods: user.auth_methods?.map(m => m.type) || [],
+        verificationMethod: user.verification_method,
+        zkCommitment: user.zk_commitment
+      },
+      process.env.JWT_SECRET || 'default-secret',
+      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+    );
+
+    console.log('JWT token generated successfully');
+
+    const responseData = {
+      verified: true,
+      userId: user.user_id,
+      walletAddress: user.wallet_address,
+      authMethods: user.auth_methods?.map(m => m.type) || [],
+      zkCommitment: user.zk_commitment,
+      verificationMethod: user.verification_method,
+      requiresDeposit: user.verification_method === 'phone',
+      message: 'PIN confirmed successfully',
+      token: token
+    };
+
+    console.log('=== CONFIRM PIN DEBUG END ===');
+    return ResponseUtils.success(res, SuccessCodes.PIN_CONFIRMED, responseData, 'PIN confirmed successfully');
+
+  } catch (error) {
+    console.error('=== CONFIRM PIN ERROR ===');
+    console.error('Error:', error);
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+      message: error.message
+    });
+  }
+});
 
 router.post('/commitment', async (req, res) => {
   try {
@@ -383,7 +477,7 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
 router.post('/find-user', async (req, res) => {
   try {
     console.log('=== FIND USER DEBUG START ===');
-    const { phoneHash } = req.body; // This now contains encrypted data
+    const { phoneHash } = req.body;
 
     console.log('Request body:', { phoneHash });
 
@@ -392,7 +486,7 @@ router.post('/find-user', async (req, res) => {
       return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
     }
 
-    console.log('Finding user by phone hash (encrypted data)...');
+    console.log('Finding user by phone hash...');
     
     const user = await ZKProofService.getUserByPhoneHash(phoneHash);
     
@@ -412,7 +506,7 @@ router.post('/find-user', async (req, res) => {
 
     const authMethods = user.auth_methods?.map(method => ({
       type: method.type,
-      data: method.data, // This contains encrypted data
+      data: method.data,
       createdAt: method.createdAt,
       lastUsed: method.lastUsed || method.createdAt
     })) || [];
@@ -458,22 +552,30 @@ router.post('/login-with-pin', async (req, res) => {
   try {
     console.log('=== LOGIN DEBUG START ===');
     const { 
-      phoneHash, // This now contains encrypted data
+      phoneHash,
       authMethod, 
-      pinHash, // This now contains encrypted data
+      pinHash,
       biometricHash, 
       biometricType,
       authMethods
     } = req.body;
 
     console.log('Request body:', { 
-      phoneHash, 
+      phoneHash: phoneHash ? `${phoneHash.substring(0, 20)}...` : null,
       authMethod, 
       hasPinHash: !!pinHash,
       hasBiometricHash: !!biometricHash,
       biometricType,
       authMethodsCount: authMethods?.length || 0
     });
+
+    // Log detailed auth methods
+    if (authMethods) {
+      console.log('Provided auth methods:');
+      authMethods.forEach((method, index) => {
+        console.log(`  [${index}] type: ${method.type}, data: ${method.data ? `${method.data.substring(0, 20)}...` : 'undefined'}, hasData: ${!!method.data}`);
+      });
+    }
 
     if (!phoneHash) {
       console.log('Validation failed: Phone encrypted data is required');
@@ -495,12 +597,7 @@ router.post('/login-with-pin', async (req, res) => {
       return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
     }
 
-    if ((authMethod === 'face' || authMethod === 'voice') && (!biometricHash || !biometricType)) {
-      console.log('Validation failed: Biometric hash and type are required for biometric authentication');
-      return ResponseUtils.error(res, ErrorCodes.BIOMETRIC_DATA_REQUIRED);
-    }
-
-    console.log('Finding user by phone hash (encrypted data)...');
+    console.log('Finding user by phone hash...');
     const user = await ZKProofService.getUserByPhoneHash(phoneHash);
     
     if (!user) {
@@ -513,6 +610,14 @@ router.post('/login-with-pin', async (req, res) => {
       walletAddress: user.wallet_address,
       storedAuthMethodsCount: user.auth_methods?.length || 0
     });
+
+    // Log stored auth methods
+    if (user.auth_methods) {
+      console.log('Stored auth methods:');
+      user.auth_methods.forEach((method, index) => {
+        console.log(`  [${index}] type: ${method.type}, data: ${method.data ? `${method.data.substring(0, 20)}...` : 'undefined'}, hasData: ${!!method.data}`);
+      });
+    }
 
     if (!user.auth_methods || user.auth_methods.length !== 3) {
       console.log('User auth methods configuration invalid');
@@ -529,21 +634,37 @@ router.post('/login-with-pin', async (req, res) => {
       const providedMethod = authMethods[i];
       const storedMethod = storedAuthMethods[i];
       
-      const methodMatch = 
-        providedMethod.type === storedMethod.type &&
-        providedMethod.data === storedMethod.data && // Comparing encrypted data
-        providedMethod.createdAt === storedMethod.createdAt;
+      // For fingerprint, don't compare data field
+      const isFingerprint = providedMethod.type === 'fingerprint' && storedMethod.type === 'fingerprint';
+      
+      const typeMatch = providedMethod.type === storedMethod.type;
+      const createdAtMatch = providedMethod.createdAt === storedMethod.createdAt;
+      
+      // For fingerprint, only check type and createdAt
+      // For other methods, also check data
+      let dataMatch = true;
+      if (!isFingerprint) {
+        dataMatch = providedMethod.data === storedMethod.data;
+      }
+      
+      const methodMatch = typeMatch && dataMatch && createdAtMatch;
       
       methodComparison.push({
         type: providedMethod.type,
         storedType: storedMethod.type,
-        dataMatch: providedMethod.data === storedMethod.data,
-        createdAtMatch: providedMethod.createdAt === storedMethod.createdAt,
-        overallMatch: methodMatch
+        dataMatch: dataMatch,
+        createdAtMatch: createdAtMatch,
+        overallMatch: methodMatch,
+        isFingerprint: isFingerprint
       });
 
       if (!methodMatch) {
         authMethodsMatch = false;
+        console.log(`Method mismatch at index ${i}:`, {
+          provided: { type: providedMethod.type, hasData: !!providedMethod.data },
+          stored: { type: storedMethod.type, hasData: !!storedMethod.data },
+          isFingerprint: isFingerprint
+        });
       }
     }
 
@@ -562,14 +683,31 @@ router.post('/login-with-pin', async (req, res) => {
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, `User does not have ${authMethod} authentication method registered`);
     }
 
+    console.log('Found user auth method:', {
+      type: userAuthMethod.type,
+      hasData: !!userAuthMethod.data,
+      data: userAuthMethod.data ? `${userAuthMethod.data.substring(0, 20)}...` : 'undefined'
+    });
+
     let authenticationSuccessful = false;
     let authDetails = {};
 
     switch (authMethod) {
       case 'pin':
         if (pinHash) {
-          // Compare encrypted PIN data directly
+          // For PIN, we need stored data to compare
+          if (!userAuthMethod.data) {
+            console.log('Stored PIN data is undefined for user');
+            return ResponseUtils.error(res, ErrorCodes.AUTHENTICATION_FAILED, null, 'PIN authentication not properly configured');
+          }
+          
           authenticationSuccessful = userAuthMethod.data === pinHash;
+          console.log('PIN comparison:', {
+            storedPin: userAuthMethod.data ? `${userAuthMethod.data.substring(0, 20)}...` : 'undefined',
+            providedPin: pinHash ? `${pinHash.substring(0, 20)}...` : 'undefined',
+            match: authenticationSuccessful
+          });
+          
           authDetails = { 
             method: 'pin', 
             usedFallback: false,
@@ -581,7 +719,11 @@ router.post('/login-with-pin', async (req, res) => {
       case 'face':
       case 'voice':
         if (biometricHash) {
-          // Compare biometric hashes (these are still hashes, not encrypted)
+          // For face/voice, we need stored data to compare
+          if (!userAuthMethod.data) {
+            console.log('Stored biometric data is undefined for user');
+            return ResponseUtils.error(res, ErrorCodes.AUTHENTICATION_FAILED, null, 'Biometric authentication not properly configured');
+          }
           authenticationSuccessful = userAuthMethod.data === biometricHash;
           authDetails = { 
             method: authMethod, 
@@ -592,10 +734,20 @@ router.post('/login-with-pin', async (req, res) => {
         break;
 
       case 'fingerprint':
+        // For fingerprint, no data comparison needed - rely on device verification
+        authenticationSuccessful = true;
+        authDetails = { 
+          method: 'fingerprint', 
+          deviceVerified: true,
+          verified: true 
+        };
+        console.log('Fingerprint authentication - device level verification');
+        break;
+
       case 'iris':
         authenticationSuccessful = true;
         authDetails = { 
-          method: authMethod, 
+          method: 'iris', 
           deviceVerified: true,
           verified: true 
         };
@@ -658,7 +810,10 @@ router.post('/login-with-pin', async (req, res) => {
 
   } catch (error) {
     console.error('=== LOGIN ERROR ===');
-    console.error('Error:', error);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
       message: error.message
     });
