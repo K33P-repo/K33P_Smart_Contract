@@ -1061,3 +1061,169 @@
 {"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T18:14:20.523Z"}
 {"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T18:14:23.898Z"}
 {"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-22T18:14:52.667Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T19:03:06.064Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T19:03:06.065Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T19:03:06.310Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T19:03:06.370Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T19:03:13.474Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T19:04:25.888Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T19:04:25.889Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T19:04:26.094Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T19:04:26.147Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T19:04:35.683Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T19:04:35.685Z"}
+{"level":"warn","message":"Database initialization failed, using mock database...","service":"k33p-backend","timestamp":"2025-10-22T19:04:36.502Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T19:05:06.154Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T19:05:06.155Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T19:05:06.365Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T19:05:06.415Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T19:05:15.949Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T19:05:15.951Z"}
+{"level":"warn","message":"Database initialization failed, using mock database...","service":"k33p-backend","timestamp":"2025-10-22T19:05:16.777Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2025-10-22T19:05:37.365Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T19:05:37.368Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T19:05:37.376Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T19:05:37.377Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-22T19:05:51.932Z","userAgent":"curl/7.81.0"}
+{"code":"SERVER_ERROR","details":{"debug":"Error: Connection terminated due to connection timeout\n    at /home/dee/K33P_Smart_Contract/backend/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Function.findByUserId (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:142:20)\n    at async DatabaseService.getUserById (/home/dee/K33P_Smart_Contract/backend/src/database/service.ts:72:12)\n    at async handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:745:22)","message":"Connection terminated due to connection timeout"},"level":"error","message":"API Error: Something went wrong on our end. Please try again later","service":"k33p-backend","stack":"K33PError: Something went wrong on our end. Please try again later\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:991:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-22T19:06:01.940Z","userMessage":"Something went wrong on our end. Please try again later"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T19:06:25.954Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:15:21.070Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2025-10-22T22:15:50.605Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T22:15:57.661Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-22T22:15:57.662Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T22:15:57.909Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-22T22:15:57.966Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:16:07.410Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-22T22:16:07.411Z"}
+{"level":"warn","message":"Database initialization failed, using mock database...","service":"k33p-backend","timestamp":"2025-10-22T22:16:08.382Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2025-10-22T22:16:28.990Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-22T22:16:28.990Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-22T22:16:28.992Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-22T22:16:28.992Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-22T22:16:58.039Z","userAgent":"curl/7.81.0"}
+{"code":"SERVER_ERROR","details":{"debug":"Error: Connection terminated due to connection timeout\n    at /home/dee/K33P_Smart_Contract/backend/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Function.findByUserId (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:142:20)\n    at async DatabaseService.getUserById (/home/dee/K33P_Smart_Contract/backend/src/database/service.ts:72:12)\n    at async handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:745:22)","message":"Connection terminated due to connection timeout"},"level":"error","message":"API Error: Something went wrong on our end. Please try again later","service":"k33p-backend","stack":"K33PError: Something went wrong on our end. Please try again later\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:991:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-22T22:17:08.048Z","userMessage":"Something went wrong on our end. Please try again later"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:17:17.413Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:18:17.416Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:19:17.416Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:20:17.417Z"}
+{"error":"","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:21:11.014Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:22:07.416Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-22T22:23:17.417Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T05:18:18.518Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T05:19:18.590Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T05:20:18.430Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T05:21:18.403Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2025-10-23T05:22:18.405Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T05:30:38.445Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T05:30:38.446Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T05:30:38.663Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T05:30:38.717Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T05:30:40.990Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T05:31:03.281Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T05:31:05.919Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T05:31:05.920Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T05:31:07.587Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T05:31:07.593Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T05:31:07.594Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:16:32.196Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:16:32.197Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:16:32.454Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:16:32.520Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:16:35.111Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:16:53.584Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:16:55.344Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:16:55.344Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:16:56.854Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:16:56.856Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:16:56.857Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/signup","service":"k33p-backend","timestamp":"2025-10-23T06:17:00.770Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T06:17:00.778Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:18:58.351Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:18:58.352Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:18:58.576Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:18:58.628Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:19:00.867Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:19:21.097Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:19:22.925Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:19:22.925Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:19:24.687Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:19:24.694Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:19:24.695Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T06:19:29.555Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T06:19:29.563Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T06:19:29.566Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T06:19:29.568Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:22:44.683Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:22:44.684Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:22:44.901Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:22:44.960Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:22:46.932Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:23:08.325Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:23:10.379Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:23:10.379Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:23:12.016Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:23:12.023Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:23:12.024Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T06:23:25.618Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T06:23:25.641Z"}
+{"code":"VALIDATION_ERROR","details":null,"level":"error","message":"API Error: Invalid ZK commitment format","service":"k33p-backend","stack":"K33PError: Invalid ZK commitment format\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:714:28)\n    at file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:105:10\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at Route.dispatch (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:119:3)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at /home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/index.js:284:15\n    at Function.process_params (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/index.js:346:12)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/index.js:280:10)","statusCode":400,"timestamp":"2025-10-23T06:23:25.643Z","userMessage":"Invalid ZK commitment format"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T06:23:25.650Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:28:46.298Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:28:46.300Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:28:46.542Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:28:46.603Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:28:48.948Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:29:07.445Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:29:09.449Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:29:09.449Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:29:11.218Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:29:11.219Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:29:11.219Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T06:29:16.058Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T06:29:16.080Z"}
+{"code":"SERVER_ERROR","details":{"debug":"SyntaxError: Unexpected token 'o', \"[object Obj\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at Function.parseUser (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:290:45)\n    at Function.create (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:135:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async DatabaseService.createUser (/home/dee/K33P_Smart_Contract/backend/src/database/service.ts:45:18)\n    at async handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:892:21)","message":"Unexpected token 'o', \"[object Obj\"... is not valid JSON"},"level":"error","message":"API Error: Something went wrong on our end. Please try again later","service":"k33p-backend","stack":"K33PError: Something went wrong on our end. Please try again later\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:985:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-23T06:29:17.077Z","userMessage":"Something went wrong on our end. Please try again later"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T06:29:17.084Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:42:43.507Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:42:43.509Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:42:43.748Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:42:43.811Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:42:45.664Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:43:03.884Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:43:10.681Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:43:10.681Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:43:12.149Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:43:12.151Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:43:12.151Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:43:32.569Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:43:32.570Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:43:32.811Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:43:32.877Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:43:35.044Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:43:53.145Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:43:54.730Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:43:54.731Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:43:56.169Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:43:56.171Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:43:56.171Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:44:28.366Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:44:28.368Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:44:28.560Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:44:28.604Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:44:30.797Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:44:53.628Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2025-10-23T06:44:55.691Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:44:55.692Z"}
+{"cause":{"code":"ETIMEDOUT"},"level":"warn","message":"Auto-Refund Monitor failed to start: fetch failed","service":"k33p-backend","stack":"TypeError: fetch failed\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Blockfrost.getProtocolParameters (file:///home/dee/K33P_Smart_Contract/backend/node_modules/lucid-cardano/esm/src/provider/blockfrost.js:22:24)\n    at async Lucid.new (file:///home/dee/K33P_Smart_Contract/backend/node_modules/lucid-cardano/esm/src/lucid/lucid.js:50:40)\n    at async EnhancedK33PManagerDB.initialize (/home/dee/K33P_Smart_Contract/backend/src/enhanced-k33p-manager-db.ts:231:20)\n    at async AutoRefundMonitor.initialize (/home/dee/K33P_Smart_Contract/backend/src/services/auto-refund-monitor.ts:105:7)\n    at async initializeK33P (/home/dee/K33P_Smart_Contract/backend/src/k33p-backend-server.ts:122:11)\n    at async startServer (/home/dee/K33P_Smart_Contract/backend/src/k33p-backend-server.ts:637:5)","timestamp":"2025-10-23T06:44:57.771Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:44:57.772Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:44:57.772Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:45:11.928Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T06:45:11.929Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:45:12.113Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T06:45:12.156Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T06:45:14.522Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T06:45:36.636Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T06:45:39.175Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T06:45:39.176Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T06:45:40.943Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T06:45:40.951Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T06:45:40.953Z"}

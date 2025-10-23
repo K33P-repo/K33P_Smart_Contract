@@ -1,54 +1,64 @@
-// Zero-Knowledge Proof routes for K33P Identity System (PostgreSQL Version)
 import express from 'express';
 import jwt from 'jsonwebtoken';
 import { poseidonHash, generateZkCommitment, generateZkProof, verifyZkProof } from '../utils/zk.js';
 import { hashPhone } from '../utils/hash.js';
 import { verifyToken } from '../middleware/auth.js';
-import pool from '../database/config.js';
+import ZKProofService from '../services/zk-proof-service.js';
+
+const ResponseUtils = {
+  success: (res, code, data, message) => {
+    return res.status(200).json({
+      success: true,
+      data,
+      message,
+      timestamp: new Date().toISOString()
+    });
+  },
+  error: (res, code, data, message) => {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code,
+        message,
+        ...data
+      },
+      timestamp: new Date().toISOString()
+    });
+  }
+};
+
+const ErrorCodes = {
+  PHONE_REQUIRED: 'PHONE_REQUIRED',
+  USER_NOT_FOUND: 'USER_NOT_FOUND',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  AUTHENTICATION_FAILED: 'AUTHENTICATION_FAILED',
+  SERVER_ERROR: 'SERVER_ERROR',
+  PIN_REQUIRED: 'PIN_REQUIRED',
+  BIOMETRIC_DATA_REQUIRED: 'BIOMETRIC_DATA_REQUIRED'
+};
+
+const SuccessCodes = {
+  USER_FOUND: 'USER_FOUND',
+  LOGIN_SUCCESS: 'LOGIN_SUCCESS'
+};
 
 const router = express.Router();
 
-// PostgreSQL-based user lookup function
 async function findUserInPostgres(query) {
-  const client = await pool.connect();
-  try {
-    let user = null;
-    
-    if (query.walletAddress) {
-      const result = await client.query(
-        'SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment" FROM users WHERE wallet_address = $1',
-        [query.walletAddress]
-      );
-      user = result.rows[0] || null;
-    } else if (query.phoneHash) {
-      const result = await client.query(
-        'SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment" FROM users WHERE phone_hash = $1',
-        [query.phoneHash]
-      );
-      user = result.rows[0] || null;
-    } else if (query.userId) {
-      const result = await client.query(
-        'SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment" FROM users WHERE user_id = $1',
-        [query.userId]
-      );
-      user = result.rows[0] || null;
-    }
-    
-    return user;
-  } finally {
-    client.release();
+  if (query.walletAddress) {
+    return await ZKProofService.getUserByWalletAddress(query.walletAddress);
+  } else if (query.phoneHash) {
+    return await ZKProofService.getUserByPhoneHash(query.phoneHash);
+  } else if (query.userId) {
+    return await ZKProofService.getUserById(query.userId);
   }
+  return null;
 }
 
-/**
- * Generate a ZK commitment from user inputs
- * @route POST /api/zk/commitment
- */
 router.post('/commitment', async (req, res) => {
   try {
     const { phone, biometric, passkey } = req.body;
     
-    // Validate inputs
     if (!phone || !biometric || !passkey) {
       return res.status(400).json({
         success: false,
@@ -60,15 +70,12 @@ router.post('/commitment', async (req, res) => {
       });
     }
     
-    // Hash the inputs
     const phoneHash = poseidonHash([phone]);
     const biometricHash = poseidonHash([biometric]);
     const passkeyHash = poseidonHash([passkey]);
     
-    // Generate a commitment from the hashed inputs
     const commitment = generateZkCommitment({ phoneHash, biometricHash, passkeyHash });
     
-    // Return the commitment and hashes
     return res.status(200).json({
       success: true,
       data: {
@@ -95,15 +102,10 @@ router.post('/commitment', async (req, res) => {
   }
 });
 
-/**
- * Generate a ZK proof
- * @route POST /api/zk/proof
- */
 router.post('/proof', async (req, res) => {
   try {
     const { phone, biometric, passkey, commitment } = req.body;
     
-    // Validate inputs
     if (!phone || !biometric || !passkey || !commitment) {
       return res.status(400).json({
         success: false,
@@ -115,10 +117,8 @@ router.post('/proof', async (req, res) => {
       });
     }
     
-    // Generate a proof
     const proof = generateZkProof({ phone, biometric, passkey }, commitment);
     
-    // Check if the proof is valid
     if (!proof.isValid) {
       return res.status(401).json({
         success: false,
@@ -131,7 +131,6 @@ router.post('/proof', async (req, res) => {
       });
     }
     
-    // Return the proof
     return res.status(200).json({
       success: true,
       data: proof,
@@ -151,15 +150,10 @@ router.post('/proof', async (req, res) => {
   }
 });
 
-/**
- * Verify a ZK proof
- * @route POST /api/zk/verify
- */
 router.post('/verify', async (req, res) => {
   try {
     const { proof, commitment } = req.body;
     
-    // Validate inputs
     if (!proof || !commitment) {
       return res.status(400).json({
         success: false,
@@ -171,7 +165,6 @@ router.post('/verify', async (req, res) => {
       });
     }
     
-    // Validate proof structure
     if (!proof.publicInputs || !proof.publicInputs.commitment || typeof proof.isValid !== 'boolean') {
       return res.status(400).json({
         success: false,
@@ -183,10 +176,8 @@ router.post('/verify', async (req, res) => {
       });
     }
     
-    // Verify the proof
     const isValid = verifyZkProof(proof, commitment);
     
-    // Return the verification result
     return res.status(200).json({
       success: true,
       data: {
@@ -208,15 +199,10 @@ router.post('/verify', async (req, res) => {
   }
 });
 
-/**
- * Login with ZK proof (PostgreSQL Version)
- * @route POST /api/zk/login
- */
 router.post('/login', async (req, res) => {
   try {
     const { walletAddress, phone, proof, commitment } = req.body;
     
-    // Validate inputs
     if (!proof || !commitment) {
       return res.status(400).json({
         success: false,
@@ -239,7 +225,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Find the user by wallet address or phone hash using PostgreSQL
     let user;
     try {
       if (walletAddress) {
@@ -249,7 +234,7 @@ router.post('/login', async (req, res) => {
         user = await findUserInPostgres({ phoneHash });
       }
     } catch (error) {
-      console.error('Error finding user in PostgreSQL:', error);
+      console.error('Error finding user:', error);
       return res.status(500).json({
         success: false,
         error: {
@@ -261,7 +246,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Check if the user exists
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -273,7 +257,6 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Verify the ZK proof
     const isValid = verifyZkProof(proof, commitment);
     
     if (!isValid) {
@@ -287,9 +270,7 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Check if the commitment matches the user's commitment
-    // Handle the case where stored commitment has a suffix (e.g., "commitment-12345678")
-    const storedCommitment = user.zkCommitment;
+    const storedCommitment = user.zk_commitment;
     const baseStoredCommitment = storedCommitment.includes('-') ? storedCommitment.split('-')[0] : storedCommitment;
     
     if (baseStoredCommitment !== commitment) {
@@ -303,22 +284,20 @@ router.post('/login', async (req, res) => {
       });
     }
     
-    // Generate a JWT token for the authenticated user
     const token = jwt.sign(
       { 
-        userId: user.userId,
-        walletAddress: user.walletAddress 
+        userId: user.user_id,
+        walletAddress: user.wallet_address 
       },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '1h' }
     );
 
-    // Login successful
     return res.status(200).json({
       success: true,
       data: {
         message: 'ZK login successful',
-        userId: user.userId,
+        userId: user.user_id,
         token
       },
       timestamp: new Date().toISOString()
@@ -337,15 +316,10 @@ router.post('/login', async (req, res) => {
   }
 });
 
-/**
- * Get a user's ZK commitment (PostgreSQL Version)
- * @route GET /api/zk/user/:userId
- */
 router.get('/user/:userId', verifyToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    // Validate inputs
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -357,12 +331,11 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
       });
     }
     
-    // Find the user by userId using PostgreSQL
     let user;
     try {
       user = await findUserInPostgres({ userId });
     } catch (error) {
-      console.error('Error finding user in PostgreSQL:', error);
+      console.error('Error finding user:', error);
       return res.status(500).json({
         success: false,
         error: {
@@ -374,7 +347,6 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
       });
     }
     
-    // Check if the user exists
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -386,12 +358,11 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
       });
     }
     
-    // Return the user's ZK commitment
     return res.status(200).json({
       success: true,
       data: {
-        userId: user.userId,
-        zkCommitment: user.zkCommitment
+        userId: user.user_id,
+        zkCommitment: user.zk_commitment
       },
       message: 'User ZK commitment retrieved successfully',
       timestamp: new Date().toISOString()
@@ -409,242 +380,291 @@ router.get('/user/:userId', verifyToken, async (req, res) => {
   }
 });
 
-/**
- * Login with phone number and PIN (Auto ZK Authentication)
- * @route POST /api/zk/login-with-pin
- */
+router.post('/find-user', async (req, res) => {
+  try {
+    console.log('=== FIND USER DEBUG START ===');
+    const { phoneHash } = req.body;
+
+    console.log('Request body:', { phoneHash });
+
+    if (!phoneHash) {
+      console.log('Validation failed: Phone hash is required');
+      return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
+    }
+
+    if (phoneHash.length !== 64) {
+      console.log('Validation failed: Phone hash must be 64 characters');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid phone hash format');
+    }
+
+    console.log('Finding user by phone hash...');
+    
+    const user = await ZKProofService.getUserByPhoneHash(phoneHash);
+    
+    if (!user) {
+      console.log('No user found with this phone hash');
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'No user found');
+    }
+
+    console.log('User found:', {
+      userId: user.user_id,
+      walletAddress: user.wallet_address,
+      verificationMethod: user.verification_method,
+      hasAuthMethods: !!user.auth_methods,
+      authMethodCount: user.auth_methods?.length || 0,
+      hasZkCommitment: !!user.zk_commitment
+    });
+
+    const authMethods = user.auth_methods?.map(method => ({
+      type: method.type,
+      data: method.data,
+      createdAt: method.createdAt,
+      lastUsed: method.lastUsed || method.createdAt
+    })) || [];
+
+    console.log('Available auth methods:', authMethods.map(m => ({
+      type: m.type,
+      hasData: !!m.data,
+      createdAt: m.createdAt
+    })));
+
+    const responseData = {
+      userId: user.user_id,
+      phoneNumber: user.phone_number,
+      walletAddress: user.wallet_address,
+      verificationMethod: user.verification_method,
+      zkCommitment: user.zk_commitment,
+      authMethods: authMethods,
+      registeredAuthMethods: authMethods.map(m => m.type),
+      requiresDeposit: user.verification_method === 'phone',
+      isVerified: user.verified || false,
+      message: 'User found successfully'
+    };
+
+    console.log('Response data prepared:', {
+      userId: responseData.userId,
+      authMethodCount: responseData.authMethods.length,
+      hasZkCommitment: !!responseData.zkCommitment,
+      requiresDeposit: responseData.requiresDeposit
+    });
+
+    console.log('=== FIND USER DEBUG END ===');
+    return ResponseUtils.success(res, SuccessCodes.USER_FOUND, responseData, 'User found successfully');
+
+  } catch (error) {
+    console.error('=== FIND USER ERROR ===');
+    console.error('Error:', error);
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+      message: error.message
+    });
+  }
+});
+
 router.post('/login-with-pin', async (req, res) => {
   try {
-    const { phoneNumber, pin, biometricData, biometricType, passkeyData } = req.body;
-    
-    // Validate inputs - phoneNumber is required, but PIN is now optional
-    if (!phoneNumber) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_INPUT',
-          message: 'Missing required input: phoneNumber is required'
-        },
-        timestamp: new Date().toISOString()
-      });
+    console.log('=== LOGIN DEBUG START ===');
+    const { 
+      phoneHash, 
+      authMethod, 
+      pinHash, 
+      biometricHash, 
+      biometricType,
+      authMethods
+    } = req.body;
+
+    console.log('Request body:', { 
+      phoneHash, 
+      authMethod, 
+      hasPinHash: !!pinHash,
+      hasBiometricHash: !!biometricHash,
+      biometricType,
+      authMethodsCount: authMethods?.length || 0
+    });
+
+    if (!phoneHash) {
+      console.log('Validation failed: Phone hash is required');
+      return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
     }
-    
-    // Validate PIN format if provided (4 digits)
-    if (pin && !/^\d{4}$/.test(pin)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_PIN_FORMAT',
-          message: 'PIN must be exactly 4 digits'
-        },
-        timestamp: new Date().toISOString()
-      });
+
+    if (!authMethod) {
+      console.log('Validation failed: Authentication method is required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Authentication method is required');
     }
+
+    if (!authMethods || !Array.isArray(authMethods) || authMethods.length !== 3) {
+      console.log('Validation failed: Exactly 3 authentication methods are required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Exactly 3 authentication methods are required for verification');
+    }
+
+    if (authMethod === 'pin' && !pinHash) {
+      console.log('Validation failed: PIN hash is required for PIN authentication');
+      return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
+    }
+
+    if ((authMethod === 'face' || authMethod === 'voice') && (!biometricHash || !biometricType)) {
+      console.log('Validation failed: Biometric hash and type are required for biometric authentication');
+      return ResponseUtils.error(res, ErrorCodes.BIOMETRIC_DATA_REQUIRED);
+    }
+
+    console.log('Finding user by phone hash...');
+    const user = await ZKProofService.getUserByPhoneHash(phoneHash);
     
-    const client = await pool.connect();
+    if (!user) {
+      console.log('No user found with this phone hash');
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
+    }
+
+    console.log('User found:', {
+      userId: user.user_id,
+      walletAddress: user.wallet_address,
+      storedAuthMethodsCount: user.auth_methods?.length || 0
+    });
+
+    if (!user.auth_methods || user.auth_methods.length !== 3) {
+      console.log('User auth methods configuration invalid');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'User authentication configuration is invalid');
+    }
+
+    console.log('Validating provided auth methods against stored methods...');
     
-    try {
-      // Hash the phone number to find the user
-      const phoneHash = hashPhone(phoneNumber);
+    const storedAuthMethods = user.auth_methods;
+    let authMethodsMatch = true;
+    const methodComparison = [];
+
+    for (let i = 0; i < 3; i++) {
+      const providedMethod = authMethods[i];
+      const storedMethod = storedAuthMethods[i];
       
-      // Find user by phone hash and get their verification method and authentication data
-      const userQuery = await client.query(
-        `SELECT u.user_id as "userId", u.wallet_address as "walletAddress", u.phone_hash as "phoneHash", 
-                u.zk_commitment as "zkCommitment", u.pin, ud.verification_method as "verificationMethod", 
-                ud.biometric_type as "biometricType", ud.biometric_hash as "biometricHash"
-         FROM users u 
-         LEFT JOIN user_deposits ud ON u.user_id = ud.user_id 
-         WHERE u.phone_hash = $1`,
-        [phoneHash]
-      );
+      const methodMatch = 
+        providedMethod.type === storedMethod.type &&
+        providedMethod.data === storedMethod.data &&
+        providedMethod.createdAt === storedMethod.createdAt;
       
-      if (userQuery.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: {
-            code: 'USER_NOT_FOUND',
-            message: 'No user found with this phone number'
-          },
-          timestamp: new Date().toISOString()
-        });
+      methodComparison.push({
+        type: providedMethod.type,
+        storedType: storedMethod.type,
+        dataMatch: providedMethod.data === storedMethod.data,
+        createdAtMatch: providedMethod.createdAt === storedMethod.createdAt,
+        overallMatch: methodMatch
+      });
+
+      if (!methodMatch) {
+        authMethodsMatch = false;
       }
-      
-      const user = userQuery.rows[0];
-      
-      // Authentication logic based on user's original verification method
-      let authenticationSuccessful = false;
-      let authMethod = '';
-      
-      // PIN is now optional - allow login with just phone number
-      // If no authentication data is provided, we'll proceed with phone-only authentication
-      
-      // Try authentication with user's original verification method first
-      if (user.verificationMethod === 'biometric' && biometricData && biometricType) {
-        if (biometricType === user.biometricType && user.biometricHash) {
-          // Import hash function for biometric verification
-          const { hashBiometric } = await import('../utils/hash.js');
-          const providedBiometricHash = hashBiometric(biometricData);
-          
-          if (providedBiometricHash === user.biometricHash) {
-            authenticationSuccessful = true;
-            authMethod = `${user.biometricType} biometric`;
-          }
+    }
+
+    console.log('Auth methods comparison:', methodComparison);
+
+    if (!authMethodsMatch) {
+      console.log('Authentication methods do not match stored methods');
+      return ResponseUtils.error(res, ErrorCodes.AUTHENTICATION_FAILED, null, 'Authentication methods verification failed');
+    }
+
+    console.log('Authenticating with specific method:', authMethod);
+    
+    const userAuthMethod = storedAuthMethods.find(method => method.type === authMethod);
+    if (!userAuthMethod) {
+      console.log('User does not have this authentication method registered');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, `User does not have ${authMethod} authentication method registered`);
+    }
+
+    let authenticationSuccessful = false;
+    let authDetails = {};
+
+    switch (authMethod) {
+      case 'pin':
+        if (pinHash) {
+          authenticationSuccessful = userAuthMethod.data === pinHash;
+          authDetails = { 
+            method: 'pin', 
+            usedFallback: false,
+            verified: authenticationSuccessful 
+          };
         }
-      } else if (user.verificationMethod === 'pin' && pin) {
-        // Verify PIN for users who originally signed up with PIN
-        if (user.pin === pin) {
-          authenticationSuccessful = true;
-          authMethod = 'PIN';
+        break;
+
+      case 'face':
+      case 'voice':
+        if (biometricHash) {
+          authenticationSuccessful = userAuthMethod.data === biometricHash;
+          authDetails = { 
+            method: authMethod, 
+            type: biometricType,
+            verified: authenticationSuccessful 
+          };
         }
-      }
-      
-      // If original method failed or wasn't provided, try PIN as fallback (if available)
-      if (!authenticationSuccessful && pin && user.pin && user.verificationMethod !== 'pin') {
-        if (user.pin === pin) {
-          authenticationSuccessful = true;
-          authMethod = 'PIN (fallback)';
-        }
-      }
-      
-      // If no authentication data was provided, allow phone-only authentication
-      if (!authenticationSuccessful && !pin && !biometricData && !passkeyData) {
+        break;
+
+      case 'fingerprint':
+      case 'iris':
         authenticationSuccessful = true;
-        authMethod = 'phone-only';
-      }
-      
-      // If authentication failed with provided credentials
-      if (!authenticationSuccessful) {
-        return res.status(401).json({
-          success: false,
-          error: {
-            code: 'AUTHENTICATION_FAILED',
-            message: 'Authentication failed. Please use your original signup method or correct credentials.',
-            availableMethods: {
-              originalMethod: user.verificationMethod,
-              biometricType: user.biometricType,
-              hasPIN: !!user.pin
-            }
-          },
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      // Check if user has ZK commitment
-      if (!user.zkCommitment) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'NO_ZK_COMMITMENT',
-            message: 'User does not have a ZK commitment stored'
-          },
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      // Retrieve the user's ZK proof from the database
-      const proofQuery = await client.query(
-        'SELECT proof, commitment, public_inputs, is_valid FROM zk_proofs WHERE user_id = $1 AND is_valid = true ORDER BY created_at DESC LIMIT 1',
-        [user.userId]
-      );
-      
-      if (proofQuery.rows.length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'NO_ZK_PROOF',
-            message: 'No valid ZK proof found for this user'
-          },
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      const zkProofData = proofQuery.rows[0];
-      
-      // Parse the proof data if it's stored as JSON string
-      let proof;
-      try {
-        proof = typeof zkProofData.proof === 'string' ? JSON.parse(zkProofData.proof) : zkProofData.proof;
-      } catch (parseError) {
-        proof = zkProofData.proof;
-      }
-      
-      // Get the commitment from the proof or use the stored commitment
-      const commitment = zkProofData.commitment || user.zkCommitment;
-      
-      // Verify the ZK proof
-      const isValid = verifyZkProof(proof, commitment);
-      
-      if (!isValid) {
-        return res.status(401).json({
-          success: false,
-          error: {
-            code: 'ZK_VERIFICATION_FAILED',
-            message: 'ZK proof verification failed'
-          },
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      // Check if the commitment matches the user's stored commitment
-      // Handle the case where stored commitment has a suffix (e.g., "commitment-12345678")
-      const storedCommitment = user.zkCommitment;
-      const baseStoredCommitment = storedCommitment.includes('-') ? storedCommitment.split('-')[0] : storedCommitment;
-      const baseCommitment = commitment.includes('-') ? commitment.split('-')[0] : commitment;
-      
-      if (baseStoredCommitment !== baseCommitment) {
-        return res.status(401).json({
-          success: false,
-          error: {
-            code: 'COMMITMENT_MISMATCH',
-            message: 'ZK commitment does not match user record'
-          },
-          timestamp: new Date().toISOString()
-        });
-      }
-      
-      // Generate a JWT token for the authenticated user
-      const token = jwt.sign(
-        { 
-          userId: user.userId,
-          walletAddress: user.walletAddress,
-          authMethod: `zk-${authMethod.toLowerCase().replace(' ', '-')}`
-        },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '1h' }
-      );
-      
-      // Login successful
-      return res.status(200).json({
-        success: true,
-        data: {
-          message: `ZK login successful using ${authMethod}`,
-          userId: user.userId,
-          walletAddress: user.walletAddress,
-          token,
-          authMethod: authMethod,
-          registeredAuthMethod: {
-            verificationMethod: user.verificationMethod,
-            biometricType: user.biometricType,
-            hasPIN: !!user.pin
-          }
-        },
-        timestamp: new Date().toISOString()
-      });
-      
-    } finally {
-      client.release();
+        authDetails = { 
+          method: authMethod, 
+          deviceVerified: true,
+          verified: true 
+        };
+        break;
+
+      case 'phone':
+        authenticationSuccessful = true;
+        authDetails = { 
+          method: 'phone', 
+          requiresAdditionalVerification: true,
+          verified: true 
+        };
+        break;
+
+      default:
+        console.log('Unsupported authentication method:', authMethod);
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Unsupported authentication method');
     }
+
+    if (!authenticationSuccessful) {
+      console.log('Authentication failed for method:', authMethod);
+      return ResponseUtils.error(res, ErrorCodes.AUTHENTICATION_FAILED, null, `Authentication failed using ${authMethod}`);
+    }
+
+    console.log('Authentication successful, generating JWT token...');
     
-  } catch (error) {
-    console.error('Error during ZK login with PIN:', error);
-    return res.status(500).json({
-      success: false,
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to login with ZK proof using PIN',
-        details: error.message
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        userId: user.user_id,
+        walletAddress: user.wallet_address,
+        authMethod: authMethod,
+        authMethods: storedAuthMethods.map(m => m.type),
+        verificationMethod: user.verification_method,
+        zkCommitment: user.zk_commitment,
+        authDetails: authDetails
       },
-      timestamp: new Date().toISOString()
+      process.env.JWT_SECRET || 'default-secret',
+      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+    );
+
+    console.log('JWT token generated successfully');
+
+    const responseData = {
+      verified: true,
+      userId: user.user_id,
+      walletAddress: user.wallet_address,
+      authMethod: authMethod,
+      authDetails: authDetails,
+      authMethods: storedAuthMethods, 
+      zkCommitment: user.zk_commitment,
+      verificationMethod: user.verification_method,
+      requiresDeposit: user.verification_method === 'phone',
+      message: `Login successful using ${authMethod}`,
+      token: token
+    };
+
+    console.log('=== LOGIN DEBUG END ===');
+    return ResponseUtils.success(res, SuccessCodes.LOGIN_SUCCESS, responseData, `Login successful using ${authMethod}`);
+
+  } catch (error) {
+    console.error('=== LOGIN ERROR ===');
+    console.error('Error:', error);
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+      message: error.message
     });
   }
 });

@@ -572,26 +572,21 @@ router.post('/verify-otp', createRateLimiter({
   }
 });
 
-/**
- * Handle signup logic for all authentication methods
- */
 async function handleSignup(req, res, defaultVerificationMethod = null, defaultBiometricType = null) {
   try {
     console.log('=== SIGNUP DEBUG START ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
-    console.log('Content-Type:', req.headers['content-type']);
-    console.log('Environment variables check:');
-    console.log('- JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
-    console.log('- JWT_EXPIRATION:', process.env.JWT_EXPIRATION || 'NOT SET (using default)');
-    console.log('- BLOCKFROST_API_KEY:', process.env.BLOCKFROST_API_KEY ? 'SET' : 'NOT SET');
     
     const { 
       userAddress, 
       userId, 
-      phoneNumber, 
+      phoneHash,
+      pinHash,  
+      authMethods, 
+      zkCommitment, 
+      zkProof,      
       username,
       senderWalletAddress, 
-      pin, 
       biometricData, 
       verificationMethod = defaultVerificationMethod || 'phone', 
       biometricType = defaultBiometricType,
@@ -605,164 +600,230 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     console.log('Extracted fields:', { 
       userAddress, 
       userId, 
-      phoneNumber, 
+      hasPhoneHash: !!phoneHash,
+      hasPinHash: !!pinHash,
+      authMethodsCount: authMethods?.length || 0,
+      hasZkCommitment: !!zkCommitment,
+      hasZkProof: !!zkProof,
       senderWalletAddress, 
       verificationMethod,
-      biometricType,
-      walletAddress, 
-      phone,
-      hasPasskey: !!passkey,
-      hasBiometric: !!biometric,
-      hasBiometricData: !!biometricData
-    });
-    
-    console.log('IDENTIFIER_REQUIRED check:', {
-      userId: userId,
-      passkey: passkey,
-      hasUserId: !!userId,
-      hasPasskey: !!passkey,
-      willPass: !!(userId || passkey)
+      biometricType
     });
 
     // Support both new and legacy request formats
     const finalUserAddress = userAddress || walletAddress;
-    const finalPhoneNumber = phoneNumber || phone;
+    const finalPhoneHash = phoneHash || (phone ? crypto.createHash('sha256').update(phone).digest('hex') : null);
     const finalBiometricData = biometricData || biometric;
 
     console.log('Final processed fields:', {
       finalUserAddress,
-      finalPhoneNumber,
-      hasFinalBiometricData: !!finalBiometricData
+      hasFinalPhoneHash: !!finalPhoneHash,
+      hasFinalBiometricData: !!finalBiometricData,
+      authMethods: authMethods?.map(m => m.type) || []
     });
 
+    // ============================================================================
+    // VALIDATION
+    // ============================================================================
+
     // Validate required fields
-    if (!finalPhoneNumber) {
-      console.log('Validation failed: Phone number is required');
-      return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
+    if (!finalPhoneHash) {
+      console.log('Validation failed: Phone hash is required');
+      return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED, null, 'Phone hash is required');
     }
-    if (!userId && !passkey) {
-      console.log('Validation failed: User ID or passkey is required');
+
+    if (!userId) {
+      console.log('Validation failed: User ID is required');
       return ResponseUtils.error(res, ErrorCodes.IDENTIFIER_REQUIRED);
     }
-    if (username && (username.length < 3 || username.length > 30)) {
-      console.log('Validation failed: Username must be 3-30 characters');
-      return ResponseUtils.error(res, ErrorCodes.USERNAME_INVALID_FORMAT, null, 'Username must be between 3 and 30 characters');
-    }
-    if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
-      console.log('Validation failed: Username contains invalid characters');
-      return ResponseUtils.error(res, ErrorCodes.USERNAME_INVALID_FORMAT, null, 'Username can only contain letters, numbers, and underscores');
-    }
-    
-    // Validate verification method specific requirements
-    if (verificationMethod === 'pin' && !pin) {
-      console.log('Validation failed: PIN is required for PIN verification');
-      return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
-    }
-    if (verificationMethod === 'pin' && !/^\d{4}$/.test(pin)) {
-      console.log('Validation failed: PIN must be 4 digits');
-      return ResponseUtils.error(res, ErrorCodes.PIN_INVALID_FORMAT);
-    }
-    if (verificationMethod === 'biometric' && !finalBiometricData) {
-      console.log('Validation failed: Biometric data is required for biometric verification');
-      return ResponseUtils.error(res, ErrorCodes.BIOMETRIC_DATA_REQUIRED);
-    }
-    if (verificationMethod === 'biometric' && !biometricType) {
-      console.log('Validation failed: Biometric type is required for biometric verification');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Biometric type is required for biometric verification method');
-    }
-    if (verificationMethod === 'biometric' && !['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
-      console.log('Validation failed: Invalid biometric type');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Biometric type must be one of: fingerprint, faceid, voice, iris');
-    }
-    if (verificationMethod === 'passkey' && !passkey) {
-      console.log('Validation failed: Passkey is required for passkey verification');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Passkey is required for passkey verification method');
+
+    // Validate ZK commitment and proof (required from frontend)
+    if (!zkCommitment) {
+      console.log('Validation failed: ZK commitment is required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'ZK commitment is required');
     }
 
-    console.log('Step 1: Hashing phone...');
-    const phoneHash = hashPhone(finalPhoneNumber);
-    console.log('Phone hash created successfully');
+    if (!zkProof) {
+      console.log('Validation failed: ZK proof is required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'ZK proof is required');
+    }
 
-    console.log('Step 2: Hashing biometric data...');
-    const biometricHash = finalBiometricData ? hashBiometric(finalBiometricData) : null;
-    console.log('Biometric hash created:', !!biometricHash);
+    // Validate auth methods
+    if (!authMethods || !Array.isArray(authMethods) || authMethods.length < 3) {
+      console.log('Validation failed: At least 3 authentication methods are required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'At least 3 authentication methods are required');
+    }
 
-    console.log('Step 3: Hashing passkey...');
-    const passkeyHash = passkey ? hashPasskey(passkey) : null;
-    console.log('Passkey hash created:', !!passkeyHash);
-
-    console.log('Step 4: Checking existing user by phone...');
-    const existingUserResult = await storageService.findUser({ phoneHash });
-    console.log('Existing user check completed, found:', !!existingUserResult.data);
-    
-    if (existingUserResult.success && existingUserResult.data) {
-      console.log('Existing user found - updating with new ZK commitment and processing refund');
-      
-      const existingUser = existingUserResult.data;
-      
-      // Generate new ZK commitment and proof for existing user
-      console.log('Step 4.1: Generating new ZK commitment for existing user...');
-      const newCommitmentData = { phoneHash };
-      if (biometricHash) newCommitmentData.biometricHash = biometricHash;
-      if (passkeyHash) newCommitmentData.passkeyHash = passkeyHash;
-      
-      const newZkCommitment = generateZkCommitment(newCommitmentData);
-      console.log('New ZK commitment generated successfully');
-
-      console.log('Step 4.2: Generating new ZK proof for existing user...');
-      const newProofData = { phone: finalPhoneNumber };
-      if (finalBiometricData) newProofData.biometric = finalBiometricData;
-      if (passkey) newProofData.passkey = passkey;
-      
-      const newZkProof = generateZkProof(newProofData, newZkCommitment);
-      console.log('New ZK proof generated, valid:', newZkProof.isValid);
-      
-      if (!newZkProof.isValid) {
-        console.log('New ZK proof validation failed');
-        return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid ZK proof for existing user update');
+    // Validate each auth method
+    for (const method of authMethods) {
+      if (!method.type) {
+        console.log('Validation failed: Auth method missing type');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a type');
       }
 
-      // Update existing user with new data
-      console.log('Step 4.3: Updating existing user with new ZK commitment...');
-      const updateData = {
-        zkCommitment: newZkCommitment,
-        verificationMethod,
-        biometricType: biometricType || null,
-        senderWalletAddress: senderWalletAddress || null,
-        phoneNumber: finalPhoneNumber, // Update actual phone number
-        updatedAt: new Date()
+      if (!method.createdAt) {
+        console.log('Validation failed: Auth method missing createdAt');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a createdAt timestamp');
+      }
+
+      // Validate specific auth method requirements
+      if (method.type === 'pin' && !method.data) {
+        console.log('Validation failed: PIN auth method must have data field with hashed PIN');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN authentication method must include hashed PIN data');
+      }
+
+      if (method.type === 'face' && !method.data) {
+        console.log('Validation failed: Face auth method must have data field with biometric hash');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Face authentication method must include biometric data hash');
+      }
+
+      if (method.type === 'voice' && !method.data) {
+        console.log('Validation failed: Voice auth method must have data field with voice hash');
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Voice authentication method must include voice data hash');
+      }
+
+      // Validate allowed auth method types
+      const allowedTypes = ['phone', 'pin', 'fingerprint', 'face', 'voice', 'iris'];
+      if (!allowedTypes.includes(method.type)) {
+        console.log('Validation failed: Invalid auth method type:', method.type);
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, `Invalid authentication method type: ${method.type}. Allowed types: ${allowedTypes.join(', ')}`);
+      }
+    }
+
+    // User ID validation
+    if (userId.length < 3 || userId.length > 50) {
+      console.log('Validation failed: User ID must be 3-50 characters');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'User ID must be between 3 and 50 characters');
+    }
+
+    // Wallet address validation (if provided)
+    if (finalUserAddress && finalUserAddress.length < 10) {
+      console.log('Validation failed: Invalid wallet address format');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid wallet address format');
+    }
+
+    // Phone hash validation (should be 64 chars for SHA-256)
+    if (finalPhoneHash && finalPhoneHash.length !== 64) {
+      console.log('Validation failed: Phone hash must be 64 characters (SHA-256)');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid phone hash format');
+    }
+
+    // ZK commitment validation
+    if (zkCommitment && zkCommitment.length !== 64) {
+      console.log('Validation failed: ZK commitment must be 64 characters (SHA-256)');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid ZK commitment format');
+    }
+
+    // ============================================================================
+    // EXISTING USER CHECK
+    // ============================================================================
+
+    console.log('Step 1: Checking for existing user...');
+    
+    let existingUser = null;
+    
+    // First check by user ID
+    if (userId) {
+      existingUser = await dbService.getUserById(userId);
+      if (existingUser) {
+        console.log('Existing user found by user ID:', userId);
+      }
+    }
+    
+    // If no user found by ID, check by wallet address
+    if (!existingUser && finalUserAddress) {
+      existingUser = await dbService.getUserByWalletAddress(finalUserAddress);
+      if (existingUser) {
+        console.log('Existing user found by wallet address:', finalUserAddress);
+      }
+    }
+
+    if (existingUser) {
+      console.log('Existing user found - updating with new data');
+      
+      // ============================================================================
+      // UPDATE EXISTING USER
+      // ============================================================================
+
+      // Prepare updates for existing user
+      const updates = {
+        phone_hash: finalPhoneHash,
+        zk_commitment: zkCommitment,  // ✅ Use frontend-provided commitment
+        verification_method: verificationMethod,
+        biometric_type: biometricType || null,
+        sender_wallet_address: senderWalletAddress || null,
+        auth_methods: authMethods, // ✅ Use provided auth methods
+        updated_at: new Date()
       };
       
-      if (biometricHash) updateData.biometricHash = biometricHash;
-      if (passkeyHash) updateData.passkeyHash = passkeyHash;
-      if (pin) updateData.pin = pin;
-      if (finalUserAddress) updateData.walletAddress = finalUserAddress;
-      if (username) updateData.username = username; // Update username if provided
-
-      const updateResult = await storageService.updateUser(existingUser.id, updateData);
-      if (!updateResult.success) {
-        console.log('Failed to update existing user:', updateResult.error);
-        return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing user: ' + updateResult.error);
+      // Update PIN hash if provided separately
+      if (pinHash) {
+        updates.pin_hash = pinHash;
       }
+
+      // Update wallet address if provided and different
+      if (finalUserAddress && finalUserAddress !== existingUser.wallet_address) {
+        updates.wallet_address = finalUserAddress;
+      }
+
+      console.log('Updating existing user with data:', {
+        ...updates,
+        auth_methods: authMethods.map(m => ({ type: m.type, hasData: !!m.data }))
+      });
       
+      const updatedUser = await dbService.updateUser(existingUser.user_id, updates);
+      
+      if (!updatedUser) {
+        console.log('Failed to update existing user');
+        return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing user');
+      }
+
       console.log('Existing user updated successfully');
 
-      // Process 2 ADA refund for existing user
-      console.log('Step 4.4: Processing 2 ADA refund for existing user...');
+      // ============================================================================
+      // STORE ZK PROOF FOR EXISTING USER
+      // ============================================================================
+
+      console.log('Storing ZK proof for user update...');
       try {
-        // Import the enhanced K33P manager for refund processing
-        const { EnhancedK33PManagerDB } = await import('../enhanced-k33p-manager-db.js');
-        const k33pManager = new EnhancedK33PManagerDB();
+        // Store the frontend-provided ZK proof
+        await dbService.createZKProof({
+          user_id: existingUser.user_id,
+          commitment: zkCommitment,
+          proof: zkProof,
+          public_inputs: {
+            phoneHash: finalPhoneHash,
+            userAddress: finalUserAddress,
+            verificationMethod,
+            isUpdate: true,
+            timestamp: new Date().toISOString()
+          },
+          is_valid: true // Assuming frontend validates the proof
+        });
         
-        // Determine refund address (priority: senderWalletAddress > finalUserAddress > existing walletAddress)
-        const refundAddress = senderWalletAddress || finalUserAddress || existingUser.walletAddress;
+        console.log('ZK proof stored for user update successfully');
+      } catch (zkError) {
+        console.error('Failed to store ZK proof for user update:', zkError);
+      }
+
+      // ============================================================================
+      // PROCESS REFUND FOR EXISTING USER
+      // ============================================================================
+
+      console.log('Processing 2 ADA refund for existing user...');
+      try {
+        const k33pManager = new EnhancedK33PManagerDB();
+        await k33pManager.initialize();
+        
+        // Determine refund address (priority: senderWalletAddress > finalUserAddress > existing wallet_address)
+        const refundAddress = senderWalletAddress || finalUserAddress || existingUser.wallet_address;
         
         if (refundAddress) {
           const refundResult = await k33pManager.processRefund(refundAddress, {
-            userId: existingUser.userId || existingUser.id,
+            userId: existingUser.user_id,
             reason: 'Existing user signup update',
-            zkCommitment: newZkCommitment,
-            zkProof: newZkProof
+            zkCommitment: zkCommitment,
+            zkProof: zkProof
           });
           
           if (refundResult.success) {
@@ -778,261 +839,142 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         // Continue with signup even if refund fails
       }
 
-      // Store new ZK proof using ZK Proof Service
-      console.log('Step 4.5: Storing new ZK proof for existing user...');
-      try {
-        const { ZKProofService } = await import('../services/zk-proof-service');
-        
-        await ZKProofService.generateAndStoreUserZKProof({
-          userId: existingUser.userId || existingUser.id,
-          phoneNumber: finalPhoneNumber,
-          biometricData: finalBiometricData,
-          passkeyData: passkey,
-          userAddress: finalUserAddress,
-          additionalData: {
-            verificationMethod,
-            biometricType,
-            senderWalletAddress,
-            isUpdate: true
-          }
-        });
-        
-        console.log('New ZK proof stored for existing user successfully');
-      } catch (zkError) {
-        console.error('Failed to store new ZK proof for existing user:', zkError);
-      }
-      
-      // Generate JWT token for updated existing user
+      // ============================================================================
+      // GENERATE JWT TOKEN FOR UPDATED USER
+      // ============================================================================
+
+      console.log('Generating JWT token for updated user...');
       const token = jwt.sign(
-        { id: existingUser.id, walletAddress: finalUserAddress || existingUser.walletAddress },
+        { 
+          id: existingUser.id, 
+          userId: existingUser.user_id,
+          walletAddress: finalUserAddress || existingUser.wallet_address,
+          authMethods: authMethods.map(m => m.type) // ✅ Include auth methods in token
+        },
         process.env.JWT_SECRET || 'default-secret',
         { expiresIn: process.env.JWT_EXPIRATION || '24h' }
       );
-      
-      return res.status(200).json({
+
+      console.log('JWT token generated successfully');
+
+      // ============================================================================
+      // BUILD SUCCESS RESPONSE FOR EXISTING USER
+      // ============================================================================
+
+      const response = {
         success: true,
         data: {
           verified: existingUser.verified || false,
-          userId: existingUser.userId || existingUser.id,
+          userId: existingUser.user_id,
           verificationMethod,
+          authMethods: authMethods, // ✅ Return full auth methods array
           message: 'User account updated successfully. Your refund has been processed.',
-          depositAddress: finalUserAddress || existingUser.walletAddress,
-          isUpdate: true
+          depositAddress: finalUserAddress || existingUser.wallet_address,
+          isUpdate: true,
+          zkCommitment: zkCommitment, // ✅ Return the commitment
+          requiresDeposit: verificationMethod === 'phone'
         },
         message: 'User account updated successfully. Your refund has been processed.',
         token
-      });
+      };
+
+      console.log('=== SIGNUP DEBUG END (Existing User) ===');
+      return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, response.data, response.message);
     }
 
-    // If user address is provided, check if it's already in use
-    if (finalUserAddress) {
-      console.log('Step 5: Checking existing user by wallet address...');
-      const existingWalletUserResult = await storageService.findUser({ walletAddress: finalUserAddress });
-      console.log('Existing wallet user check completed, found:', !!existingWalletUserResult.data);
-      
-      if (existingWalletUserResult.success && existingWalletUserResult.data) {
-        console.log('User already exists with this wallet address, checking if same phone number...');
-        
-        const existingWalletUser = existingWalletUserResult.data;
-        
-        // Check if the existing user has the same phone number
-        if (existingWalletUser.phoneHash === phoneHash) {
-          console.log('Same phone number detected, treating as existing user update');
-          // This is the same user trying to signup again with same phone and wallet
-          // Allow this and treat it as an update (similar to the existing user flow above)
-          
-          // Generate new ZK commitment and proof for existing user
-          console.log('Generating new ZK commitment for existing wallet user...');
-          const newCommitmentData = { phoneHash };
-          if (biometricHash) newCommitmentData.biometricHash = biometricHash;
-          if (passkeyHash) newCommitmentData.passkeyHash = passkeyHash;
-          
-          const newZkCommitment = generateZkCommitment(newCommitmentData);
-          console.log('New ZK commitment generated successfully');
+    // ============================================================================
+    // CREATE NEW USER
+    // ============================================================================
 
-          const newProofData = { phone: finalPhoneNumber };
-          if (finalBiometricData) newProofData.biometric = finalBiometricData;
-          if (passkey) newProofData.passkey = passkey;
-          
-          const newZkProof = generateZkProof(newProofData, newZkCommitment);
-          console.log('New ZK proof generated, valid:', newZkProof.isValid);
-          
-          if (!newZkProof.isValid) {
-            console.log('New ZK proof validation failed');
-            return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid ZK proof for existing wallet user update');
-          }
+    console.log('Step 2: Creating new user with DatabaseService...');
 
-          // Update existing user with new data
-          const updateData = {
-            zkCommitment: newZkCommitment,
-            verificationMethod,
-            biometricType: biometricType || null,
-            senderWalletAddress: senderWalletAddress || null,
-            phoneNumber: finalPhoneNumber,
-            updatedAt: new Date()
-          };
-          
-          if (biometricHash) updateData.biometricHash = biometricHash;
-          if (passkeyHash) updateData.passkeyHash = passkeyHash;
-          if (pin) updateData.pin = pin;
-          if (username) updateData.username = username;
+    // Create new user with frontend-provided ZK commitment
+    const newUser = await dbService.createUser({
+      userId: userId,
+      walletAddress: finalUserAddress,
+      phoneNumber: null,
+      phoneHash: finalPhoneHash,
+      pinHash: pinHash,
+      zkCommitment: zkCommitment, 
+      authMethods: authMethods, 
+      folders: [],
+      verificationMethod: verificationMethod,
+      biometricType: biometricType,
+      senderWalletAddress: senderWalletAddress
+    });
 
-          const updateResult = await storageService.updateUser(existingWalletUser.id, updateData);
-          if (!updateResult.success) {
-            console.log('Failed to update existing wallet user:', updateResult.error);
-            return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing wallet user: ' + updateResult.error);
-          }
-          
-          console.log('Existing wallet user updated successfully');
+    console.log('User created successfully with ID:', newUser.user_id);
+    console.log('Auth methods saved:', authMethods.map(m => m.type));
 
-          // Generate JWT token for updated existing user
-          const token = jwt.sign(
-            { id: existingWalletUser.id, walletAddress: finalUserAddress },
-            process.env.JWT_SECRET || 'default-secret',
-            { expiresIn: process.env.JWT_EXPIRATION || '24h' }
-          );
-          
-          return res.status(200).json({
-            success: true,
-            data: {
-              verified: existingWalletUser.verified || false,
-              userId: existingWalletUser.userId || existingWalletUser.id,
-              verificationMethod,
-              message: 'User account updated successfully with same wallet and phone.',
-              depositAddress: finalUserAddress,
-              isUpdate: true
-            },
-            message: 'User account updated successfully with same wallet and phone.',
-            token
-          });
-        } else {
-          console.log('Different phone number detected, allowing wallet reuse for new account');
-          // Different phone number - allow wallet reuse
-          // Check deposit status to ensure we handle any pending transactions properly
-          const depositRecord = await dbService.getDepositByUserAddress(finalUserAddress);
-          console.log('Deposit record found for wallet reuse:', !!depositRecord);
-          
-          if (depositRecord && !depositRecord.refunded && !depositRecord.signup_completed) {
-            // There's a pending deposit for this wallet with a different phone number
-            console.log('Pending deposit exists for this wallet with different phone, allowing wallet reuse but noting the existing deposit');
-            // Allow wallet reuse but log the situation for monitoring
-            console.log('Warning: Wallet reuse with pending deposit from different phone number detected');
-          }
-          
-          // Allow wallet reuse for different phone number
-          console.log('Allowing wallet reuse for different phone number');
-        }
-      }
-    }
+    // ============================================================================
+    // STORE ZK PROOF FOR NEW USER
+    // ============================================================================
 
-    console.log('Step 6: Generating ZK commitment...');
-    const commitmentData = { phoneHash };
-    if (biometricHash) commitmentData.biometricHash = biometricHash;
-    if (passkeyHash) commitmentData.passkeyHash = passkeyHash;
-    
-    const zkCommitment = generateZkCommitment(commitmentData);
-    console.log('ZK commitment generated successfully');
-
-    console.log('Step 7: Generating ZK proof...');
-    const proofData = { phone: finalPhoneNumber };
-    if (finalBiometricData) proofData.biometric = finalBiometricData;
-    if (passkey) proofData.passkey = passkey;
-    
-    const zkProof = generateZkProof(proofData, zkCommitment);
-    console.log('ZK proof generated, valid:', zkProof.isValid);
-    
-    if (!zkProof.isValid) {
-      console.log('ZK proof validation failed');
-      return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
-    }
-
-    // Note: Transaction creation happens later when user sends 2 ADA for verification
-    // No transaction is created during initial signup
-
-    console.log('Step 8: Creating user in storage...');
-    const userData = {
-      walletAddress: finalUserAddress || null,
-      phoneHash,
-      phoneNumber: finalPhoneNumber, // Store actual phone number
-      username: username || null, // Store username
-      zkCommitment,
-      userId: userId || crypto.randomUUID(),
-      verificationMethod,
-      biometricType: biometricType || null,
-      senderWalletAddress: senderWalletAddress || null
-    };
-    
-    if (biometricHash) userData.biometricHash = biometricHash;
-    if (passkeyHash) userData.passkeyHash = passkeyHash;
-    if (pin) userData.pin = pin;
-
-    const userResult = await storageService.storeUser(userData);
-    if (!userResult.success) {
-      console.log('Failed to create user:', userResult.error);
-      return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to create user: ' + userResult.error);
-    }
-    
-    const user = { id: userResult.data.id, ...userData };
-    console.log('User created successfully, ID:', user.id, 'Storage:', userResult.storageUsed);
-
-    console.log('Step 8.1: Storing ZK proof using ZK Proof Service...');
+    console.log('Storing ZK proof for new user...');
     try {
-      // Import ZK Proof Service
-      const { ZKProofService } = await import('../services/zk-proof-service');
-      
-      // Generate and store comprehensive ZK proof
-      await ZKProofService.generateAndStoreUserZKProof({
-        userId: userData.userId,
-        phoneNumber: finalPhoneNumber,
-        biometricData: finalBiometricData,
-        passkeyData: passkey,
-        userAddress: finalUserAddress,
-        additionalData: {
+      // Store the frontend-provided ZK proof
+      await dbService.createZKProof({
+        user_id: newUser.user_id,
+        commitment: zkCommitment,
+        proof: zkProof,
+        public_inputs: {
+          phoneHash: finalPhoneHash,
+          userAddress: finalUserAddress,
           verificationMethod,
-          biometricType,
-          senderWalletAddress
-        }
+          isNewUser: true,
+          timestamp: new Date().toISOString()
+        },
+        is_valid: true // Assuming frontend validates the proof
       });
       
-      console.log('ZK proof stored using ZK Proof Service successfully');
+      console.log('ZK proof stored for new user successfully');
     } catch (zkError) {
-      console.error('Failed to store ZK proof using ZK Proof Service:', zkError);
-      // Don't fail the signup if ZK proof storage fails, just log it
+      console.error('Failed to store ZK proof for new user:', zkError);
+      
     }
 
-    console.log('Step 9: Generating JWT token...');
+    // ============================================================================
+    // GENERATE JWT TOKEN FOR NEW USER
+    // ============================================================================
+
+    console.log('Generating JWT token for new user...');
     const token = jwt.sign(
-      { id: user.id, walletAddress: user.walletAddress },
+      { 
+        id: newUser.id, 
+        userId: newUser.user_id,
+        walletAddress: newUser.wallet_address,
+        authMethods: authMethods.map(m => m.type) 
+      },
       process.env.JWT_SECRET || 'default-secret',
       { expiresIn: process.env.JWT_EXPIRATION || '24h' }
     );
+
     console.log('JWT token generated successfully');
 
-    console.log('Step 10: Creating session...');
-    await iagon.createSession({ 
-      userId: user.id, 
-      token, 
-      expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) 
-    });
-    console.log('Session created successfully');
+    // ============================================================================
+    // BUILD SUCCESS RESPONSE FOR NEW USER
+    // ============================================================================
 
-    console.log('Step 11: Building response...');
     const response = {
       success: true,
       data: {
-        verified: verificationMethod === 'phone' ? false : true,
-        userId: userId || user.id,
+        verified: verificationMethod === 'phone' ? false : true, 
+        userId: newUser.user_id,
         verificationMethod,
+        authMethods: authMethods, 
         message: 'DID created successfully. Welcome to K33P!',
-        depositAddress: finalUserAddress
+        depositAddress: finalUserAddress,
+        requiresDeposit: verificationMethod === 'phone',
+        zkCommitment: zkCommitment
       },
       message: 'DID created successfully. Welcome to K33P!',
       token
     };
 
     console.log('Response built successfully');
-    console.log('=== SIGNUP DEBUG END ===');
+    console.log('=== SIGNUP DEBUG END (New User) ===');
     return ResponseUtils.success(res, SuccessCodes.USER_CREATED, response.data, response.message);
+
   } catch (error) {
     console.error('=== SIGNUP ERROR ===');
     console.error('Error name:', error.name);
@@ -1047,7 +989,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
   }
 }
 
-
+export { handleSignup };
 
 /**
  * @route POST /api/auth/login

@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     wallet_address TEXT,
     phone_hash VARCHAR(128),
     phone_number VARCHAR(20),
-    pin_hash VARCHAR(128), -- REMOVED plain text pin
+    pin_hash VARCHAR(128)
     zk_commitment TEXT,
     auth_methods JSONB NOT NULL DEFAULT '[]'::jsonb,
     folders JSONB NOT NULL DEFAULT '[]'::jsonb,

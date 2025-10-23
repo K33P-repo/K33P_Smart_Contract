@@ -53,7 +53,108 @@ pool.on('connect', () => {
   console.log('✅ Connected to PostgreSQL database');
 });
 
-// In your createTables function:
+class SQLParser {
+    static splitSQLStatements(sql: string): string[] {
+      const statements: string[] = [];
+      let currentStatement = '';
+      let inDollarQuote = false;
+      let dollarTag = '';
+      let inSingleQuote = false;
+      let inDoubleQuote = false;
+      let inComment = false;
+    
+    for (let i = 0; i < sql.length; i++) {
+      const char = sql[i];
+      const nextChar = sql[i + 1];
+      
+      if (!inSingleQuote && !inDoubleQuote && !inDollarQuote) {
+        if (char === '-' && nextChar === '-') {
+          inComment = true;
+          currentStatement += char;
+          i++; 
+          continue;
+        }
+        if (char === '\n' && inComment) {
+          inComment = false;
+        }
+        if (inComment) {
+          currentStatement += char;
+          continue;
+        }
+      }
+      
+      // Handle dollar quoting
+      if (char === '$' && !inSingleQuote && !inDoubleQuote) {
+        const match = sql.substring(i).match(/^\$([A-Za-z_]*)\$/);
+        if (match) {
+          if (!inDollarQuote) {
+            // Start of dollar quote
+            inDollarQuote = true;
+            dollarTag = match[1];
+            currentStatement += match[0];
+            i += match[0].length - 1;
+          } else if (match[1] === dollarTag) {
+            // End of dollar quote
+            inDollarQuote = false;
+            dollarTag = '';
+            currentStatement += match[0];
+            i += match[0].length - 1;
+          } else {
+            currentStatement += char;
+          }
+          continue;
+        }
+      }
+      
+      // Handle single quotes
+      if (char === "'" && !inDoubleQuote && !inDollarQuote) {
+        inSingleQuote = !inSingleQuote;
+      }
+      
+      // Handle double quotes
+      if (char === '"' && !inSingleQuote && !inDollarQuote) {
+        inDoubleQuote = !inDoubleQuote;
+      }
+      
+      // Handle semicolons (statement separators)
+      if (char === ';' && !inSingleQuote && !inDoubleQuote && !inDollarQuote && !inComment) {
+        if (currentStatement.trim()) {
+          statements.push(currentStatement.trim());
+          currentStatement = '';
+        }
+        continue;
+      }
+      
+      currentStatement += char;
+    }
+    
+    // Add the last statement if any
+    if (currentStatement.trim()) {
+      statements.push(currentStatement.trim());
+    }
+    
+    return statements.filter(stmt => stmt.length > 0);
+  }
+
+  /**
+   * Check if error should be ignored (idempotent operations)
+   */
+  static shouldIgnoreError(error: any): boolean {
+    const ignorableMessages = [
+      'already exists',
+      'does not exist',
+      'duplicate key',
+      'cannot drop',
+      'is already a member'
+    ];
+    
+    return ignorableMessages.some(msg => 
+      error.message.toLowerCase().includes(msg.toLowerCase())
+    );
+  }
+}
+
+// Auto-create database tables from schema
 export const createTables = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
@@ -64,27 +165,35 @@ export const createTables = async (): Promise<boolean> => {
     const schemaPath = join(__dirname, 'schema.sql');
     const schemaSQL = await readFile(schemaPath, 'utf8');
     
-    // Split by semicolons and execute each statement separately
-    // This handles the DO $$ blocks that can't be executed in one query
-    const statements = schemaSQL.split(';').filter(stmt => stmt.trim().length > 0);
+    // Use intelligent SQL parser
+    const statements = SQLParser.splitSQLStatements(schemaSQL);
     
-    for (const statement of statements) {
-      if (statement.trim()) {
-        try {
-          await client.query(statement + ';');
-        } catch (error) {
-          // Type assertion to treat error as Error
-          const err = error as Error;
-          // Ignore "already exists" errors for idempotent operations
-          if (!err.message.includes('already exists') && 
-              !err.message.includes('does not exist')) {
-            console.warn('⚠️ Statement execution warning:', err.message);
-          }
+    let successfulStatements = 0;
+    let totalStatements = statements.length;
+    
+    for (let i = 0; i < statements.length; i++) {
+      const statement = statements[i];
+      
+      try {
+        console.log(`📝 Executing statement ${i + 1}/${totalStatements}`);
+        await client.query(statement);
+        successfulStatements++;
+      } catch (error) {
+        // Type assertion to treat error as Error
+        const err = error as Error;
+        
+        // Ignore "already exists" errors for idempotent operations
+        if (SQLParser.shouldIgnoreError(err)) {
+          console.log(`⏭️  Skipped (already exists): ${statement.substring(0, 100)}...`);
+          successfulStatements++; // Count as successful for idempotent operations
+        } else {
+          console.warn(`⚠️  Statement execution warning:`, err.message);
+          console.warn(`   Statement: ${statement.substring(0, 200)}...`);
         }
       }
     }
     
-    console.log('✅ ALL database tables created successfully from schema.sql');
+    console.log(`✅ Schema applied: ${successfulStatements}/${totalStatements} statements executed successfully`);
     client.release();
     return true;
   } catch (error) {
@@ -93,14 +202,12 @@ export const createTables = async (): Promise<boolean> => {
   }
 };
 
-// UPDATED: Schema update now handles both missing tables AND columns
 export const updateSchema = async (): Promise<boolean> => {
   try {
     const client = await pool.connect();
     
     console.log('🔧 Checking for schema updates...');
     
-    // Check if we have the new tables from schema.sql
     const newTables = [
       'system_logs', 'emergency_contacts', 'backup_phrases', 
       'phone_change_requests', 'recovery_requests', 'account_activity'
@@ -122,7 +229,7 @@ export const updateSchema = async (): Promise<boolean> => {
     if (missingTables.length > 0) {
       console.log(`🔄 Found ${missingTables.length} missing tables, running full schema update...`);
       client.release();
-      return await createTables(); // Re-run full schema creation
+      return await createTables();
     }
     
     // Check for missing columns in users table

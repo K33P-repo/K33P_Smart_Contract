@@ -1,4 +1,4 @@
-import { UserModel, UserDepositModel, TransactionModel, User, UserDeposit, Transaction } from './models.js';
+import { UserModel, UserDepositModel, TransactionModel, User, UserDeposit, Transaction, AuthMethod } from './models.js';
 import pool from './config.js';
 import { ZKProofService } from '../services/zk-proof-service.js';
 
@@ -20,19 +20,41 @@ export class DatabaseService {
     phoneNumber?: string;
     phoneHash?: string;
     zkCommitment?: string;
+    pinHash?: string; 
+    authMethods: AuthMethod[];  
+    folders?: any[]; 
   }): Promise<User> {
+    
+    // Create default auth methods if not provided
+    const defaultAuthMethods: AuthMethod[] = [
+      {
+        type: 'phone',
+        createdAt: new Date()
+      },
+      {
+        type: 'pin',
+        data: userData.pinHash || 'pending-pin-setup',
+        createdAt: new Date()
+      },
+      {
+        type: 'fingerprint',
+        createdAt: new Date()
+      }
+    ];
+
     const user = await UserModel.create({
       user_id: userData.userId,
       email: userData.email,
       name: userData.name,
       wallet_address: userData.walletAddress,
       phone_hash: userData.phoneHash,
-      zk_commitment: userData.zkCommitment
+      pin_hash: userData.pinHash,
+      zk_commitment: userData.zkCommitment,
+      auth_methods: userData.authMethods || defaultAuthMethods,  
+      folders: userData.folders || []                            
     });
     
-    // Generate and store ZK proof for user creation
     try {
-      // Only generate ZK proof if we have phone number data
       if (userData.phoneNumber) {
         await ZKProofService.generateAndStoreUserZKProof(userData);
         console.log(`✅ ZK proof generated for user creation: ${userData.userId}`);
@@ -41,7 +63,6 @@ export class DatabaseService {
       }
     } catch (zkError) {
       console.error('Failed to generate ZK proof for user creation:', zkError);
-      // Don't fail user creation if ZK proof generation fails
     }
     
     return user;
