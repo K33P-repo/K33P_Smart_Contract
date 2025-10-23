@@ -283,14 +283,28 @@ export class UserModel {
     }
   }
 
-  // Helper method to parse JSON fields
-  private static parseUser(row: any): User {
-    return {
-      ...row,
-      auth_methods: row.auth_methods ? JSON.parse(row.auth_methods) : [],
-      folders: row.folders ? JSON.parse(row.folders) : []
-    };
-  }
+private static parseUser(row: any): User {
+  // Helper function to safely parse JSON data
+  const safeJsonParse = (data: any): any => {
+    if (!data) return [];
+    if (typeof data === 'object') return data; // Already parsed
+    if (typeof data === 'string') {
+      try {
+        return JSON.parse(data);
+      } catch (e) {
+        console.error('JSON parse error:', e, 'for data:', data);
+        return [];
+      }
+    }
+    return [];
+  };
+
+  return {
+    ...row,
+    auth_methods: safeJsonParse(row.auth_methods),
+    folders: safeJsonParse(row.folders)
+  };
+}
 }
 
 

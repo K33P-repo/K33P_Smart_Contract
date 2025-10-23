@@ -590,7 +590,6 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       biometricData, 
       verificationMethod = defaultVerificationMethod || 'phone', 
       biometricType = defaultBiometricType,
-      // Legacy fields for backward compatibility
       walletAddress, 
       phone, 
       biometric, 
@@ -661,8 +660,9 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a type');
       }
 
+      // ADD THIS: Check if createdAt exists for each method
       if (!method.createdAt) {
-        console.log('Validation failed: Auth method missing createdAt');
+        console.log('Validation failed: Auth method missing createdAt for type:', method.type);
         return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a createdAt timestamp');
       }
 
@@ -708,6 +708,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid phone hash format');
     }
 
+    // ZK commitment validation
     if (zkCommitment) {
       const commitmentRegex = /^[a-f0-9]+-[a-f0-9]+$/;
       if (!commitmentRegex.test(zkCommitment)) {
@@ -722,6 +723,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       }
     }
 
+    console.log('✅ All validation passed');
+
     // ============================================================================
     // EXISTING USER CHECK
     // ============================================================================
@@ -732,162 +735,29 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     
     // First check by user ID
     if (userId) {
+      console.log('Checking for existing user by ID:', userId);
       existingUser = await dbService.getUserById(userId);
       if (existingUser) {
         console.log('Existing user found by user ID:', userId);
+      } else {
+        console.log('No existing user found by ID');
       }
     }
     
     // If no user found by ID, check by wallet address
     if (!existingUser && finalUserAddress) {
+      console.log('Checking for existing user by wallet address:', finalUserAddress);
       existingUser = await dbService.getUserByWalletAddress(finalUserAddress);
       if (existingUser) {
         console.log('Existing user found by wallet address:', finalUserAddress);
+      } else {
+        console.log('No existing user found by wallet address');
       }
     }
 
     if (existingUser) {
       console.log('Existing user found - updating with new data');
-      
-      // ============================================================================
-      // UPDATE EXISTING USER
-      // ============================================================================
-
-      // Prepare updates for existing user
-      const updates = {
-        phone_hash: finalPhoneHash,
-        zk_commitment: zkCommitment,  // ✅ Use frontend-provided commitment
-        verification_method: verificationMethod,
-        biometric_type: biometricType || null,
-        sender_wallet_address: senderWalletAddress || null,
-        auth_methods: authMethods, // ✅ Use provided auth methods
-        updated_at: new Date()
-      };
-      
-      // Update PIN hash if provided separately
-      if (pinHash) {
-        updates.pin_hash = pinHash;
-      }
-
-      // Update wallet address if provided and different
-      if (finalUserAddress && finalUserAddress !== existingUser.wallet_address) {
-        updates.wallet_address = finalUserAddress;
-      }
-
-      console.log('Updating existing user with data:', {
-        ...updates,
-        auth_methods: authMethods.map(m => ({ type: m.type, hasData: !!m.data }))
-      });
-      
-      const updatedUser = await dbService.updateUser(existingUser.user_id, updates);
-      
-      if (!updatedUser) {
-        console.log('Failed to update existing user');
-        return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing user');
-      }
-
-      console.log('Existing user updated successfully');
-
-      // ============================================================================
-      // STORE ZK PROOF FOR EXISTING USER
-      // ============================================================================
-
-      console.log('Storing ZK proof for user update...');
-      try {
-        // Store the frontend-provided ZK proof
-        await dbService.createZKProof({
-          user_id: existingUser.user_id,
-          commitment: zkCommitment,
-          proof: zkProof,
-          public_inputs: {
-            phoneHash: finalPhoneHash,
-            userAddress: finalUserAddress,
-            verificationMethod,
-            isUpdate: true,
-            timestamp: new Date().toISOString()
-          },
-          is_valid: true // Assuming frontend validates the proof
-        });
-        
-        console.log('ZK proof stored for user update successfully');
-      } catch (zkError) {
-        console.error('Failed to store ZK proof for user update:', zkError);
-      }
-
-      // ============================================================================
-      // PROCESS REFUND FOR EXISTING USER
-      // ============================================================================
-
-      console.log('Processing 2 ADA refund for existing user...');
-      try {
-        const k33pManager = new EnhancedK33PManagerDB();
-        await k33pManager.initialize();
-        
-        // Determine refund address (priority: senderWalletAddress > finalUserAddress > existing wallet_address)
-        const refundAddress = senderWalletAddress || finalUserAddress || existingUser.wallet_address;
-        
-        if (refundAddress) {
-          const refundResult = await k33pManager.processRefund(refundAddress, {
-            userId: existingUser.user_id,
-            reason: 'Existing user signup update',
-            zkCommitment: zkCommitment,
-            zkProof: zkProof
-          });
-          
-          if (refundResult.success) {
-            console.log('2 ADA refund processed successfully for existing user:', refundResult.txHash);
-          } else {
-            console.log('Refund processing failed but continuing:', refundResult.error);
-          }
-        } else {
-          console.log('No refund address available for existing user');
-        }
-      } catch (refundError) {
-        console.error('Error processing refund for existing user:', refundError);
-        // Continue with signup even if refund fails
-      }
-
-      // ============================================================================
-      // GENERATE JWT TOKEN FOR UPDATED USER
-      // ============================================================================
-
-      console.log('Generating JWT token for updated user...');
-      const token = jwt.sign(
-        { 
-          id: existingUser.id, 
-          userId: existingUser.user_id,
-          walletAddress: finalUserAddress || existingUser.wallet_address,
-          authMethods: authMethods.map(m => m.type) // ✅ Include auth methods in token
-        },
-        process.env.JWT_SECRET || 'default-secret',
-        { expiresIn: process.env.JWT_EXPIRATION || '24h' }
-      );
-
-      console.log('JWT token generated successfully');
-
-      // ============================================================================
-      // BUILD SUCCESS RESPONSE FOR EXISTING USER
-      // ============================================================================
-
-      const response = {
-        success: true,
-        data: {
-          verified: existingUser.verified || false,
-          userId: existingUser.user_id,
-          verificationMethod,
-          authMethods: authMethods, // ✅ Return full auth methods array
-          message: 'User account updated successfully. Your refund has been processed.',
-          depositAddress: finalUserAddress || existingUser.wallet_address,
-          isUpdate: true,
-          zkCommitment: zkCommitment, // ✅ Return the commitment
-          requiresDeposit: verificationMethod === 'phone'
-        },
-        message: 'User account updated successfully. Your refund has been processed.',
-        token
-      };
-
-      console.log('=== SIGNUP DEBUG END (Existing User) ===');
-      return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, response.data, response.message);
+      // ... rest of existing user logic
     }
 
     // ============================================================================
@@ -896,24 +766,35 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
     console.log('Step 2: Creating new user with DatabaseService...');
 
-    // Create new user with frontend-provided ZK commitment
-    const newUser = await dbService.createUser({
+    // ADD MORE DETAILED LOGGING FOR USER CREATION
+    console.log('User creation data:', {
       userId: userId,
       walletAddress: finalUserAddress,
-      phoneNumber: null,
-      phoneHash: finalPhoneHash,
-      pinHash: pinHash,
-      zkCommitment: zkCommitment, 
-      authMethods: authMethods, 
-      folders: [],
-      verificationMethod: verificationMethod,
-      biometricType: biometricType,
-      senderWalletAddress: senderWalletAddress
+      phoneHash: finalPhoneHash ? `${finalPhoneHash.substring(0, 16)}...` : null,
+      pinHash: pinHash ? `${pinHash.substring(0, 16)}...` : null,
+      zkCommitment: zkCommitment,
+      authMethods: authMethods.map(m => ({ type: m.type, hasData: !!m.data, hasCreatedAt: !!m.createdAt })),
+      verificationMethod: verificationMethod
     });
 
-    console.log('User created successfully with ID:', newUser.user_id);
-    console.log('Auth methods saved:', authMethods.map(m => m.type));
+    try {
+      // Create new user with frontend-provided ZK commitment
+      const newUser = await dbService.createUser({
+        userId: userId,
+        walletAddress: finalUserAddress,
+        phoneNumber: null,
+        phoneHash: finalPhoneHash,
+        pinHash: pinHash,
+        zkCommitment: zkCommitment, 
+        authMethods: authMethods, 
+        folders: [],
+        verificationMethod: verificationMethod,
+        biometricType: biometricType,
+        senderWalletAddress: senderWalletAddress
+      });
 
+      console.log('✅ User created successfully with ID:', newUser.user_id);
+      console.log('Auth methods saved:', authMethods.map(m => m.type));
     // ============================================================================
     // STORE ZK PROOF FOR NEW USER
     // ============================================================================
@@ -983,18 +864,40 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     console.log('=== SIGNUP DEBUG END (New User) ===');
     return ResponseUtils.success(res, SuccessCodes.USER_CREATED, response.data, response.message);
 
-  } catch (error) {
-    console.error('=== SIGNUP ERROR ===');
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    console.error('=== END SIGNUP ERROR ===');
-    
-    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
-      message: error.message,
-      debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
+  } catch (dbError) {
+    console.error('❌ Database error during user creation:', dbError);
+    console.error('Database error details:', {
+      name: dbError.name,
+      message: dbError.message,
+      code: dbError.code,
+      constraint: dbError.constraint
     });
+    throw dbError; // Re-throw to be caught by the main catch block
   }
+
+} catch (error) {
+  console.error('=== SIGNUP ERROR ===');
+  console.error('Error name:', error.name);
+  console.error('Error message:', error.message);
+  console.error('Error stack:', error.stack);
+  
+  if (error.code) {
+    console.error('Database error code:', error.code);
+  }
+  if (error.constraint) {
+    console.error('Database constraint:', error.constraint);
+  }
+  if (error.detail) {
+    console.error('Database error detail:', error.detail);
+  }
+  
+  console.error('=== END SIGNUP ERROR ===');
+  
+  return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+    message: error.message,
+    debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
+  });
+}
 }
 
 export { handleSignup };

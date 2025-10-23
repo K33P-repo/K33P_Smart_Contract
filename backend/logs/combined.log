@@ -1265,3 +1265,86 @@
 {"code":"SERVER_ERROR","details":{"debug":"SyntaxError: Unexpected token 'o', \"[object Obj\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at Function.parseUser (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:290:45)\n    at Function.findByWalletAddress (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:157:36)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async DatabaseService.getUserByWalletAddress (/home/dee/K33P_Smart_Contract/backend/src/database/service.ts:76:12)\n    at async handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:743:22)","message":"Unexpected token 'o', \"[object Obj\"... is not valid JSON"},"level":"error","message":"API Error: Something went wrong on our end. Please try again later","service":"k33p-backend","stack":"K33PError: Something went wrong on our end. Please try again later\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:993:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-23T07:48:24.484Z","userMessage":"Something went wrong on our end. Please try again later"}
 {"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T07:48:24.499Z"}
 {"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T07:48:24.862Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T07:52:27.612Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T07:52:27.614Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T07:52:27.867Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T07:52:27.913Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T07:52:30.201Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T07:52:51.501Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T07:52:53.708Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T07:52:53.708Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T07:52:55.603Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T07:52:55.609Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T07:52:55.610Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T07:53:31.552Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-10-23T07:53:31.577Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-10-23T07:53:31.582Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-10-23T07:53:31.584Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T07:53:31.588Z"}
+{"code":"SERVER_ERROR","details":{"debug":"SyntaxError: Unexpected token 'o', \"[object Obj\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at Function.parseUser (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:290:45)\n    at Function.findByWalletAddress (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:157:36)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async DatabaseService.getUserByWalletAddress (/home/dee/K33P_Smart_Contract/backend/src/database/service.ts:76:12)\n    at async handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:743:22)","message":"Unexpected token 'o', \"[object Obj\"... is not valid JSON"},"level":"error","message":"API Error: Something went wrong on our end. Please try again later","service":"k33p-backend","stack":"K33PError: Something went wrong on our end. Please try again later\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:993:26)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-23T07:53:33.772Z","userMessage":"Something went wrong on our end. Please try again later"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T07:53:33.788Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T07:53:34.075Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T07:58:31.220Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T07:58:31.221Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T07:58:31.440Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T07:58:31.497Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T07:58:35.195Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T07:58:56.754Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T07:58:58.968Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T07:58:58.969Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T07:59:00.761Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T07:59:00.767Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T07:59:00.768Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T07:59:19.394Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T07:59:19.395Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T07:59:19.580Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T07:59:19.622Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T07:59:21.644Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T07:59:43.608Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T07:59:45.684Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T07:59:45.685Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T07:59:47.458Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T07:59:47.466Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T07:59:47.467Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T07:59:51.188Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-10-23T07:59:51.216Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-10-23T07:59:51.218Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-10-23T07:59:51.220Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T07:59:51.225Z"}
+{"code":"SERVER_ERROR","details":{"debug":"SyntaxError: Unexpected token 'o', \"[object Obj\"... is not valid JSON\n    at JSON.parse (<anonymous>)\n    at Function.parseUser (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:290:45)\n    at Function.findByWalletAddress (/home/dee/K33P_Smart_Contract/backend/src/database/models.ts:157:36)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async DatabaseService.getUserByWalletAddress (/home/dee/K33P_Smart_Contract/backend/src/database/service.ts:76:12)\n    at async handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:750:22)","message":"Unexpected token 'o', \"[object Obj\"... is not valid JSON"},"level":"error","message":"API Error: Something went wrong on our end. Please try again later","service":"k33p-backend","stack":"K33PError: Something went wrong on our end. Please try again later\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at handleSignup (file:///home/dee/K33P_Smart_Contract/backend/src/routes/auth.js:896:24)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2025-10-23T07:59:51.737Z","userMessage":"Something went wrong on our end. Please try again later"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T07:59:51.749Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T07:59:52.002Z"}
+{"level":"info","message":"Running daily subscription renewal check","service":"k33p-backend","timestamp":"2025-10-23T08:00:00.011Z"}
+{"error":{"code":"42703","file":"parse_relation.c","length":117,"line":"3716","name":"error","position":"43","routine":"errorMissingColumn","severity":"ERROR"},"level":"error","message":"Failed to process expired subscriptions","service":"k33p-backend","timestamp":"2025-10-23T08:00:00.351Z"}
+{"error":{"code":"42703","file":"parse_relation.c","length":117,"line":"3716","name":"error","position":"43","routine":"errorMissingColumn","severity":"ERROR"},"level":"error","message":"Failed to send renewal reminders","service":"k33p-backend","timestamp":"2025-10-23T08:00:00.657Z"}
+{"error":{"code":"42703","file":"parse_relation.c","length":117,"line":"3716","name":"error","position":"34","routine":"errorMissingColumn","severity":"ERROR"},"level":"error","message":"Daily subscription check failed","service":"k33p-backend","timestamp":"2025-10-23T08:00:01.272Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T08:04:09.446Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T08:04:09.447Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T08:04:09.667Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T08:04:09.719Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T08:04:12.227Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T08:04:33.075Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T08:04:40.255Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T08:04:40.255Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T08:04:41.953Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T08:04:41.955Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T08:04:41.956Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T08:04:46.439Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-23T08:04:46.441Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T08:04:46.644Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-23T08:04:46.690Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-23T08:04:48.951Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-23T08:05:11.136Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-23T08:05:13.677Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-23T08:05:13.677Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-23T08:05:15.441Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-23T08:05:15.449Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-23T08:05:15.450Z"}
+{"ip":"::1","level":"info","message":"GET /api/health","service":"k33p-backend","timestamp":"2025-10-23T08:05:27.794Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/commitment","service":"k33p-backend","timestamp":"2025-10-23T08:05:27.819Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/proof","service":"k33p-backend","timestamp":"2025-10-23T08:05:27.823Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/verify","service":"k33p-backend","timestamp":"2025-10-23T08:05:27.825Z"}
+{"ip":"::1","level":"info","message":"POST /api/auth/signup","service":"k33p-backend","timestamp":"2025-10-23T08:05:27.829Z"}
+{"code":"USER_CREATED","level":"info","message":"API Success: DID created successfully. Welcome to K33P!","service":"k33p-backend","statusCode":200,"timestamp":"2025-10-23T08:05:28.751Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-23T08:05:28.753Z"}
+{"ip":"::1","level":"info","message":"POST /api/zk/login-with-pin","service":"k33p-backend","timestamp":"2025-10-23T08:05:29.021Z"}
