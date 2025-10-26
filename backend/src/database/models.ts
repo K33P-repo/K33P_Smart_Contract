@@ -82,6 +82,25 @@ export interface Folder {
   updatedAt: Date;
 }
 
+// models/database.ts - Update interfaces
+export interface WalletItem {
+  id: string;
+  name: string;
+  type: 'wallet';
+  keyType?: '12' | '24';
+  fileId?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Folder {
+  id: string;
+  name: string;
+  items: WalletItem[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface User {
   id?: string;
   user_id: string;

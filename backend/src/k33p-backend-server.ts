@@ -14,6 +14,7 @@ import { authenticateToken } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
 import { globalErrorHandler } from './middleware/error-handler.js';
 import swaggerUi from 'swagger-ui-express';
+
 // Import routes
 // @ts-ignore
 import zkRoutes from './routes/zk-postgres.js';
@@ -39,8 +40,10 @@ import autoRefundRoutes from './routes/auto-refund-routes.js';
 import paymentRoutes from './routes/payment.js';
 // @ts-ignore
 import subscriptionRoutes from './routes/subscription.js';
-import swaggerSpec from './swagger.js';
+// @ts-ignore
+import walletFoldersRoutes from './routes/wallet-folders.js'; // ADD THIS LINE
 
+import swaggerSpec from './swagger.js';
 
 // Load environment variables
 dotenv.config();
@@ -71,8 +74,6 @@ const logger = winston.createLogger({
 // Initialize K33P Manager with Database
 let k33pManager: EnhancedK33PManagerDB;
 let usingMockDatabase = false;
-
-
 
 async function initializeK33P() {
   try {
@@ -135,6 +136,7 @@ async function initializeK33P() {
     throw error;
   }
 }
+
 // Create Express app
 const app = express();
 
@@ -154,6 +156,7 @@ app.get('/api-docs.json', (req: Request, res: Response) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpec);
 });
+
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
   logger.info(`${req.method} ${req.url}`, {
@@ -176,6 +179,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/wallet-folders', walletFoldersRoutes); // ADD THIS LINE
 
 // Global error handler (must be last middleware)
 app.use(globalErrorHandler);
@@ -270,7 +274,7 @@ app.get('/api/version', systemEndpointLimiter, (req: Request, res: Response) => 
     version: '1.0.0',
     apiVersion: 'v1',
     buildDate: new Date().toISOString(),
-    features: ['auth', 'utxo', 'zk', 'users']
+    features: ['auth', 'utxo', 'zk', 'users', 'wallet-folders'] // ADD 'wallet-folders' HERE
   }, undefined, 'API version information'));
 });
 
@@ -365,7 +369,8 @@ app.get('/', (req: Request, res: Response) => {
       '/api/phone/*',
       '/api/recovery/*',
       '/api/user/profile',
-      '/api/auto-refund/*'
+      '/api/auto-refund/*',
+      '/api/wallet-folders/*' // ADD THIS LINE
     ]
   }, undefined, 'Welcome to K33P Backend API'));
 });
@@ -645,8 +650,7 @@ async function startServer() {
         : `http://localhost:${PORT}`;
       
       logger.info(`Health check: ${baseUrl}/api/health`);
-      
-
+      logger.info(`Wallet folders API: ${baseUrl}/api/wallet-folders`); // ADD THIS LINE
     });
     
     // Graceful shutdown

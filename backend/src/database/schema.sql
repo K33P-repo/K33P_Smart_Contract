@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(30),
     wallet_address TEXT,
     phone_hash VARCHAR(128),
-    pin_hash VARCHAR(128)
+    pin_hash VARCHAR(128),
     zk_commitment TEXT,
     auth_methods JSONB NOT NULL DEFAULT '[]'::jsonb,
     folders JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -296,7 +296,7 @@ CREATE TRIGGER validate_auth_methods_trigger
   FOR EACH ROW
   EXECUTE FUNCTION validate_auth_methods();
 
--- Create a function to validate folders structure
+-- Create updated folder validation function
 CREATE OR REPLACE FUNCTION validate_folders()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -318,6 +318,31 @@ BEGIN
       IF NOT (NEW.folders->i ? 'updatedAt') THEN
         RAISE EXCEPTION 'Folder at position % is missing updatedAt field', i;
       END IF;
+      
+      -- Validate items array structure
+      IF NEW.folders->i ? 'items' THEN
+        FOR j IN 0..jsonb_array_length(NEW.folders->i->'items')-1 LOOP
+          IF NOT (NEW.folders->i->'items'->j ? 'id') THEN
+            RAISE EXCEPTION 'Wallet item at position % in folder % is missing id field', j, i;
+          END IF;
+          
+          IF NOT (NEW.folders->i->'items'->j ? 'name') THEN
+            RAISE EXCEPTION 'Wallet item at position % in folder % is missing name field', j, i;
+          END IF;
+          
+          IF NOT (NEW.folders->i->'items'->j ? 'type') THEN
+            RAISE EXCEPTION 'Wallet item at position % in folder % is missing type field', j, i;
+          END IF;
+          
+          IF NOT (NEW.folders->i->'items'->j ? 'createdAt') THEN
+            RAISE EXCEPTION 'Wallet item at position % in folder % is missing createdAt field', j, i;
+          END IF;
+          
+          IF NOT (NEW.folders->i->'items'->j ? 'updatedAt') THEN
+            RAISE EXCEPTION 'Wallet item at position % in folder % is missing updatedAt field', j, i;
+          END IF;
+        END LOOP;
+      END IF;
     END LOOP;
   END IF;
   
@@ -325,8 +350,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger to validate folders
-DROP TRIGGER IF EXISTS validate_folders_trigger ON users;
+-- Recreate trigger with updated validation
 CREATE TRIGGER validate_folders_trigger
   BEFORE INSERT OR UPDATE ON users
   FOR EACH ROW
