@@ -703,60 +703,45 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       }
     }
 
-    // Check for duplicate phone - THIS IS WHERE THE ISSUE IS
-    // Check for duplicate phone - WITH DEBUG LOGGING
-if (!duplicateDetails && finalPhoneHash) {
-  console.log('🔍🔍🔍 DEBUG PHONE DUPLICATE CHECK START 🔍🔍🔍');
-  console.log('Phone hash to check:', finalPhoneHash);
-  console.log('Phone hash length:', finalPhoneHash.length);
-  console.log('Phone hash first 50 chars:', finalPhoneHash.substring(0, 50));
-  
-  try {
-    // Validate phone hash format before querying
-    const isValidPhoneHash = isValidAESFormat(finalPhoneHash);
-    console.log('Phone hash format valid:', isValidPhoneHash);
-    
-    if (isValidPhoneHash) {
-      console.log('📊 Querying database for phone hash...');
+    // Check for duplicate phone - SIMPLIFIED VERSION
+    if (!duplicateDetails && finalPhoneHash) {
+      console.log('🔍 Checking for existing user by phone hash...');
+      console.log('Phone hash to check:', finalPhoneHash);
+      console.log('Phone hash length:', finalPhoneHash.length);
+      console.log('Phone hash first 50 chars:', finalPhoneHash.substring(0, 50));
       
-      // Add timing to see how long the query takes
-      const startTime = Date.now();
-      const userByPhone = await dbService.getUserByPhoneHash(finalPhoneHash);
-      const endTime = Date.now();
-      
-      console.log(`📊 Database query completed in ${endTime - startTime}ms`);
-      console.log('Database query result:', userByPhone ? 'FOUND USER' : 'NO USER FOUND');
-      
-      if (userByPhone) {
-        console.log('📞 Found existing user with this phone:');
-        console.log('   User ID:', userByPhone.user_id);
-        console.log('   Wallet:', userByPhone.wallet_address);
+      try {
+        console.log('📊 Querying database for phone hash...');
         
-        duplicateDetails = {
-          type: 'PHONE_EXISTS',
-          field: 'phoneHash',
-          existingUser: {
-            userId: userByPhone.user_id,
-            walletAddress: userByPhone.wallet_address,
-            createdAt: userByPhone.created_at
-          }
-        };
-        console.log('❌ Phone number already registered to user:', userByPhone.user_id);
-      } else {
-        console.log('✅ Phone number is available - no existing user found with this phone hash');
-        console.log('⚠️ THIS MEANS THE DUPLICATE CHECK IS NOT WORKING!');
+        // Direct lookup - no format validation
+        const userByPhone = await dbService.getUserByPhoneHash(finalPhoneHash);
+        
+        console.log('Database query result:', userByPhone ? 'FOUND USER' : 'NO USER FOUND');
+        
+        if (userByPhone) {
+          console.log('📞 Found existing user with this phone:');
+          console.log('   User ID:', userByPhone.user_id);
+          console.log('   Wallet:', userByPhone.wallet_address);
+          
+          duplicateDetails = {
+            type: 'PHONE_EXISTS',
+            field: 'phoneHash',
+            existingUser: {
+              userId: userByPhone.user_id,
+              walletAddress: userByPhone.wallet_address,
+              createdAt: userByPhone.created_at
+            }
+          };
+          console.log('❌ Phone number already registered to user:', userByPhone.user_id);
+        } else {
+          console.log('✅ Phone number is available - no existing user found with this phone hash');
+        }
+      } catch (phoneHashCheckError) {
+        console.error('❌ ERROR in phone hash check:', phoneHashCheckError);
+        console.error('Full error stack:', phoneHashCheckError.stack);
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Error checking phone registration: ' + phoneHashCheckError.message);
       }
-    } else {
-      console.log('🚨 INVALID PHONE HASH FORMAT - THIS IS A PROBLEM');
-      console.log('Hash parts:', finalPhoneHash.split(':').map(part => part.length));
     }
-  } catch (phoneHashCheckError) {
-    console.error('❌ ERROR in phone hash check:', phoneHashCheckError);
-    console.error('Full error stack:', phoneHashCheckError.stack);
-    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Error checking phone registration: ' + phoneHashCheckError.message);
-  }
-  console.log('🔍🔍🔍 DEBUG PHONE DUPLICATE CHECK END 🔍🔍🔍');
-}
 
     if (duplicateDetails) {
       console.log('🚫 Registration rejected - duplicate detected:', duplicateDetails);
