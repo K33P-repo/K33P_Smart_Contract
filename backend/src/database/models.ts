@@ -389,6 +389,7 @@ export class UserDepositModel {
     }
   }
 
+  
   static async findByUserId(userId: string): Promise<UserDeposit[]> {
     const client = await pool.connect();
     try {

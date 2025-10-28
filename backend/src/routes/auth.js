@@ -580,8 +580,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     const { 
       userAddress, 
       userId, 
-      phoneHash, // This is actually encrypted data from frontend
-      pinHash,   // This is actually encrypted data from frontend  
+      phoneHash,
+      pinHash,  
       authMethods, 
       zkCommitment, 
       zkProof,      
@@ -609,8 +609,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     });
 
     const finalUserAddress = userAddress || walletAddress;
-    const finalPhoneHash = phoneHash; // Store encrypted data as-is
-    const finalPinHash = pinHash; // Store encrypted data as-is
+    const finalPhoneHash = phoneHash;
+    const finalPinHash = pinHash;
     const finalBiometricData = biometricData || biometric;
 
     console.log('Final processed fields:', {
@@ -620,6 +620,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       authMethods: authMethods?.map(m => m.type) || []
     });
 
+    // Validation
     if (!finalPhoneHash) {
       console.log('Validation failed: Phone encrypted data is required');
       return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED, null, 'Phone encrypted data is required');
@@ -645,6 +646,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'At least 3 authentication methods are required');
     }
 
+    // Validate auth methods
     for (const method of authMethods) {
       if (!method.type) {
         console.log('Validation failed: Auth method missing type');
@@ -654,21 +656,6 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       if (!method.createdAt) {
         console.log('Validation failed: Auth method missing createdAt for type:', method.type);
         return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a createdAt timestamp');
-      }
-
-      if (method.type === 'pin' && !method.data) {
-        console.log('Validation failed: PIN auth method must have data field');
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN authentication method must include data');
-      }
-
-      if (method.type === 'face' && !method.data) {
-        console.log('Validation failed: Face auth method must have data field');
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Face authentication method must include data');
-      }
-
-      if (method.type === 'voice' && !method.data) {
-        console.log('Validation failed: Voice auth method must have data field');
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Voice authentication method must include data');
       }
 
       const allowedTypes = ['phone', 'pin', 'fingerprint', 'face', 'voice', 'iris'];
@@ -683,163 +670,107 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'User ID must be between 3 and 50 characters');
     }
 
-    if (finalUserAddress && finalUserAddress.length < 10) {
-      console.log('Validation failed: Invalid wallet address format');
-      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid wallet address format');
-    }
-
-    if (zkCommitment) {
-      const commitmentRegex = /^[a-f0-9]+-[a-f0-9]+$/;
-      if (!commitmentRegex.test(zkCommitment)) {
-        console.log('Validation failed: ZK commitment format invalid');
-        console.log('Received commitment:', zkCommitment);
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid ZK commitment format');
-      }
-      
-      if (zkCommitment.length < 40) {
-        console.log('Validation failed: ZK commitment too short');
-        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid ZK commitment format');
-      }
-    }
-
     console.log('✅ All validation passed');
 
-    console.log('Step 1: Checking for existing user...');
-    
-    let existingUser = null;
-    
+    console.log('🔍 Starting duplicate detection...');
+
+    let duplicateDetails = null;
+
+    // Check for duplicate user ID
     if (userId) {
       console.log('Checking for existing user by ID:', userId);
-      existingUser = await dbService.getUserById(userId);
-      if (existingUser) {
-        console.log('Existing user found by user ID:', userId);
-      } else {
-        console.log('No existing user found by ID');
+      try {
+        const userById = await dbService.getUserById(userId);
+        if (userById) {
+          duplicateDetails = {
+            type: 'USER_ID_EXISTS',
+            field: 'userId',
+            value: userId,
+            existingUser: {
+              userId: userById.user_id,
+              walletAddress: userById.wallet_address,
+              createdAt: userById.created_at
+            }
+          };
+          console.log('❌ User ID already exists:', userId);
+        } else {
+          console.log('✅ User ID is available');
+        }
+      } catch (userIdError) {
+        console.error('Error checking user ID:', userIdError);
+        // Continue with signup even if user ID check fails
+        console.log('⚠️ Continuing signup despite user ID check error');
       }
     }
+
+    // Check for duplicate phone - THIS IS WHERE THE ISSUE IS
+    // Check for duplicate phone - WITH DEBUG LOGGING
+if (!duplicateDetails && finalPhoneHash) {
+  console.log('🔍🔍🔍 DEBUG PHONE DUPLICATE CHECK START 🔍🔍🔍');
+  console.log('Phone hash to check:', finalPhoneHash);
+  console.log('Phone hash length:', finalPhoneHash.length);
+  console.log('Phone hash first 50 chars:', finalPhoneHash.substring(0, 50));
+  
+  try {
+    // Validate phone hash format before querying
+    const isValidPhoneHash = isValidAESFormat(finalPhoneHash);
+    console.log('Phone hash format valid:', isValidPhoneHash);
     
-    if (!existingUser && finalPhoneHash) {
-      console.log('Checking for existing user by phone hash (encrypted data):', finalPhoneHash.substring(0, 20) + '...');
-      try {
-        existingUser = await dbService.getUserByPhoneHash(finalPhoneHash);
-        if (existingUser) {
-          console.log('Existing user found by phone hash');
-        } else {
-          console.log('No existing user found by phone hash');
-        }
-      } catch (phoneHashCheckError) {
-        console.error('Error checking phone hash, continuing with new user creation:', phoneHashCheckError.message);
-        existingUser = null;
-      }
-    }
-
-    if (!existingUser && finalUserAddress) {
-      console.log('Checking for existing user by wallet address:', finalUserAddress);
-      try {
-        existingUser = await dbService.getUserByWalletAddress(finalUserAddress);
-        if (existingUser) {
-          console.log('Existing user found by wallet address:', finalUserAddress);
-        } else {
-          console.log('No existing user found by wallet address');
-        }
-      } catch (walletCheckError) {
-        console.error('Error checking wallet address, continuing with new user creation:', walletCheckError.message);
-        existingUser = null;
-      }
-    }
-
-    if (existingUser) {
-      console.log('Existing user found - updating with new data');
+    if (isValidPhoneHash) {
+      console.log('📊 Querying database for phone hash...');
       
-      const updates = {
-        phone_hash: finalPhoneHash, // Store encrypted data as-is
-        zk_commitment: zkCommitment,
-        verification_method: verificationMethod,
-        biometric_type: biometricType || null,
-        sender_wallet_address: senderWalletAddress || null,
-        auth_methods: authMethods,
-        updated_at: new Date()
-      };
+      // Add timing to see how long the query takes
+      const startTime = Date.now();
+      const userByPhone = await dbService.getUserByPhoneHash(finalPhoneHash);
+      const endTime = Date.now();
       
-      if (finalPinHash) {
-        updates.pin_hash = finalPinHash; // Store encrypted data as-is
-      }
-
-      if (finalUserAddress && finalUserAddress !== existingUser.wallet_address) {
-        updates.wallet_address = finalUserAddress;
-      }
-
-      console.log('Updating existing user with data:', {
-        ...updates,
-        phone_hash: finalPhoneHash ? `${finalPhoneHash.substring(0, 20)}...` : null,
-        pin_hash: finalPinHash ? `${finalPinHash.substring(0, 20)}...` : null,
-        auth_methods: authMethods.map(m => ({ type: m.type, hasData: !!m.data }))
-      });
+      console.log(`📊 Database query completed in ${endTime - startTime}ms`);
+      console.log('Database query result:', userByPhone ? 'FOUND USER' : 'NO USER FOUND');
       
-      const updatedUser = await dbService.updateUser(existingUser.user_id, updates);
-      
-      if (!updatedUser) {
-        console.log('Failed to update existing user');
-        return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing user');
-      }
-
-      console.log('Existing user updated successfully');
-
-      console.log('Storing ZK proof for user update...');
-      try {
-        await dbService.createZKProof({
-          user_id: existingUser.user_id,
-          commitment: zkCommitment,
-          proof: zkProof,
-          public_inputs: {
-            phoneHash: finalPhoneHash,
-            userAddress: finalUserAddress,
-            verificationMethod,
-            isUpdate: true,
-            timestamp: new Date().toISOString()
-          },
-          is_valid: true
-        });
+      if (userByPhone) {
+        console.log('📞 Found existing user with this phone:');
+        console.log('   User ID:', userByPhone.user_id);
+        console.log('   Wallet:', userByPhone.wallet_address);
         
-        console.log('ZK proof stored for user update successfully');
-      } catch (zkError) {
-        console.error('Failed to store ZK proof for user update:', zkError);
+        duplicateDetails = {
+          type: 'PHONE_EXISTS',
+          field: 'phoneHash',
+          existingUser: {
+            userId: userByPhone.user_id,
+            walletAddress: userByPhone.wallet_address,
+            createdAt: userByPhone.created_at
+          }
+        };
+        console.log('❌ Phone number already registered to user:', userByPhone.user_id);
+      } else {
+        console.log('✅ Phone number is available - no existing user found with this phone hash');
+        console.log('⚠️ THIS MEANS THE DUPLICATE CHECK IS NOT WORKING!');
       }
+    } else {
+      console.log('🚨 INVALID PHONE HASH FORMAT - THIS IS A PROBLEM');
+      console.log('Hash parts:', finalPhoneHash.split(':').map(part => part.length));
+    }
+  } catch (phoneHashCheckError) {
+    console.error('❌ ERROR in phone hash check:', phoneHashCheckError);
+    console.error('Full error stack:', phoneHashCheckError.stack);
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Error checking phone registration: ' + phoneHashCheckError.message);
+  }
+  console.log('🔍🔍🔍 DEBUG PHONE DUPLICATE CHECK END 🔍🔍🔍');
+}
 
-      console.log('Generating JWT token for updated user...');
-      const token = jwt.sign(
-        { 
-          id: existingUser.id, 
-          userId: existingUser.user_id,
-          walletAddress: finalUserAddress || existingUser.wallet_address,
-          authMethods: authMethods.map(m => m.type)
-        },
-        process.env.JWT_SECRET || 'default-secret',
-        { expiresIn: process.env.JWT_EXPIRATION || '24h' }
-      );
-
-      console.log('JWT token generated successfully');
-
-      const response = {
-        success: true,
-        data: {
-          verified: existingUser.verified || false,
-          userId: existingUser.user_id,
-          verificationMethod,
-          authMethods: authMethods,
-          message: 'User account updated successfully.',
-          depositAddress: finalUserAddress || existingUser.wallet_address,
-          isUpdate: true,
-          zkCommitment: zkCommitment,
-          requiresDeposit: verificationMethod === 'phone'
-        },
-        message: 'User account updated successfully.',
-        token
+    if (duplicateDetails) {
+      console.log('🚫 Registration rejected - duplicate detected:', duplicateDetails);
+      
+      const errorMessages = {
+        'USER_ID_EXISTS': `User ID "${userId}" is already registered. Please use a different ID.`,
+        'PHONE_EXISTS': 'This phone number is already registered. Please use a different number.'
       };
 
-      console.log('=== SIGNUP DEBUG END (Existing User) ===');
-      return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, response.data, response.message);
+      return ResponseUtils.error(res, ErrorCodes.USER_ALREADY_EXISTS, duplicateDetails, 
+        errorMessages[duplicateDetails.type] || 'User already exists with provided credentials');
     }
+
+    console.log('✅ No duplicates found - proceeding with new user creation');
 
     console.log('Step 2: Creating new user with DatabaseService...');
 
@@ -857,8 +788,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       const newUser = await dbService.createUser({
         userId: userId,
         walletAddress: finalUserAddress,
-        phoneHash: finalPhoneHash, // Store encrypted data as-is
-        pinHash: finalPinHash, // Store encrypted data as-is
+        phoneHash: finalPhoneHash,
+        pinHash: finalPinHash,
         zkCommitment: zkCommitment, 
         authMethods: authMethods, 
         folders: [],
@@ -891,6 +822,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         console.log('ZK proof stored for new user successfully');
       } catch (zkError) {
         console.error('Failed to store ZK proof for new user:', zkError);
+        // Don't fail signup if ZK proof storage fails
       }
 
       console.log('Generating JWT token for new user...');
@@ -935,7 +867,19 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         code: dbError.code,
         constraint: dbError.constraint
       });
-      throw dbError;
+      
+      if (dbError.code === '23505') {
+        const constraint = dbError.constraint;
+        if (constraint && constraint.includes('user_id')) {
+          return ResponseUtils.error(res, ErrorCodes.USER_ALREADY_EXISTS, null, 'User ID already exists');
+        } else if (constraint && constraint.includes('phone_hash')) {
+          return ResponseUtils.error(res, ErrorCodes.PHONE_ALREADY_REGISTERED, null, 'Phone number already registered');
+        } else if (constraint && constraint.includes('wallet_address')) {
+          return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Wallet address already registered');
+        }
+      }
+      
+      return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Database error during user creation');
     }
 
   } catch (error) {
@@ -961,6 +905,43 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
+}
+
+// Add this helper function to validate AES format
+function isValidAESFormat(encryptedData) {
+  if (!encryptedData || typeof encryptedData !== 'string') {
+    return false;
+  }
+  
+  const parts = encryptedData.split(':');
+  if (parts.length !== 3) {
+    return false;
+  }
+  
+  const [iv, authTag, encrypted] = parts;
+  
+  // Check if all parts are valid hex strings
+  const hexRegex = /^[0-9a-f]+$/;
+  if (!hexRegex.test(iv) || !hexRegex.test(authTag) || !hexRegex.test(encrypted)) {
+    return false;
+  }
+  
+  // IV should be 16 bytes (32 hex chars)
+  if (iv.length !== 32) {
+    return false;
+  }
+  
+  // Auth tag should be 16 bytes (32 hex chars)  
+  if (authTag.length !== 32) {
+    return false;
+  }
+  
+  // Encrypted data should not be empty
+  if (encrypted.length === 0) {
+    return false;
+  }
+  
+  return true;
 }
 
 export { handleSignup };

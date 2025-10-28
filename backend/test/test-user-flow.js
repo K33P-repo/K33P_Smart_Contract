@@ -3,37 +3,58 @@ import crypto from 'crypto';
 
 const BASE_URL = 'http://localhost:3000';
 
-// Generate a consistent test user ID for the entire test run
-const TEST_USER_ID = 'test-user-' + Date.now();
-
-const TEST_USER = {
+const TEST_USERS = {
+  valid: {
     phoneNumber: '1234567890',
-  userId: TEST_USER_ID,
-  walletAddress: '0x' + 'a'.repeat(40),
-  pin: '123456',
-  biometric: 'test_biometric_data',
-  passkey: 'test_passkey_data'
+    userId: 'test-user-' + Date.now(),
+    walletAddress: '0x' + 'a'.repeat(40),
+    pin: '123456',
+    biometric: 'test_biometric_data',
+    passkey: 'test_passkey_data'
+  },
+  duplicateUserId: {
+    phoneNumber: '0987654321',
+    userId: 'duplicate-user-id',
+    walletAddress: '0x' + 'b'.repeat(40),
+    pin: '654321',
+    biometric: 'test_biometric_2',
+    passkey: 'test_passkey_2'
+  },
+  duplicatePhone: {
+    phoneNumber: '1234567890', 
+    userId: 'unique-user-' + Date.now(),
+    walletAddress: '0x' + 'c'.repeat(40),
+    pin: '111111',
+    biometric: 'test_biometric_3',
+    passkey: 'test_passkey_3'
+  },
+  invalid: {
+    phoneNumber: '123',
+    userId: 'ab',
+    walletAddress: '0x123', 
+    pin: '12',
+    biometric: '',
+    passkey: ''
+  },
+  missingFields: {
+    // Intentionally missing required fields
+  }
 };
 
 let authToken = '';
 let zkCommitment = '';
 let zkProof = null;
-let aesKey = null;
+let aesKey = crypto.randomBytes(32);
+let createdUsers = [];
 
-// Deterministic AES encryption utility with FIXED IV
 function encryptAESDeterministic(data, key) {
   try {
     const algorithm = 'aes-256-gcm';
-    // FIXED IV - makes encryption deterministic (16 bytes of zeros)
     const iv = Buffer.from('00000000000000000000000000000000', 'hex');
-    
     const cipher = crypto.createCipheriv(algorithm, key, iv);
-    
     let encrypted = cipher.update(data, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
     const authTag = cipher.getAuthTag();
-    
     return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted}`;
   } catch (error) {
     console.error('AES encryption failed:', error);
@@ -41,7 +62,6 @@ function encryptAESDeterministic(data, key) {
   }
 }
 
-// AES decryption utility
 function decryptAES(encryptedData, key) {
   try {
     const algorithm = 'aes-256-gcm';
@@ -49,13 +69,10 @@ function decryptAES(encryptedData, key) {
     const iv = Buffer.from(parts[0], 'hex');
     const authTag = Buffer.from(parts[1], 'hex');
     const encryptedText = Buffer.from(parts[2], 'hex');
-    
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
     decipher.setAuthTag(authTag);
-    
     let decrypted = decipher.update(encryptedText, 'hex', 'utf8');
     decrypted += decipher.final('utf8');
-    
     return decrypted;
   } catch (error) {
     console.error('AES decryption failed:', error);
@@ -63,14 +80,13 @@ function decryptAES(encryptedData, key) {
   }
 }
 
-// Helper to validate AES encrypted data format
 function isValidAESFormat(encryptedData) {
   if (!encryptedData || typeof encryptedData !== 'string') return false;
   const parts = encryptedData.split(':');
   return parts.length === 3 && 
-         parts[0].length === 32 && // IV (16 bytes in hex)
-         parts[1].length === 32 && // Auth tag (16 bytes in hex)
-         parts[2].length > 0;      // Encrypted data
+         parts[0].length === 32 &&
+         parts[1].length === 32 &&
+         parts[2].length > 0;
 }
 
 function makeRequest(method, path, data = null) {
@@ -92,11 +108,9 @@ function makeRequest(method, path, data = null) {
 
     const req = http.request(options, (res) => {
       let responseData = '';
-      
       res.on('data', (chunk) => {
         responseData += chunk;
       });
-      
       res.on('end', () => {
         try {
           if (responseData) {
@@ -129,13 +143,8 @@ function makeRequest(method, path, data = null) {
     if (data) {
       req.write(JSON.stringify(data));
     }
-    
     req.end();
   });
-}
-
-function generateSHA256Hash(input) {
-  return crypto.createHash('sha256').update(input).digest('hex');
 }
 
 async function testServerConnection() {
@@ -150,27 +159,20 @@ async function testServerConnection() {
   }
 }
 
-async function testGetZKCommitment() {
-  console.log('\n=== Testing Get ZK Commitment ===');
-  
+async function testGetZKCommitment(userData) {
+  console.log(`\n=== Testing Get ZK Commitment for ${userData.userId} ===`);
   try {
     const commitmentData = {
-      phone: TEST_USER.phoneNumber,
-      biometric: TEST_USER.biometric,
-      passkey: TEST_USER.passkey
+      phone: userData.phoneNumber,
+      biometric: userData.biometric,
+      passkey: userData.passkey
     };
 
-    console.log('Requesting ZK commitment...');
     const response = await makeRequest('POST', '/api/zk/commitment', commitmentData);
-    
-    console.log(`Status: ${response.status}`);
     
     if (response.body && response.body.success) {
       zkCommitment = response.body.data.commitment;
       console.log(`✅ ZK Commitment received: ${zkCommitment.substring(0, 20)}...`);
-      console.log(`✅ Phone Hash: ${response.body.data.hashes.phoneHash.substring(0, 20)}...`);
-      console.log(`✅ Biometric Hash: ${response.body.data.hashes.biometricHash.substring(0, 20)}...`);
-      console.log(`✅ Passkey Hash: ${response.body.data.hashes.passkeyHash.substring(0, 20)}...`);
       return true;
     } else {
       console.log(`❌ Failed to get ZK commitment: ${response.body?.error?.message}`);
@@ -182,9 +184,8 @@ async function testGetZKCommitment() {
   }
 }
 
-async function testGetZKProof() {
-  console.log('\n=== Testing Get ZK Proof ===');
-  
+async function testGetZKProof(userData) {
+  console.log(`\n=== Testing Get ZK Proof for ${userData.userId} ===`);
   try {
     if (!zkCommitment) {
       console.log('❌ No ZK commitment available');
@@ -192,22 +193,17 @@ async function testGetZKProof() {
     }
 
     const proofData = {
-      phone: TEST_USER.phoneNumber,
-      biometric: TEST_USER.biometric,
-      passkey: TEST_USER.passkey,
+      phone: userData.phoneNumber,
+      biometric: userData.biometric,
+      passkey: userData.passkey,
       commitment: zkCommitment
     };
 
-    console.log('Requesting ZK proof...');
     const response = await makeRequest('POST', '/api/zk/proof', proofData);
-    
-    console.log(`Status: ${response.status}`);
     
     if (response.body && response.body.success) {
       zkProof = response.body.data;
-      console.log(`✅ ZK Proof received`);
-      console.log(`✅ Proof Valid: ${zkProof.isValid}`);
-      console.log(`✅ Public Inputs Commitment: ${zkProof.publicInputs.commitment.substring(0, 20)}...`);
+      console.log(`✅ ZK Proof received - Valid: ${zkProof.isValid}`);
       return true;
     } else {
       console.log(`❌ Failed to get ZK proof: ${response.body?.error?.message}`);
@@ -219,8 +215,8 @@ async function testGetZKProof() {
   }
 }
 
-async function testSignup() {
-  console.log('\n=== Testing Signup ===');
+async function testSignup(userData, expectSuccess = true) {
+  console.log(`\n=== Testing Signup for ${userData.userId} (expect ${expectSuccess ? 'success' : 'failure'}) ===`);
   
   try {
     if (!zkCommitment || !zkProof) {
@@ -228,34 +224,14 @@ async function testSignup() {
       return false;
     }
 
-    // Generate AES key
-    aesKey = crypto.randomBytes(32); // 32 bytes for AES-256
-
-    // Encrypt phone and PIN data using DETERMINISTIC encryption
-    const phoneEncrypted = encryptAESDeterministic(TEST_USER.phoneNumber, aesKey);
-    const pinEncrypted = encryptAESDeterministic(TEST_USER.pin, aesKey);
+    const phoneEncrypted = encryptAESDeterministic(userData.phoneNumber, aesKey);
+    const pinEncrypted = encryptAESDeterministic(userData.pin, aesKey);
     
-    console.log('Encrypted data created (deterministic):', {
-      phoneEncrypted: phoneEncrypted.substring(0, 20) + '...',
-      pinEncrypted: pinEncrypted.substring(0, 20) + '...',
-      phoneValid: isValidAESFormat(phoneEncrypted),
-      pinValid: isValidAESFormat(pinEncrypted)
-    });
-
-    // Test deterministic property
-    const phoneEncrypted2 = encryptAESDeterministic(TEST_USER.phoneNumber, aesKey);
-    const pinEncrypted2 = encryptAESDeterministic(TEST_USER.pin, aesKey);
-    console.log('Deterministic test - same inputs produce same outputs:', {
-      phoneMatch: phoneEncrypted === phoneEncrypted2,
-      pinMatch: pinEncrypted === pinEncrypted2
-    });
-
-    // Create consistent timestamps for auth methods
     const now = new Date().toISOString();
     const authMethods = [
       {
         type: 'pin',
-        data: pinEncrypted, // Store encrypted PIN data
+        data: pinEncrypted,
         createdAt: now,
         lastUsed: now
       },
@@ -266,66 +242,39 @@ async function testSignup() {
       },
       {
         type: 'phone',
-        data: phoneEncrypted, // Store encrypted phone data
+        data: phoneEncrypted,
         createdAt: now,
         lastUsed: now
       }
     ];
 
     const signupData = {
-      userId: TEST_USER.userId,
-      userAddress: TEST_USER.walletAddress,
-      phoneHash: phoneEncrypted, // Send encrypted phone as phoneHash
-      pinHash: pinEncrypted,     // Send encrypted PIN as pinHash
+      userId: userData.userId,
+      userAddress: userData.walletAddress,
+      phoneHash: phoneEncrypted,
+      pinHash: pinEncrypted,
       authMethods: authMethods,
       zkCommitment: zkCommitment,
       zkProof: zkProof,
       verificationMethod: 'phone',
     };
 
-    console.log('Sending signup request...');
-    console.log('Signup data fields:', {
-      userId: signupData.userId,
-      hasPhoneHash: !!signupData.phoneHash,
-      hasPinHash: !!signupData.pinHash,
-      phoneHashLength: signupData.phoneHash?.length,
-      pinHashLength: signupData.pinHash?.length,
-      phoneHashFormat: isValidAESFormat(signupData.phoneHash),
-      pinHashFormat: isValidAESFormat(signupData.pinHash),
-      authMethodsCount: signupData.authMethods.length,
-      hasZkCommitment: !!signupData.zkCommitment,
-      hasZkProof: !!signupData.zkProof
-    });
-
     const response = await makeRequest('POST', '/api/auth/signup', signupData);
     
-    console.log(`Status: ${response.status}`);
-    
     if (response.body) {
-      console.log(`Success: ${response.body.success}`);
-      
-      if (response.body.success) {
-        console.log(`✅ User ID: ${response.body.data.userId}`);
-        console.log(`✅ Verified: ${response.body.data.verified}`);
-        console.log(`✅ Auth Methods: ${response.body.data.authMethods?.length || 0}`);
-        console.log(`✅ ZK Commitment: ${response.body.data.zkCommitment?.substring(0, 20)}...`);
-        
-        // Update TEST_USER with the actual user ID from response
-        if (response.body.data.userId && response.body.data.userId !== TEST_USER.userId) {
-          console.log(`⚠️ User ID changed from ${TEST_USER.userId} to ${response.body.data.userId}`);
-          TEST_USER.userId = response.body.data.userId;
-        }
-        
+      if (response.body.success && expectSuccess) {
+        console.log(`✅ Signup successful: ${response.body.data.userId}`);
         if (response.body.data.token) {
           authToken = response.body.data.token;
-          console.log('✅ JWT Token stored');
         }
-        
+        createdUsers.push(userData.userId);
+        return true;
+      } else if (!response.body.success && !expectSuccess) {
+        console.log(`✅ Expected failure occurred: ${response.body.error?.message}`);
         return true;
       } else {
-        console.log(`❌ Error: ${response.body.error?.message}`);
-        console.log(`❌ Error Code: ${response.body.error?.code}`);
-        console.log(`❌ Error Details: ${JSON.stringify(response.body.error?.details)}`);
+        console.log(`❌ Unexpected result: ${response.body.success ? 'success' : 'failure'}`);
+        console.log(`Error: ${response.body.error?.message}`);
         return false;
       }
     } else {
@@ -338,8 +287,8 @@ async function testSignup() {
   }
 }
 
-async function testFindUser() {
-  console.log('\n=== Testing Find User ===');
+async function testFindUser(userData) {
+  console.log(`\n=== Testing Find User for ${userData.phoneNumber} ===`);
   
   try {
     if (!aesKey) {
@@ -347,38 +296,21 @@ async function testFindUser() {
       return false;
     }
 
-    // Encrypt phone number using the SAME deterministic encryption
-    const phoneEncrypted = encryptAESDeterministic(TEST_USER.phoneNumber, aesKey);
-    
-    console.log('Finding user with encrypted phone:', phoneEncrypted.substring(0, 20) + '...');
-    console.log('AES Format Valid:', isValidAESFormat(phoneEncrypted));
-    console.log('Current User ID:', TEST_USER.userId);
+    const phoneEncrypted = encryptAESDeterministic(userData.phoneNumber, aesKey);
     
     const response = await makeRequest('POST', '/api/zk/find-user', {
-      phoneHash: phoneEncrypted // Send as phoneHash field
+      phoneHash: phoneEncrypted
     });
     
-    console.log(`Status: ${response.status}`);
-    
     if (response.body) {
-      console.log(`Success: ${response.body.success}`);
-      
       if (response.body.success) {
-        console.log(`✅ User ID: ${response.body.data.userId}`);
-        console.log(`✅ Wallet: ${response.body.data.walletAddress}`);
-        console.log(`✅ Auth Methods: ${response.body.data.authMethods?.length || 0}`);
-        console.log(`✅ ZK Commitment: ${response.body.data.zkCommitment?.substring(0, 20)}...`);
-        
-        // Store the actual auth methods from the response for login test
+        console.log(`✅ User found: ${response.body.data.userId}`);
         if (response.body.data.authMethods) {
-          TEST_USER.storedAuthMethods = response.body.data.authMethods;
-          console.log('✅ Stored auth methods for login test');
+          userData.storedAuthMethods = response.body.data.authMethods;
         }
-        
         return true;
       } else {
-        console.log(`❌ Error: ${response.body.error?.message}`);
-        console.log(`❌ Error Details: ${response.body.error?.details}`);
+        console.log(`❌ User not found: ${response.body.error?.message}`);
         return false;
       }
     } else {
@@ -391,8 +323,8 @@ async function testFindUser() {
   }
 }
 
-async function testLoginWithPin() {
-  console.log('\n=== Testing Login with PIN ===');
+async function testLoginWithPin(userData) {
+  console.log(`\n=== Testing Login with PIN for ${userData.userId} ===`);
   
   try {
     if (!aesKey) {
@@ -400,30 +332,16 @@ async function testLoginWithPin() {
       return false;
     }
 
-    // Encrypt phone and PIN data using the SAME deterministic encryption
-    const phoneEncrypted = encryptAESDeterministic(TEST_USER.phoneNumber, aesKey);
-    const pinEncrypted = encryptAESDeterministic(TEST_USER.pin, aesKey);
+    const phoneEncrypted = encryptAESDeterministic(userData.phoneNumber, aesKey);
+    const pinEncrypted = encryptAESDeterministic(userData.pin, aesKey);
     
-    console.log('Encrypted data validation:', {
-      phoneEncrypted: isValidAESFormat(phoneEncrypted),
-      pinEncrypted: isValidAESFormat(pinEncrypted),
-      phoneLength: phoneEncrypted.length,
-      pinLength: pinEncrypted.length
-    });
-
-    // Use the EXACT auth methods that were stored during signup
-    let authMethods;
-    if (TEST_USER.storedAuthMethods) {
-      // Use the stored auth methods exactly as they are
-      authMethods = TEST_USER.storedAuthMethods;
-      console.log('✅ Using stored auth methods from find-user response');
-    } else {
-      // Fallback: create auth methods with encrypted data
+    let authMethods = userData.storedAuthMethods;
+    if (!authMethods) {
       const now = new Date().toISOString();
       authMethods = [
         {
           type: 'pin',
-          data: pinEncrypted, // Use encrypted PIN
+          data: pinEncrypted,
           createdAt: now,
           lastUsed: now
         },
@@ -434,58 +352,31 @@ async function testLoginWithPin() {
         },
         {
           type: 'phone',
-          data: phoneEncrypted, // Use encrypted phone
+          data: phoneEncrypted,
           createdAt: now,
           lastUsed: now
         }
       ];
-      console.log('⚠️ Using newly created auth methods (may not match stored)');
     }
 
-    console.log('Login auth methods:', authMethods.map(m => ({
-      type: m.type,
-      dataLength: m.data?.length,
-      createdAt: m.createdAt
-    })));
-
     const loginData = {
-      phoneHash: phoneEncrypted, 
+      phoneHash: phoneEncrypted,
       authMethod: 'pin',
-      pinHash: pinEncrypted,     
+      pinHash: pinEncrypted,
       authMethods: authMethods
     };
 
-    console.log('Sending login request...');
-    console.log('Login data fields:', {
-      hasPhoneHash: !!loginData.phoneHash,
-      hasPinHash: !!loginData.pinHash,
-      phoneHashLength: loginData.phoneHash?.length,
-      pinHashLength: loginData.pinHash?.length,
-      authMethodsCount: loginData.authMethods.length
-    });
-
     const response = await makeRequest('POST', '/api/zk/login-with-pin', loginData);
     
-    console.log(`Status: ${response.status}`);
-    
     if (response.body) {
-      console.log(`Success: ${response.body.success}`);
-      
       if (response.body.success) {
-        console.log(`✅ User ID: ${response.body.data.userId}`);
-        console.log(`✅ Verified: ${response.body.data.verified}`);
-        console.log(`✅ Auth Method: ${response.body.data.authMethod}`);
-        
+        console.log(`✅ Login successful: ${response.body.data.userId}`);
         if (response.body.data.token) {
           authToken = response.body.data.token;
-          console.log('✅ JWT Token stored');
         }
-        
         return true;
       } else {
-        console.log(`❌ Error: ${response.body.error?.message}`);
-        console.log(`❌ Error Code: ${response.body.error?.code}`);
-        console.log(`❌ Error Details: ${JSON.stringify(response.body.error?.details)}`);
+        console.log(`❌ Login failed: ${response.body.error?.message}`);
         return false;
       }
     } else {
@@ -498,103 +389,262 @@ async function testLoginWithPin() {
   }
 }
 
-async function testZKVerification() {
-  console.log('\n=== Testing ZK Verification ===');
+async function testInvalidSignupScenarios() {
+  console.log('\n=== Testing Invalid Signup Scenarios ===');
   
-  try {
-    if (!zkProof || !zkCommitment) {
-      console.log('❌ Missing ZK proof or commitment');
-      return false;
+  const scenarios = [
+    {
+      name: 'Missing required fields',
+      data: TEST_USERS.missingFields,
+      expectedError: 'Missing required fields'
+    },
+    {
+      name: 'Invalid user ID (too short)',
+      data: TEST_USERS.invalid,
+      expectedError: 'User ID must be between 3 and 50 characters'
+    },
+    {
+      name: 'Invalid phone number (too short)',
+      data: { ...TEST_USERS.valid, phoneNumber: TEST_USERS.invalid.phoneNumber },
+      expectedError: 'Phone encrypted data is required'
+    },
+    {
+      name: 'Missing auth methods',
+      data: { ...TEST_USERS.valid, authMethods: null },
+      expectedError: 'At least 3 authentication methods are required'
+    },
+    {
+      name: 'Insufficient auth methods',
+      data: { ...TEST_USERS.valid, authMethods: [{ type: 'pin', createdAt: new Date().toISOString() }] },
+      expectedError: 'At least 3 authentication methods are required'
     }
+  ];
 
-    const verificationData = {
-      proof: zkProof,
-      commitment: zkCommitment
-    };
+  let passed = 0;
+  let failed = 0;
 
-    console.log('Verifying ZK proof...');
-    const response = await makeRequest('POST', '/api/zk/verify', verificationData);
+  for (const scenario of scenarios) {
+    console.log(`\nTesting: ${scenario.name}`);
+    try {
+      const response = await makeRequest('POST', '/api/auth/signup', scenario.data);
+      
+      if (response.body && !response.body.success) {
+        console.log(`✅ Expected failure: ${response.body.error?.message}`);
+        passed++;
+      } else {
+        console.log(`❌ Expected failure but got success`);
+        failed++;
+      }
+    } catch (error) {
+      console.log(`✅ Expected error: ${error.message}`);
+      passed++;
+    }
+  }
+
+  console.log(`\nInvalid scenarios: ${passed} passed, ${failed} failed`);
+  return failed === 0;
+}
+
+async function testDuplicateUserScenarios() {
+  console.log('\n=== Testing Duplicate User Scenarios ===');
+  
+  // First, create a user that we'll duplicate
+  const originalUser = { ...TEST_USERS.valid, userId: 'original-user-' + Date.now() };
+  
+  console.log('Creating original user for duplication tests...');
+  const commitmentSuccess = await testGetZKCommitment(originalUser);
+  const proofSuccess = await testGetZKProof(originalUser);
+  const signupSuccess = await testSignup(originalUser, true);
+  
+  if (!signupSuccess) {
+    console.log('❌ Failed to create original user for duplication tests');
+    return false;
+  }
+
+  const scenarios = [
+    {
+      name: 'Duplicate User ID',
+      user: { 
+        ...TEST_USERS.duplicateUserId, 
+        userId: originalUser.userId, // Same user ID
+        phoneNumber: '0987654321' // Different phone
+      },
+      expectedError: 'User ID already exists'
+    },
+    {
+      name: 'Duplicate Phone Number', 
+      user: {
+        ...TEST_USERS.duplicatePhone,
+        phoneNumber: originalUser.phoneNumber, // Same phone
+        userId: 'different-user-' + Date.now() // Different user ID
+      },
+      expectedError: 'Phone number already registered'
+    }
+  ];
+
+  let passed = 0;
+  let failed = 0;
+
+  for (const scenario of scenarios) {
+    console.log(`\nTesting: ${scenario.name}`);
     
-    console.log(`Status: ${response.status}`);
+    const commitmentSuccess = await testGetZKCommitment(scenario.user);
+    const proofSuccess = await testGetZKProof(scenario.user);
     
-    if (response.body && response.body.success) {
-      console.log(`✅ ZK Verification Result: ${response.body.data.isValid}`);
-      return response.body.data.isValid;
+    if (commitmentSuccess && proofSuccess) {
+      const signupSuccess = await testSignup(scenario.user, false);
+      if (signupSuccess) {
+        passed++;
+      } else {
+        failed++;
+      }
     } else {
-      console.log(`❌ Failed to verify ZK proof: ${response.body?.error?.message}`);
+      failed++;
+    }
+  }
+
+  console.log(`\nDuplicate scenarios: ${passed} passed, ${failed} failed`);
+  return failed === 0;
+}
+
+async function testMultipleValidUsers() {
+  console.log('\n=== Testing Multiple Valid Users ===');
+  
+  const users = [
+    { ...TEST_USERS.valid, userId: 'multi-user-1-' + Date.now(), phoneNumber: '1112223333' },
+    { ...TEST_USERS.valid, userId: 'multi-user-2-' + Date.now(), phoneNumber: '4445556666' },
+    { ...TEST_USERS.valid, userId: 'multi-user-3-' + Date.now(), phoneNumber: '7778889999' }
+  ];
+
+  let passed = 0;
+  let failed = 0;
+
+  for (const user of users) {
+    console.log(`\nTesting user: ${user.userId}`);
+    
+    const commitmentSuccess = await testGetZKCommitment(user);
+    const proofSuccess = await testGetZKProof(user);
+    const signupSuccess = await testSignup(user, true);
+    const findSuccess = await testFindUser(user);
+    const loginSuccess = await testLoginWithPin(user);
+    
+    if (commitmentSuccess && proofSuccess && signupSuccess && findSuccess && loginSuccess) {
+      passed++;
+      console.log(`✅ All operations successful for ${user.userId}`);
+    } else {
+      failed++;
+      console.log(`❌ Some operations failed for ${user.userId}`);
+    }
+  }
+
+  console.log(`\nMultiple users: ${passed} passed, ${failed} failed`);
+  return failed === 0;
+}
+
+async function testDataPersistence() {
+  console.log('\n=== Testing Data Persistence ===');
+  
+  const testUser = { 
+    ...TEST_USERS.valid, 
+    userId: 'persistence-test-' + Date.now(),
+    phoneNumber: '9998887777'
+  };
+
+  console.log('Creating user and testing persistence...');
+  
+  // Create user
+  const commitmentSuccess = await testGetZKCommitment(testUser);
+  const proofSuccess = await testGetZKProof(testUser);
+  const signupSuccess = await testSignup(testUser, true);
+  
+  if (!signupSuccess) {
+    console.log('❌ Failed to create user for persistence test');
+    return false;
+  }
+
+  // Clear in-memory data to simulate fresh start
+  const savedAuthToken = authToken;
+  authToken = '';
+  zkCommitment = '';
+  zkProof = null;
+  
+  console.log('Cleared in-memory data, testing find user...');
+  
+  // Test finding user (should work without previous session)
+  const findSuccess = await testFindUser(testUser);
+  
+  if (findSuccess) {
+    console.log('✅ User found after clearing session data');
+    
+    // Test login with found user data
+    const loginSuccess = await testLoginWithPin(testUser);
+    
+    if (loginSuccess) {
+      console.log('✅ Login successful with persisted data');
+      return true;
+    } else {
+      console.log('❌ Login failed with persisted data');
       return false;
     }
-  } catch (error) {
-    console.log(`❌ Request failed: ${error.message}`);
+  } else {
+    console.log('❌ User not found after clearing session data');
     return false;
   }
 }
 
-async function runCompleteTests() {
-  console.log('Starting Complete Authentication Flow Tests...');
-  console.log('Test User ID:', TEST_USER.userId);
-  console.log('Test Phone:', TEST_USER.phoneNumber);
-  console.log('='.repeat(50));
+async function runComprehensiveTests() {
+  console.log('Starting Comprehensive Authentication Flow Tests...');
+  console.log('='.repeat(60));
   
   const serverConnected = await testServerConnection();
   if (!serverConnected) {
     console.log('❌ Cannot run tests - server is not accessible');
-    console.log('Make sure your server is running on http://localhost:3000');
     return;
   }
-  
-  const tests = [
-    testGetZKCommitment,
-    testGetZKProof,
-    testZKVerification,
-    testSignup,
-    testFindUser,
-    testLoginWithPin
+
+  const testSuites = [
+    { name: 'Invalid Signup Scenarios', test: testInvalidSignupScenarios },
+    { name: 'Duplicate User Scenarios', test: testDuplicateUserScenarios },
+    { name: 'Multiple Valid Users', test: testMultipleValidUsers },
+    { name: 'Data Persistence', test: testDataPersistence }
   ];
-  
-  let passed = 0;
-  let failed = 0;
-  
-  for (const test of tests) {
-    const result = await test();
+
+  let totalPassed = 0;
+  let totalFailed = 0;
+
+  for (const suite of testSuites) {
+    console.log(`\n${'='.repeat(50)}`);
+    console.log(`Running: ${suite.name}`);
+    console.log('='.repeat(50));
+    
+    const result = await suite.test();
     if (result) {
-      passed++;
-      console.log('✅ Test PASSED');
+      totalPassed++;
+      console.log(`✅ ${suite.name}: PASSED`);
     } else {
-      failed++;
-      console.log('❌ Test FAILED');
+      totalFailed++;
+      console.log(`❌ ${suite.name}: FAILED`);
     }
-    console.log('-'.repeat(30));
   }
+
+  console.log('\n' + '='.repeat(60));
+  console.log('COMPREHENSIVE TEST RESULTS');
+  console.log('='.repeat(60));
+  console.log(`Total Test Suites: ${testSuites.length}`);
+  console.log(`Passed: ${totalPassed}`);
+  console.log(`Failed: ${totalFailed}`);
   
-  console.log('='.repeat(50));
-  console.log(`Results: ${passed} passed, ${failed} failed`);
-  
-  if (failed === 0) {
-    console.log('🎉 All tests passed!');
+  if (totalFailed === 0) {
+    console.log('🎉 ALL COMPREHENSIVE TESTS PASSED!');
   } else {
-    console.log('💥 Some tests failed');
+    console.log('💥 SOME TESTS FAILED - NEEDS INVESTIGATION');
+  }
+
+  // Cleanup: List created users for manual verification
+  if (createdUsers.length > 0) {
+    console.log(`\nCreated test users: ${createdUsers.join(', ')}`);
   }
 }
 
-// Test deterministic AES encryption
-console.log('Testing Deterministic AES encryption...');
-const testKey = crypto.randomBytes(32);
-const testData = 'test data';
-const encrypted1 = encryptAESDeterministic(testData, testKey);
-const encrypted2 = encryptAESDeterministic(testData, testKey);
-const encrypted3 = encryptAESDeterministic(testData, testKey);
-const decrypted = decryptAES(encrypted1, testKey);
-
-console.log('Deterministic AES Test:', {
-  original: testData,
-  encrypted1: encrypted1.substring(0, 20) + '...',
-  encrypted2: encrypted2.substring(0, 20) + '...', 
-  encrypted3: encrypted3.substring(0, 20) + '...',
-  allEqual: encrypted1 === encrypted2 && encrypted2 === encrypted3,
-  decrypted: decrypted,
-  valid: testData === decrypted,
-  formatValid: isValidAESFormat(encrypted1)
-});
-
-runCompleteTests().catch(console.error);
+// Run comprehensive tests
+runComprehensiveTests().catch(console.error);

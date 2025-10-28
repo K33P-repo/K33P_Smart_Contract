@@ -163,6 +163,8 @@ export class DatabaseService {
   async getUnverifiedDeposits(): Promise<UserDeposit[]> {
     return await UserDepositModel.getUnverified();
   }
+
+  
   
   // ============================================================================
   // VERIFICATION OPERATIONS
@@ -180,6 +182,8 @@ export class DatabaseService {
     
     return await this.updateDeposit(userAddress, updates);
   }
+
+// In database/service.ts - update the markRefunded method
   
   async incrementVerificationAttempts(userAddress: string): Promise<UserDeposit | null> {
     const deposit = await this.getDepositByUserAddress(userAddress);
@@ -199,11 +203,25 @@ export class DatabaseService {
   }
   
   async markRefunded(userAddress: string, refundTxHash: string): Promise<UserDeposit | null> {
-    return await this.updateDeposit(userAddress, {
+    const updates: any = {
       refunded: true,
       refund_tx_hash: refundTxHash,
-      refund_timestamp: new Date()
-    });
+      refund_timestamp: new Date(),
+      verified: false,
+      signup_completed: false,
+      verification_attempts: 0
+    };
+    
+    // Only include fields that need to be cleared if they exist
+    const deposit = await this.getDepositByUserAddress(userAddress);
+    if (deposit?.tx_hash) {
+      updates.tx_hash = undefined;
+    }
+    if (deposit?.last_verification_attempt) {
+      updates.last_verification_attempt = undefined;
+    }
+    
+    return await this.updateDeposit(userAddress, updates);
   }
   
   // ============================================================================
@@ -428,7 +446,40 @@ export class DatabaseService {
       client.release();
     }
   }
+
+
+// Add this method to your DatabaseService class, before the createZKProof method:
+
+async getUserByPhoneHash(phoneHash: string): Promise<any | null> {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      'SELECT * FROM users WHERE phone_hash = $1',
+      [phoneHash]
+    );
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } finally {
+    client.release();
+  }
 }
+
+// Then your existing createZKProof method:
+async createZKProof(proofData: any): Promise<any> {
+  const client = await pool.connect();
+  try {
+    const { user_id, commitment, proof, public_inputs, is_valid } = proofData;
+    const result = await client.query(
+      'INSERT INTO zk_proofs (user_id, commitment, proof, public_inputs, is_valid) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [user_id, commitment, proof, public_inputs, is_valid]
+    );
+    return result.rows[0];
+  } finally {
+    client.release();
+  }
+}
+}
+
+
 
 // Export singleton instance
 export const dbService = new DatabaseService();
