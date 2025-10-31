@@ -3536,3 +3536,25 @@
 {"level":"info","message":"🔄 Calling k33pManager.processRefund","service":"k33p-backend","timestamp":"2025-10-31T12:04:17.570Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
 {"level":"info","message":"📊 Refund processing result No deposit found for this user address. Refund requires an existing deposit.","service":"k33p-backend","success":false,"timestamp":"2025-10-31T12:04:17.832Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
 {"level":"error","message":"❌ Refund processing failed No deposit found for this user address. Refund requires an existing deposit.","service":"k33p-backend","timestamp":"2025-10-31T12:04:17.833Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-31T13:06:32.611Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2025-10-31T13:06:32.612Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2025-10-31T13:06:32.849Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2025-10-31T13:06:32.907Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2025-10-31T13:06:34.756Z"}
+{"level":"info","message":"✅ Database connected and schema ready","service":"k33p-backend","timestamp":"2025-10-31T13:06:53.497Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2025-10-31T13:06:55.453Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2025-10-31T13:06:55.453Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2025-10-31T13:06:57.990Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2025-10-31T13:06:57.992Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2025-10-31T13:06:57.992Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3000/api/wallet-folders","service":"k33p-backend","timestamp":"2025-10-31T13:06:57.993Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/refund","service":"k33p-backend","timestamp":"2025-10-31T13:07:29.418Z","userAgent":"curl/7.81.0"}
+{"headers":{"content-type":"application/json","user-agent":"curl/7.81.0"},"level":"info","message":"🔄 Processing immediate refund request","requestBody":{"userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"},"service":"k33p-backend","timestamp":"2025-10-31T13:07:29.421Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
+{"depositFound":false,"level":"info","message":"📊 User deposit lookup result","service":"k33p-backend","timestamp":"2025-10-31T13:07:31.085Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
+{"level":"info","message":"🔄 Calling k33pManager.processRefund","service":"k33p-backend","timestamp":"2025-10-31T13:07:31.085Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
+{"level":"info","message":"📊 Refund processing result No deposit found for this user address. Refund requires an existing deposit.","service":"k33p-backend","success":false,"timestamp":"2025-10-31T13:07:31.298Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
+{"level":"error","message":"❌ Refund processing failed No deposit found for this user address. Refund requires an existing deposit.","service":"k33p-backend","timestamp":"2025-10-31T13:07:31.298Z","userAddress":"addr_test1qp8tvlszefpppxnk7tmhldv053mp28jflvyqnex6lld42x6f6stqlckgmnp0j9xfg9x3hsakzej8ckakus3325zfxjhsh9gl79"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/find-user","service":"k33p-backend","timestamp":"2025-10-31T13:07:34.930Z","userAgent":"curl/7.81.0"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/zk/find-user","service":"k33p-backend","timestamp":"2025-10-31T13:09:26.673Z","userAgent":"curl/7.81.0"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/auth/zk/find-user","service":"k33p-backend","timestamp":"2025-10-31T13:09:33.194Z","userAgent":"curl/7.81.0"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/zk/find-user","service":"k33p-backend","timestamp":"2025-10-31T13:10:21.089Z","userAgent":"curl/7.81.0"}

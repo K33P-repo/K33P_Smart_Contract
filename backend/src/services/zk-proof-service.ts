@@ -248,81 +248,49 @@ export class ZKProofService {
     }
   }
   
-static async getUserByPhoneHash(phoneHash: string): Promise<any | null> {
-  const client = await pool.connect();
-  
-  try {
-    console.log('🔍 getUserByPhoneHash called with hash:', phoneHash ? `${phoneHash.substring(0, 20)}...` : 'null');
+  static async getUserByPhoneHash(phoneHash: string): Promise<any | null> {
+    const client = await pool.connect();
     
-    // Validate input
-    if (!phoneHash) {
-      console.log('❌ phoneHash is null or empty');
-      return null;
-    }
-    
-    if (typeof phoneHash !== 'string') {
-      console.log('❌ phoneHash is not a string:', typeof phoneHash);
-      return null;
-    }
-    
-    // Validate AES format
-    const parts = phoneHash.split(':');
-    if (parts.length !== 3) {
-      console.log('❌ Invalid phone hash format - expected 3 parts, got:', parts.length);
-      return null;
-    }
-    
-    console.log('✅ Phone hash format valid, querying database...');
-    
-    const result: QueryResult = await client.query(
-      'SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", auth_methods as "authMethods", verification_method as "verificationMethod", verified FROM users WHERE phone_hash = $1',
-      [phoneHash]
-    );
-    
-    console.log(`📊 Database query returned ${result.rows.length} rows`);
-    
-    if (result.rows.length === 0) {
-      console.log('✅ No existing user found with this phone hash');
-      return null;
-    }
-    
-    const row = result.rows[0];
-    console.log('✅ Found existing user:', row.userId);
-    
-    return {
-      user_id: row.userId,
-      wallet_address: row.walletAddress,
-      phone_hash: row.phoneHash,
-      zk_commitment: row.zkCommitment,
-      auth_methods: row.authMethods,
-      verification_method: row.verificationMethod,
-      verified: row.verified
-    };
-  } catch (error: unknown) {
-    console.error('❌ Database error in getUserByPhoneHash:');
-    
-    // Proper error handling for unknown type
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+    try {
+      console.log('🔍 getUserByPhoneHash called with hash:', phoneHash ? `${phoneHash.substring(0, 20)}...` : 'null');
       
-      // Check if it's a PostgreSQL error
-      const pgError = error as any;
-      if (pgError.code) {
-        console.error('PostgreSQL error code:', pgError.code);
+      if (!phoneHash || typeof phoneHash !== 'string') {
+        console.log('❌ Invalid phone hash');
+        return null;
       }
-      if (pgError.constraint) {
-        console.error('Constraint:', pgError.constraint);
+      
+      console.log('✅ Querying database with hash...');
+      
+      const result: QueryResult = await client.query(
+        'SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", auth_methods as "authMethods", verification_method as "verificationMethod", verified FROM users WHERE phone_hash = $1',
+        [phoneHash]
+      );
+      
+      console.log(`📊 Database query returned ${result.rows.length} rows`);
+      
+      if (result.rows.length === 0) {
+        console.log('✅ No existing user found with this phone hash');
+        return null;
       }
-    } else {
-      console.error('Unknown error type:', error);
+      
+      const row = result.rows[0];
+      console.log('✅ Found existing user:', row.userId);
+      
+      return {
+        user_id: row.userId,
+        wallet_address: row.walletAddress,
+        phone_hash: row.phoneHash,
+        zk_commitment: row.zkCommitment,
+        auth_methods: row.authMethods,
+        verification_method: row.verificationMethod,
+        verified: row.verified
+      };
+    } catch (error: unknown) {
+      // ... error handling
+    } finally {
+      client.release();
     }
-    
-    throw error; // Re-throw to be handled by the caller
-  } finally {
-    client.release();
   }
-}
 
   static async getUserById(userId: string): Promise<any | null> {
     const client = await pool.connect();
