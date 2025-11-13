@@ -41,8 +41,8 @@ class PaystackService {
       secretKey: process.env.PAYSTACK_SECRET_KEY || '',
       publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
       webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || '',
-      subscriptionAmount: parseInt(process.env.SUBSCRIPTION_AMOUNT || '399'),
-      subscriptionCurrency: process.env.SUBSCRIPTION_CURRENCY || 'USD'
+      subscriptionAmount: parseInt(process.env.SUBSCRIPTION_AMOUNT || '5000'),
+      subscriptionCurrency: process.env.SUBSCRIPTION_CURRENCY || 'NGN'
     };
 
     if (!this.config.secretKey) {
@@ -144,7 +144,7 @@ class PaystackService {
         
         return {
           success: false,
-          error: 'Payment verification failed'
+          error: response.message || 'Payment verification failed'
         };
       }
     } catch (error: any) {
@@ -331,20 +331,39 @@ class PaystackService {
         [new Date(data.paid_at), data.gateway_response, data.reference]
       );
       
-      // If this is a subscription payment, update user subscription
+      // If this is a subscription payment, update user subscription in subscriptions table
       if (data.metadata && data.metadata.userId) {
-        await client.query(
-          `UPDATE users 
-           SET subscription_tier = 'premium', 
-               subscription_start_date = CURRENT_TIMESTAMP,
-               subscription_end_date = CURRENT_TIMESTAMP + INTERVAL '1 month'
-           WHERE user_id = $1`,
+        const durationMonths = parseInt(data.metadata.durationMonths || '1');
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + durationMonths);
+
+        // Check if subscription exists
+        const existingSubscription = await client.query(
+          'SELECT id FROM subscriptions WHERE user_id = $1',
           [data.metadata.userId]
         );
+
+        if (existingSubscription.rows.length === 0) {
+          // Create new subscription
+          await client.query(
+            `INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
+             VALUES ($1, 'premium', true, $2, $3, true)`,
+            [data.metadata.userId, startDate, endDate]
+          );
+        } else {
+          // Update existing subscription
+          await client.query(
+            `UPDATE subscriptions 
+             SET tier = 'premium', is_active = true, start_date = $1, end_date = $2, auto_renew = true
+             WHERE user_id = $3`,
+            [startDate, endDate, data.metadata.userId]
+          );
+        }
       }
       
       await client.query('COMMIT');
-      logger.info('Successfully processed payment', { reference: data.reference });
+      logger.info('Successfully processed payment and updated subscription', { reference: data.reference });
     } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -369,19 +388,26 @@ class PaystackService {
   private async handleSubscriptionCancelled(data: any) {
     const client = await pool.connect();
     try {
-      // Find user by email and update subscription status
-      await client.query(
-        `UPDATE users 
-         SET subscription_tier = 'freemium', 
-             subscription_end_date = CURRENT_TIMESTAMP 
-         WHERE email = $1`,
+      // Find user by email and update subscription status in subscriptions table
+      const userResult = await client.query(
+        'SELECT user_id FROM users WHERE email = $1',
         [data.customer.email]
       );
-      
-      logger.info('Subscription cancelled', { 
-        subscription_code: data.subscription_code,
-        customer: data.customer.email 
-      });
+
+      if (userResult.rows.length > 0) {
+        const userId = userResult.rows[0].user_id;
+        await client.query(
+          `UPDATE subscriptions 
+           SET tier = 'freemium', is_active = false, auto_renew = false
+           WHERE user_id = $1`,
+          [userId]
+        );
+        
+        logger.info('Subscription cancelled via webhook', { 
+          subscription_code: data.subscription_code,
+          userId: userId
+        });
+      }
     } finally {
       client.release();
     }
@@ -409,6 +435,8 @@ class PaystackService {
          VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
         [data.reference, data.email, data.amount, data.currency, data.userId, data.status]
       );
+    } catch (error) {
+      logger.error('Failed to store payment record', { error });
     } finally {
       client.release();
     }
@@ -452,6 +480,8 @@ class PaystackService {
           values
         );
       }
+    } catch (error) {
+      logger.error('Failed to update payment record', { error });
     } finally {
       client.release();
     }

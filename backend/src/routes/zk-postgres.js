@@ -774,20 +774,22 @@ router.post('/login-with-pin', async (req, res) => {
 
     console.log('Authentication successful, generating JWT token...');
     
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        userId: user.user_id,
-        walletAddress: user.wallet_address,
-        authMethod: authMethod,
-        authMethods: storedAuthMethods.map(m => m.type),
-        verificationMethod: user.verification_method,
-        zkCommitment: user.zk_commitment,
-        authDetails: authDetails
-      },
-      process.env.JWT_SECRET || 'default-secret',
-      { expiresIn: process.env.JWT_EXPIRATION || '24h' }
-    );
+    // In the login-with-pin route, update the token generation:
+const token = jwt.sign(
+  { 
+    id: user.id, 
+    userId: user.user_id,
+    walletAddress: user.wallet_address,
+    username: user.username, 
+    authMethod: authMethod,
+    authMethods: storedAuthMethods.map(m => m.type),
+    verificationMethod: user.verification_method,
+    zkCommitment: user.zk_commitment,
+    authDetails: authDetails
+  },
+  process.env.JWT_SECRET || 'default-secret',
+  { expiresIn: process.env.JWT_EXPIRATION || '24h' }
+);
 
     console.log('JWT token generated successfully');
 

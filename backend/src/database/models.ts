@@ -121,7 +121,30 @@ export interface User {
   created_at?: Date;
   updated_at?: Date;
 }
+// ============================================================================
+// INTERFACES - Add Subscription Interface
+// ============================================================================
 
+export interface Subscription {
+  id?: string;
+  user_id: string;
+  tier: 'freemium' | 'premium';
+  is_active: boolean;
+  start_date?: Date;
+  end_date?: Date;
+  auto_renew: boolean;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
+export interface SubscriptionStatus {
+  tier: 'freemium' | 'premium';
+  isActive: boolean;
+  startDate?: Date;
+  endDate?: Date;
+  daysRemaining?: number;
+  autoRenew: boolean;
+}
 // ============================================================================
 // USER MODEL
 // ============================================================================
@@ -737,6 +760,231 @@ export class AuthDataModel {
 }
 
 // ============================================================================
+// SUBSCRIPTION MODEL
+// ============================================================================
+
+export class SubscriptionModel {
+  static async create(subscription: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>): Promise<Subscription> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `;
+      const values = [
+        subscription.user_id,
+        subscription.tier,
+        subscription.is_active,
+        subscription.start_date,
+        subscription.end_date,
+        subscription.auto_renew
+      ];
+      const result = await client.query(query, values);
+      return result.rows[0];
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findByUserId(userId: string): Promise<Subscription | null> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM subscriptions WHERE user_id = $1';
+      const result = await client.query(query, [userId]);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async update(userId: string, updates: Partial<Subscription>): Promise<Subscription | null> {
+    const client = await pool.connect();
+    try {
+      const setClause = Object.keys(updates)
+        .filter(key => key !== 'id' && key !== 'user_id' && key !== 'created_at' && key !== 'updated_at')
+        .map((key, index) => `${key} = $${index + 2}`)
+        .join(', ');
+      
+      if (!setClause) return null;
+      
+      const query = `
+        UPDATE subscriptions 
+        SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $1
+        RETURNING *
+      `;
+      
+      const values = [userId, ...Object.values(updates).filter((_, index) => {
+        const key = Object.keys(updates)[index];
+        return key !== 'id' && key !== 'user_id' && key !== 'created_at' && key !== 'updated_at';
+      })];
+      
+      const result = await client.query(query, values);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async upsert(subscription: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>): Promise<Subscription> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (user_id) 
+        DO UPDATE SET 
+          tier = EXCLUDED.tier,
+          is_active = EXCLUDED.is_active,
+          start_date = EXCLUDED.start_date,
+          end_date = EXCLUDED.end_date,
+          auto_renew = EXCLUDED.auto_renew,
+          updated_at = CURRENT_TIMESTAMP
+        RETURNING *
+      `;
+      const values = [
+        subscription.user_id,
+        subscription.tier,
+        subscription.is_active,
+        subscription.start_date,
+        subscription.end_date,
+        subscription.auto_renew
+      ];
+      const result = await client.query(query, values);
+      return result.rows[0];
+    } finally {
+      client.release();
+    }
+  }
+
+  static async activatePremium(userId: string, durationMonths: number = 1): Promise<Subscription> {
+    const client = await pool.connect();
+    try {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + durationMonths);
+
+      const query = `
+        INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
+        VALUES ($1, 'premium', true, $2, $3, true)
+        ON CONFLICT (user_id) 
+        DO UPDATE SET 
+          tier = 'premium',
+          is_active = true,
+          start_date = $2,
+          end_date = $3,
+          auto_renew = true,
+          updated_at = CURRENT_TIMESTAMP
+        RETURNING *
+      `;
+      const values = [userId, startDate, endDate];
+      const result = await client.query(query, values);
+      return result.rows[0];
+    } finally {
+      client.release();
+    }
+  }
+
+  static async cancelSubscription(userId: string): Promise<Subscription | null> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        UPDATE subscriptions 
+        SET tier = 'freemium', is_active = false, auto_renew = false, updated_at = CURRENT_TIMESTAMP
+        WHERE user_id = $1
+        RETURNING *
+      `;
+      const result = await client.query(query, [userId]);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getExpiringSubscriptions(daysThreshold: number = 7): Promise<Subscription[]> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        SELECT * FROM subscriptions 
+        WHERE tier = 'premium' 
+        AND is_active = true 
+        AND end_date BETWEEN NOW() AND NOW() + INTERVAL '${daysThreshold} days'
+        ORDER BY end_date ASC
+      `;
+      const result = await client.query(query);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getExpiredSubscriptions(): Promise<Subscription[]> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        SELECT * FROM subscriptions 
+        WHERE tier = 'premium' 
+        AND is_active = true 
+        AND end_date < NOW()
+        ORDER BY end_date ASC
+      `;
+      const result = await client.query(query);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getAll(): Promise<Subscription[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM subscriptions ORDER BY created_at DESC';
+      const result = await client.query(query);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Helper method to calculate subscription status
+  static async getSubscriptionStatus(userId: string): Promise<SubscriptionStatus | null> {
+    const subscription = await this.findByUserId(userId);
+    
+    if (!subscription) {
+      // Return default freemium status if no subscription exists
+      return {
+        tier: 'freemium',
+        isActive: false,
+        autoRenew: false
+      };
+    }
+
+    let daysRemaining: number | undefined;
+    if (subscription.end_date) {
+      const now = new Date();
+      const endDate = new Date(subscription.end_date);
+      const diffTime = endDate.getTime() - now.getTime();
+      daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Auto-expire if past end date
+      if (daysRemaining < 0 && subscription.is_active) {
+        await this.update(userId, { is_active: false });
+        subscription.is_active = false;
+      }
+    }
+
+    return {
+      tier: subscription.tier,
+      isActive: subscription.is_active,
+      startDate: subscription.start_date,
+      endDate: subscription.end_date,
+      daysRemaining: daysRemaining,
+      autoRenew: subscription.auto_renew
+    };
+  }
+}
+// ============================================================================
 // DATABASE MIGRATION AND INITIALIZATION
 // ============================================================================
 
@@ -1023,7 +1271,7 @@ export class DatabaseManager {
   }
 
   // NEW: Run all migrations in sequence
-  static async runAllMigrations(): Promise<void> {
+ /*  static async runAllMigrations(): Promise<void> {
     try {
       console.log('🚀 Starting all database migrations...\n');
       
@@ -1040,6 +1288,104 @@ export class DatabaseManager {
       console.log('');
       
       // 4. Check final database health
+      await this.checkDatabaseHealth();
+      console.log('');
+      
+      console.log('🎉 All migrations completed successfully!');
+      
+    } catch (error) {
+      console.error('❌ Migration process failed:', error);
+      throw error;
+    }
+  } */
+
+  static async runSubscriptionMigration(): Promise<void> {
+    const client = await pool.connect();
+    try {
+      console.log('🔄 Running subscription table migration...');
+      
+      // Check if subscriptions table exists
+      const checkTable = `
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'subscriptions'
+        );
+      `;
+      const tableExists = await client.query(checkTable);
+      
+      if (!tableExists.rows[0].exists) {
+        // Create subscriptions table
+        const createTable = `
+          CREATE TABLE subscriptions (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            user_id VARCHAR(50) NOT NULL,
+            tier VARCHAR(50) NOT NULL DEFAULT 'freemium' CHECK (tier IN ('freemium', 'premium')),
+            is_active BOOLEAN NOT NULL DEFAULT false,
+            start_date TIMESTAMPTZ,
+            end_date TIMESTAMPTZ,
+            auto_renew BOOLEAN NOT NULL DEFAULT true,
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+            UNIQUE(user_id)
+          );
+        `;
+        await client.query(createTable);
+        console.log('✅ Created subscriptions table');
+        
+        // Create indexes
+        const createIndexes = `
+          CREATE INDEX idx_subscriptions_user_id ON subscriptions(user_id);
+          CREATE INDEX idx_subscriptions_tier ON subscriptions(tier);
+          CREATE INDEX idx_subscriptions_is_active ON subscriptions(is_active);
+          CREATE INDEX idx_subscriptions_end_date ON subscriptions(end_date);
+        `;
+        await client.query(createIndexes);
+        console.log('✅ Created subscription indexes');
+        
+        // Add trigger
+        const addTrigger = `
+          CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions
+          FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+        `;
+        await client.query(addTrigger);
+        console.log('✅ Created subscription trigger');
+      } else {
+        console.log('✅ Subscriptions table already exists');
+      }
+      
+      console.log('🎉 Subscription migration completed successfully!');
+      
+    } catch (error) {
+      console.error('❌ Subscription migration failed:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Update runAllMigrations to include subscription migration
+  static async runAllMigrations(): Promise<void> {
+    try {
+      console.log('🚀 Starting all database migrations...\n');
+      
+      // 1. Initialize database schema
+      await this.initializeDatabase();
+      console.log('');
+      
+      // 2. Run auth methods migration
+      await this.runAuthMethodsMigration();
+      console.log('');
+      
+      // 3. Run subscription migration
+      await this.runSubscriptionMigration();
+      console.log('');
+      
+      // 4. Migrate data from JSON files
+      await this.migrateFromJSON();
+      console.log('');
+      
+      // 5. Check final database health
       await this.checkDatabaseHealth();
       console.log('');
       

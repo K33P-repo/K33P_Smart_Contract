@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { body, param, validationResult } from 'express-validator';
+import { body, param, query, validationResult } from 'express-validator';
 import { subscriptionService } from '../services/subscription-service.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { 
@@ -36,13 +36,6 @@ router.get('/status', async (req: Request, res: Response) => {
     const userId = req.user!.userId;
     const subscriptionStatus = await subscriptionService.getSubscriptionStatus(userId);
     
-    if (!subscriptionStatus) {
-      return res.status(404).json({
-        success: false,
-        message: 'Subscription not found'
-      });
-    }
-    
     res.json({
       success: true,
       data: {
@@ -60,6 +53,134 @@ router.get('/status', async (req: Request, res: Response) => {
       success: false,
       message: 'Failed to retrieve subscription status'
     });
+  }
+});
+
+/**
+ * POST /api/subscription/initialize-payment
+ * Initialize Paystack payment for premium subscription
+ */
+router.post('/initialize-payment', [
+  body('email')
+    .isEmail()
+    .withMessage('Valid email is required'),
+  body('durationMonths')
+    .optional()
+    .isInt({ min: 1, max: 12 })
+    .withMessage('Duration must be between 1 and 12 months'),
+  body('amount')
+    .optional()
+    .isInt({ min: 1000 })
+    .withMessage('Amount must be at least 1000 (10 NGN)'),
+  handleValidationErrors
+], async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.userId;
+    const { email, durationMonths = 1, amount = 5000 } = req.body;
+    
+    const paymentResult = await subscriptionService.initializePremiumSubscription(
+      userId,
+      email,
+      durationMonths,
+      amount
+    );
+    
+    if (!paymentResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: paymentResult.message
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: paymentResult.message,
+      data: {
+        paymentUrl: paymentResult.paymentUrl,
+        reference: paymentResult.reference
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to initialize subscription payment', { 
+      error, 
+      userId: req.user?.userId 
+    });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to initialize payment'
+    });
+  }
+});
+
+/**
+ * GET /api/subscription/verify-payment
+ * Verify Paystack payment and activate subscription
+ */
+router.get('/verify-payment', [
+  query('reference')  // CHANGE FROM param() TO query()
+    .notEmpty()
+    .withMessage('Payment reference is required'),
+  handleValidationErrors
+], async (req: Request, res: Response) => {
+  try {
+    const { reference } = req.query;
+    
+    console.log('Verifying payment with reference:', reference);
+    
+    const verificationResult = await subscriptionService.verifyAndActivateSubscription(reference as string);
+    
+    if (!verificationResult.success) {
+      return res.status(400).json({
+        success: false,
+        message: verificationResult.message
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: verificationResult.message,
+      data: {
+        activated: true,
+        reference: reference
+      }
+    });
+  } catch (error) {
+    logger.error('Failed to verify subscription payment', { error });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to verify payment'
+    });
+  }
+});
+
+/**
+ * POST /api/subscription/webhook/paystack
+ * Handle Paystack webhook events for subscriptions
+ */
+router.post('/webhook/paystack', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+  try {
+    // Verify webhook signature
+    const signature = req.headers['x-paystack-signature'] as string;
+    const payload = JSON.stringify(req.body);
+    
+    const isValidSignature = subscriptionService.verifyPaystackWebhookSignature(payload, signature);
+    
+    if (!isValidSignature) {
+      logger.warn('Invalid Paystack webhook signature', { signature });
+      return res.status(401).json({ success: false, message: 'Invalid signature' });
+    }
+    
+    // Process the webhook event
+    const result = await subscriptionService.handlePaystackWebhook(req.body);
+    
+    if (result.success) {
+      res.status(200).json({ success: true, message: 'Webhook processed' });
+    } else {
+      res.status(400).json({ success: false, message: result.message });
+    }
+  } catch (error) {
+    logger.error('Paystack webhook processing failed', { error });
+    res.status(500).json({ success: false, message: 'Webhook processing failed' });
   }
 });
 
@@ -100,7 +221,7 @@ router.post('/cancel', requirePremiumSubscription, async (req: Request, res: Res
 
 /**
  * POST /api/subscription/activate
- * Activate premium subscription (admin only or after payment)
+ * Activate premium subscription directly (admin only or for testing)
  */
 router.post('/activate', [
   body('durationMonths')
@@ -172,13 +293,6 @@ router.get('/check-expiry', attachSubscriptionStatus, checkExpiringSubscription,
     const userId = req.user!.userId;
     const isExpired = await subscriptionService.isSubscriptionExpired(userId);
     const subscriptionStatus = await subscriptionService.getSubscriptionStatus(userId);
-    
-    if (!subscriptionStatus) {
-      return res.status(404).json({
-        success: false,
-        message: 'Subscription not found'
-      });
-    }
     
     const isExpiringSoon = subscriptionStatus.tier === 'premium' && 
                           subscriptionStatus.isActive && 

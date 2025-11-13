@@ -15,9 +15,17 @@ interface SubscriptionStatus {
 
 interface SubscriptionUpdate {
   tier?: 'freemium' | 'premium';
+  isActive?: boolean;
   startDate?: Date;
   endDate?: Date;
   autoRenew?: boolean;
+}
+
+interface PaymentResult {
+  success: boolean;
+  paymentUrl?: string;
+  reference?: string;
+  message?: string;
 }
 
 class SubscriptionService {
@@ -30,23 +38,33 @@ class SubscriptionService {
   /**
    * Get subscription status for a user
    */
-  async getSubscriptionStatus(userId: string): Promise<SubscriptionStatus | null> {
+  async getSubscriptionStatus(userId: string): Promise<SubscriptionStatus> {
     const client = await pool.connect();
     try {
       const result = await client.query(
-        `SELECT subscription_tier, subscription_start_date, subscription_end_date 
-         FROM users WHERE user_id = $1`,
+        `SELECT tier, is_active, start_date, end_date, auto_renew 
+         FROM subscriptions WHERE user_id = $1`,
         [userId]
       );
       
       if (result.rows.length === 0) {
-        return null;
+        // Return default freemium status if no subscription exists
+        return {
+          userId,
+          tier: 'freemium',
+          isActive: false,
+          startDate: null,
+          endDate: null,
+          daysRemaining: 0,
+          autoRenew: false
+        };
       }
       
       const subscription = result.rows[0];
       const now = new Date();
-      const endDate = subscription.subscription_end_date ? new Date(subscription.subscription_end_date) : null;
-      const isActive = subscription.subscription_tier === 'premium' && 
+      const endDate = subscription.end_date ? new Date(subscription.end_date) : null;
+      const isActive = subscription.tier === 'premium' && 
+                      subscription.is_active &&
                       endDate && 
                       endDate > now;
       
@@ -55,13 +73,16 @@ class SubscriptionService {
       
       return {
         userId,
-        tier: subscription.subscription_tier || 'freemium',
+        tier: subscription.tier || 'freemium',
         isActive: isActive || false,
-        startDate: subscription.subscription_start_date ? new Date(subscription.subscription_start_date) : null,
+        startDate: subscription.start_date ? new Date(subscription.start_date) : null,
         endDate: endDate,
         daysRemaining: Math.max(0, daysRemaining),
-        autoRenew: false // TODO: Add auto_renew column to users table
+        autoRenew: subscription.auto_renew || false
       };
+    } catch (error) {
+      logger.error('Failed to get subscription status', { error, userId });
+      throw error;
     } finally {
       client.release();
     }
@@ -75,29 +96,60 @@ class SubscriptionService {
     try {
       await client.query('BEGIN');
       
-      const updateFields = [];
-      const values = [];
-      let paramIndex = 1;
-
-      if (updates.tier) {
-        updateFields.push(`subscription_tier = $${paramIndex++}`);
-        values.push(updates.tier);
-      }
-      if (updates.startDate) {
-        updateFields.push(`subscription_start_date = $${paramIndex++}`);
-        values.push(updates.startDate);
-      }
-      if (updates.endDate) {
-        updateFields.push(`subscription_end_date = $${paramIndex++}`);
-        values.push(updates.endDate);
-      }
-
-      if (updateFields.length > 0) {
-        values.push(userId);
+      // Check if subscription exists
+      const existingSubscription = await client.query(
+        'SELECT id FROM subscriptions WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (existingSubscription.rows.length === 0) {
+        // Create new subscription
         await client.query(
-          `UPDATE users SET ${updateFields.join(', ')} WHERE user_id = $${paramIndex}`,
-          values
+          `INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [
+            userId,
+            updates.tier || 'freemium',
+            updates.isActive !== undefined ? updates.isActive : (updates.tier === 'premium'),
+            updates.startDate || (updates.tier === 'premium' ? new Date() : null),
+            updates.endDate,
+            updates.autoRenew || false
+          ]
         );
+      } else {
+        // Update existing subscription
+        const updateFields = [];
+        const values = [];
+        let paramIndex = 1;
+
+        if (updates.tier !== undefined) {
+          updateFields.push(`tier = $${paramIndex++}`);
+          values.push(updates.tier);
+        }
+        if (updates.isActive !== undefined) {
+          updateFields.push(`is_active = $${paramIndex++}`);
+          values.push(updates.isActive);
+        }
+        if (updates.startDate !== undefined) {
+          updateFields.push(`start_date = $${paramIndex++}`);
+          values.push(updates.startDate);
+        }
+        if (updates.endDate !== undefined) {
+          updateFields.push(`end_date = $${paramIndex++}`);
+          values.push(updates.endDate);
+        }
+        if (updates.autoRenew !== undefined) {
+          updateFields.push(`auto_renew = $${paramIndex++}`);
+          values.push(updates.autoRenew);
+        }
+
+        if (updateFields.length > 0) {
+          values.push(userId);
+          await client.query(
+            `UPDATE subscriptions SET ${updateFields.join(', ')} WHERE user_id = $${paramIndex}`,
+            values
+          );
+        }
       }
       
       await client.query('COMMIT');
@@ -122,7 +174,308 @@ class SubscriptionService {
   }
 
   /**
-   * Activate premium subscription
+   * Initialize premium subscription payment via Paystack
+   */
+  async initializePremiumSubscription(
+    userId: string, 
+    email: string, 
+    durationMonths: number = 1,
+    amount: number = 5000 // 5000 NGN = ~$5 USD
+  ): Promise<PaymentResult> {
+    try {
+      // Check if user already has active premium subscription
+      const currentStatus = await this.getSubscriptionStatus(userId);
+      if (currentStatus?.tier === 'premium' && currentStatus.isActive) {
+        return {
+          success: false,
+          message: 'User already has an active premium subscription'
+        };
+      }
+
+      // Use your existing Paystack service
+      const paymentResult = await paystackService.initializePayment({
+        email,
+        amount: amount,
+        currency: 'NGN', // Use NGN for Paystack
+        metadata: {
+          userId,
+          subscriptionType: 'premium',
+          durationMonths,
+          custom_fields: [
+            {
+              display_name: "User ID",
+              variable_name: "user_id",
+              value: userId
+            },
+            {
+              display_name: "Subscription Type",
+              variable_name: "subscription_type", 
+              value: "premium"
+            },
+            {
+              display_name: "Duration",
+              variable_name: "duration_months",
+              value: durationMonths.toString()
+            }
+          ]
+        }
+      });
+
+      if (paymentResult.success && paymentResult.data) {
+        logger.info('Premium subscription payment initialized', {
+          userId,
+          email,
+          durationMonths,
+          amount,
+          reference: paymentResult.data.reference
+        });
+
+        return {
+          success: true,
+          paymentUrl: paymentResult.data.authorization_url,
+          reference: paymentResult.data.reference,
+          message: 'Payment initialized successfully'
+        };
+      } else {
+        logger.error('Failed to initialize payment with Paystack', {
+          userId,
+          error: paymentResult.error
+        });
+
+        return {
+          success: false,
+          message: paymentResult.error || 'Failed to initialize payment'
+        };
+      }
+    } catch (error) {
+      logger.error('Error initializing premium subscription payment', {
+        error,
+        userId,
+        email
+      });
+
+      return {
+        success: false,
+        message: 'Failed to initialize subscription payment'
+      };
+    }
+  }
+
+  /**
+   * Verify and activate premium subscription after payment
+   */
+  async verifyAndActivateSubscription(reference: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Use your existing Paystack verification
+      const verificationResult = await paystackService.verifyPayment(reference);
+      
+      if (!verificationResult.success || !verificationResult.data) {
+        return {
+          success: false,
+          message: verificationResult.error || 'Payment verification failed'
+        };
+      }
+
+      const paymentData = verificationResult.data;
+      
+      // Check if payment was successful
+      if (paymentData.status !== 'success') {
+        return {
+          success: false,
+          message: `Payment not successful. Status: ${paymentData.status}`
+        };
+      }
+
+      // Extract metadata from your Paystack service format
+      const metadata = paymentData.metadata || {};
+      const userId = metadata.userId || 
+                    (metadata.custom_fields && metadata.custom_fields.find((f: any) => f.variable_name === 'user_id')?.value);
+      
+      const durationMonths = parseInt(
+        metadata.durationMonths || 
+        (metadata.custom_fields && metadata.custom_fields.find((f: any) => f.variable_name === 'duration_months')?.value) || 
+        '1'
+      );
+
+      if (!userId) {
+        logger.error('User ID not found in payment metadata', { reference, metadata });
+        return {
+          success: false,
+          message: 'User ID not found in payment data'
+        };
+      }
+
+      // Activate premium subscription
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(endDate.getMonth() + durationMonths);
+
+      const success = await this.updateSubscription(userId, {
+        tier: 'premium',
+        isActive: true,
+        startDate,
+        endDate,
+        autoRenew: true
+      });
+
+      if (success) {
+        logger.info('Premium subscription activated after payment verification', {
+          userId,
+          reference,
+          durationMonths,
+          startDate,
+          endDate
+        });
+
+        return {
+          success: true,
+          message: 'Premium subscription activated successfully'
+        };
+      } else {
+        logger.error('Failed to activate subscription after payment verification', {
+          userId,
+          reference
+        });
+
+        return {
+          success: false,
+          message: 'Failed to activate subscription'
+        };
+      }
+    } catch (error) {
+      logger.error('Error verifying and activating subscription', {
+        error,
+        reference
+      });
+
+      return {
+        success: false,
+        message: 'Failed to verify and activate subscription'
+      };
+    }
+  }
+
+  /**
+   * Handle Paystack webhook for subscription payments
+   */
+  async handlePaystackWebhook(event: any): Promise<{ success: boolean; message: string }> {
+    try {
+      logger.info('Processing Paystack webhook for subscription', { event: event.event });
+
+      switch (event.event) {
+        case 'charge.success':
+          return await this.handleSuccessfulPaymentWebhook(event.data);
+        
+        case 'subscription.create':
+          return await this.handleSubscriptionCreatedWebhook(event.data);
+        
+        case 'subscription.disable':
+          return await this.handleSubscriptionCancelledWebhook(event.data);
+        
+        default:
+          logger.info('Unhandled Paystack webhook event', { event: event.event });
+          return { success: true, message: 'Event not handled' };
+      }
+    } catch (error) {
+      logger.error('Error processing Paystack webhook', { error, event: event.event });
+      return { success: false, message: 'Webhook processing failed' };
+    }
+  }
+
+  /**
+   * Verify Paystack webhook signature
+   */
+  verifyPaystackWebhookSignature(payload: string, signature: string): boolean {
+    return paystackService.verifyWebhookSignature(payload, signature);
+  }
+
+  /**
+   * Handle successful payment webhook
+   */
+  private async handleSuccessfulPaymentWebhook(data: any): Promise<{ success: boolean; message: string }> {
+    try {
+      const metadata = data.metadata || {};
+      const userId = metadata.userId;
+
+      if (!userId) {
+        logger.error('User ID not found in webhook metadata', { reference: data.reference });
+        return { success: false, message: 'User ID not found' };
+      }
+
+      // Check if this is a subscription payment
+      if (metadata.subscriptionType === 'premium') {
+        const durationMonths = parseInt(metadata.durationMonths || '1');
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + durationMonths);
+
+        const success = await this.updateSubscription(userId, {
+          tier: 'premium',
+          isActive: true,
+          startDate,
+          endDate,
+          autoRenew: true
+        });
+
+        if (success) {
+          logger.info('Subscription activated via webhook', {
+            userId,
+            reference: data.reference,
+            durationMonths
+          });
+          return { success: true, message: 'Subscription activated successfully' };
+        }
+      }
+
+      return { success: false, message: 'Not a subscription payment or activation failed' };
+    } catch (error) {
+      logger.error('Error handling successful payment webhook', { error, reference: data.reference });
+      return { success: false, message: 'Webhook handling failed' };
+    }
+  }
+
+  /**
+   * Handle subscription created webhook
+   */
+  private async handleSubscriptionCreatedWebhook(data: any): Promise<{ success: boolean; message: string }> {
+    logger.info('Subscription created via webhook', {
+      subscription_code: data.subscription_code,
+      customer: data.customer.email
+    });
+    return { success: true, message: 'Subscription creation noted' };
+  }
+
+  /**
+   * Handle subscription cancelled webhook
+   */
+  private async handleSubscriptionCancelledWebhook(data: any): Promise<{ success: boolean; message: string }> {
+    try {
+      // Find user by email and cancel subscription
+      const client = await pool.connect();
+      try {
+        const userResult = await client.query(
+          'SELECT user_id FROM users WHERE email = $1',
+          [data.customer.email]
+        );
+
+        if (userResult.rows.length > 0) {
+          const userId = userResult.rows[0].user_id;
+          await this.cancelSubscription(userId);
+          logger.info('Subscription cancelled via webhook', { userId });
+        }
+      } finally {
+        client.release();
+      }
+
+      return { success: true, message: 'Subscription cancellation processed' };
+    } catch (error) {
+      logger.error('Error handling subscription cancellation webhook', { error });
+      return { success: false, message: 'Cancellation processing failed' };
+    }
+  }
+
+  /**
+   * Activate premium subscription directly (for testing or admin use)
    */
   async activatePremiumSubscription(userId: string, durationMonths: number = 1): Promise<boolean> {
     const startDate = new Date();
@@ -131,8 +484,10 @@ class SubscriptionService {
     
     return await this.updateSubscription(userId, {
       tier: 'premium',
+      isActive: true,
       startDate,
-      endDate
+      endDate,
+      autoRenew: true
     });
   }
 
@@ -142,7 +497,8 @@ class SubscriptionService {
   async cancelSubscription(userId: string): Promise<boolean> {
     return await this.updateSubscription(userId, {
       tier: 'freemium',
-      endDate: new Date() // Set end date to now
+      isActive: false,
+      autoRenew: false
     });
   }
 
@@ -151,29 +507,27 @@ class SubscriptionService {
    */
   async isSubscriptionExpired(userId: string): Promise<boolean> {
     const status = await this.getSubscriptionStatus(userId);
-    if (!status) return true;
-    
     return status.tier === 'premium' && !status.isActive;
   }
 
   /**
-   * Get users with expiring subscriptions (within next 3 days)
+   * Get users with expiring subscriptions (within next 7 days)
    */
   async getExpiringSubscriptions(): Promise<string[]> {
     const client = await pool.connect();
     try {
-      const threeDaysFromNow = new Date();
-      threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-      
       const result = await client.query(
-        `SELECT user_id FROM users 
-         WHERE subscription_tier = 'premium' 
-         AND subscription_end_date <= $1 
-         AND subscription_end_date > CURRENT_TIMESTAMP`,
-        [threeDaysFromNow]
+        `SELECT user_id FROM subscriptions 
+         WHERE tier = 'premium' 
+         AND is_active = true
+         AND end_date BETWEEN NOW() AND NOW() + INTERVAL '7 days' 
+         AND end_date > CURRENT_TIMESTAMP`
       );
       
       return result.rows.map(row => row.user_id);
+    } catch (error) {
+      logger.error('Failed to get expiring subscriptions', { error });
+      return [];
     } finally {
       client.release();
     }
@@ -186,12 +540,16 @@ class SubscriptionService {
     const client = await pool.connect();
     try {
       const result = await client.query(
-        `SELECT user_id FROM users 
-         WHERE subscription_tier = 'premium' 
-         AND subscription_end_date <= CURRENT_TIMESTAMP`
+        `SELECT user_id FROM subscriptions 
+         WHERE tier = 'premium' 
+         AND is_active = true
+         AND end_date <= CURRENT_TIMESTAMP`
       );
       
       return result.rows.map(row => row.user_id);
+    } catch (error) {
+      logger.error('Failed to get expired subscriptions', { error });
+      return [];
     } finally {
       client.release();
     }
@@ -266,19 +624,20 @@ class SubscriptionService {
     try {
       const [totalResult, premiumResult, freemiumResult, activeResult, expiredResult, expiringResult] = await Promise.all([
         client.query('SELECT COUNT(*) FROM users'),
-        client.query("SELECT COUNT(*) FROM users WHERE subscription_tier = 'premium'"),
-        client.query("SELECT COUNT(*) FROM users WHERE subscription_tier = 'freemium'"),
+        client.query("SELECT COUNT(*) FROM subscriptions WHERE tier = 'premium'"),
+        client.query("SELECT COUNT(*) FROM subscriptions WHERE tier = 'freemium'"),
         client.query(
-          "SELECT COUNT(*) FROM users WHERE subscription_tier = 'premium' AND subscription_end_date > CURRENT_TIMESTAMP"
+          "SELECT COUNT(*) FROM subscriptions WHERE tier = 'premium' AND is_active = true AND end_date > CURRENT_TIMESTAMP"
         ),
         client.query(
-          "SELECT COUNT(*) FROM users WHERE subscription_tier = 'premium' AND subscription_end_date <= CURRENT_TIMESTAMP"
+          "SELECT COUNT(*) FROM subscriptions WHERE tier = 'premium' AND is_active = true AND end_date <= CURRENT_TIMESTAMP"
         ),
         client.query(
-          `SELECT COUNT(*) FROM users 
-           WHERE subscription_tier = 'premium' 
-           AND subscription_end_date <= CURRENT_TIMESTAMP + INTERVAL '3 days' 
-           AND subscription_end_date > CURRENT_TIMESTAMP`
+          `SELECT COUNT(*) FROM subscriptions 
+           WHERE tier = 'premium' 
+           AND is_active = true
+           AND end_date <= CURRENT_TIMESTAMP + INTERVAL '7 days' 
+           AND end_date > CURRENT_TIMESTAMP`
         )
       ]);
       
@@ -289,6 +648,16 @@ class SubscriptionService {
         activeSubscriptions: Number(activeResult.rows[0].count),
         expiredSubscriptions: Number(expiredResult.rows[0].count),
         expiringSubscriptions: Number(expiringResult.rows[0].count)
+      };
+    } catch (error) {
+      logger.error('Failed to get subscription statistics', { error });
+      return {
+        totalUsers: 0,
+        premiumUsers: 0,
+        freemiumUsers: 0,
+        activeSubscriptions: 0,
+        expiredSubscriptions: 0,
+        expiringSubscriptions: 0
       };
     } finally {
       client.release();

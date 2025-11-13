@@ -393,110 +393,304 @@ router.post('/complete-signup', createRateLimiter({
 
 /**
  * @route POST /api/auth/setup-username
- * @desc Step 8: Setup username after DID creation
- * @access Public
+ * @desc Setup username for authenticated user using JWT token
+ * @access Private (requires JWT)
  */
-router.post('/setup-username', createRateLimiter({
+router.post('/setup-username', verifyToken, createRateLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 10, // 10 attempts per 15 minutes
   message: 'Too many username setup attempts, please try again later'
 }), async (req, res) => {
   try {
-    const { sessionId, username, userId } = req.body;
+    const { username } = req.body;
+    const userId = req.user.userId; // From JWT token
     
-    // Validate required fields
-    if (!sessionId || !username) {
-      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID and username are required');
+    console.log('=== SETUP USERNAME DEBUG START ===');
+    console.log('Authenticated user ID from token:', userId);
+    console.log('Requested username:', username);
+
+    // Validate required fields - ONLY username is required now
+    if (!username) {
+      console.log('Validation failed: Username is required');
+      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Username is required');
     }
     
     // Validate username format
     if (username.length < 3 || username.length > 30) {
+      console.log('Validation failed: Username must be between 3 and 30 characters');
       return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username must be between 3 and 30 characters');
     }
     
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      console.log('Validation failed: Username contains invalid characters');
       return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username can only contain letters, numbers, and underscores');
     }
     
-    // Get session data
-    const sessionData = signupSessions.get(sessionId);
-    if (!sessionData) {
-      return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
-    }
+    console.log('Finding user by ID:', userId);
+    const user = await dbService.getUserById(userId);
     
-    // Verify signup was completed
-    if (sessionData.step !== 'signup_completed') {
-      return ResponseUtils.error(res, ErrorCodes.INVALID_FLOW, null, 'Signup must be completed before setting up username');
+    if (!user) {
+      console.log('User not found with ID:', userId);
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+    }
+
+    // Check if user already has a username
+    if (user.username) {
+      console.log('User already has username:', user.username);
+      return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_SET, null, 'Username is already set for this account');
     }
     
     // Check if username is already taken
-    try {
-      const existingUserResult = await storageService.findUser({ username });
-      if (existingUserResult.success && existingUserResult.data) {
-        return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_EXISTS, null, 'Username is already taken. Please choose a different username.');
-      }
-    } catch (error) {
-      console.log('Error checking username availability:', error);
+    console.log('Checking if username is available...');
+    const existingUser = await dbService.getUserByUsername(username);
+    if (existingUser) {
+      console.log('Username already taken by user:', existingUser.user_id);
+      return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_EXISTS, null, 'Username is already taken. Please choose a different username.');
     }
+
+    console.log('Updating user with username...');
+    const updatedUser = await dbService.updateUser(userId, { username });
     
-    // Update user with username
-    const userIdToUpdate = userId || sessionData.userId;
-    if (userIdToUpdate) {
-      try {
-        const updateResult = await storageService.updateUser(userIdToUpdate, { username });
-        if (!updateResult.success) {
-          console.log('Failed to update user with username:', updateResult.error);
-          return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, updateResult.error, 'Failed to save username');
-        }
-      } catch (error) {
-        console.log('Error updating user with username:', error);
-        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to save username');
-      }
+    if (!updatedUser) {
+      console.log('Failed to update user with username');
+      return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to save username');
     }
+
+    console.log('Username setup completed for user:', userId);
     
-    // Update session
-    sessionData.username = username;
-    sessionData.step = 'username_setup';
-    sessionData.completed = true;
-    sessionData.timestamp = new Date();
-    
-    signupSessions.set(sessionId, sessionData);
-    
-    console.log(`Username setup completed for session: ${sessionId}`);
-    
-    // Generate JWT token for completed signup
+    // Generate new JWT token with username included
     const token = jwt.sign(
       { 
-        id: userIdToUpdate || crypto.randomUUID(),
-        phoneNumber: sessionData.phoneNumber,
-        username,
-        walletAddress: sessionData.walletAddress
+        id: updatedUser.id,
+        userId: updatedUser.user_id,
+        phoneNumber: updatedUser.phone_number,
+        username: updatedUser.username,
+        walletAddress: updatedUser.wallet_address,
+        authMethods: updatedUser.auth_methods?.map(m => m.type) || [],
+        verificationMethod: updatedUser.verification_method,
+        zkCommitment: updatedUser.zk_commitment
       },
       process.env.JWT_SECRET || 'default-secret',
       { expiresIn: process.env.JWT_EXPIRATION || '24h' }
     );
     
-    return ResponseUtils.success(res, SuccessCodes.USERNAME_SET, {
-      sessionId,
-      step: 'username_setup',
-      username,
-      userId: userIdToUpdate,
-      walletAddress: sessionData.walletAddress,
+    const responseData = {
+      username: updatedUser.username,
+      userId: updatedUser.user_id,
+      walletAddress: updatedUser.wallet_address,
       completed: true,
       token
-    }, 'Username setup completed successfully. Welcome to K33P!');
+    };
+
+    console.log('Username setup completed successfully');
+    console.log('=== SETUP USERNAME DEBUG END ===');
     
-    // Clean up session after successful completion
-    setTimeout(() => {
-      signupSessions.del(sessionId);
-    }, 5000);
+    return ResponseUtils.success(res, SuccessCodes.USERNAME_SET, responseData, 'Username setup completed successfully. Welcome to K33P!');
     
   } catch (error) {
-    console.error('Error setting up username:', error);
+    console.error('=== SETUP USERNAME ERROR ===');
+    console.error('Error:', error);
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to setup username');
   }
 });
 
+/**
+ * @route GET /api/auth/username
+ * @desc Get username for authenticated user
+ * @access Private (requires JWT)
+ */
+router.get('/username', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId; // From JWT token
+    
+    console.log('=== GET USERNAME DEBUG START ===');
+    console.log('Authenticated user ID from token:', userId);
+
+    if (!userId) {
+      console.log('Validation failed: User ID not found in token');
+      return ResponseUtils.error(res, ErrorCodes.UNAUTHORIZED, null, 'Invalid token');
+    }
+
+    console.log('Finding user by ID:', userId);
+    const user = await dbService.getUserById(userId);
+    
+    if (!user) {
+      console.log('User not found with ID:', userId);
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+    }
+
+    console.log('User found:', {
+      userId: user.user_id,
+      hasUsername: !!user.username,
+      username: user.username || 'Not set'
+    });
+
+    const responseData = {
+      userId: user.user_id,
+      username: user.username || null,
+      walletAddress: user.wallet_address,
+      exists: true,
+      hasUsername: !!user.username
+    };
+
+    console.log('=== GET USERNAME DEBUG END ===');
+    return ResponseUtils.success(res, SuccessCodes.USER_RETRIEVED, responseData, 
+      user.username ? 'Username retrieved successfully' : 'User found but no username set');
+
+  } catch (error) {
+    console.error('=== GET USERNAME ERROR ===');
+    console.error('Error:', error);
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+      message: error.message
+    });
+  }
+});
+
+/**
+ * @route PUT /api/auth/username
+ * @desc Update username for authenticated user
+ * @access Private (requires JWT)
+ */
+router.put('/username', verifyToken, async (req, res) => {
+  try {
+    const userId = req.user.userId; // From JWT token
+    const { username } = req.body;
+    
+    console.log('=== UPDATE USERNAME DEBUG START ===');
+    console.log('Authenticated user ID from token:', userId);
+    console.log('New username:', username);
+
+    if (!username) {
+      console.log('Validation failed: Username is required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username is required');
+    }
+
+    // Validate username format
+    if (username.length < 3 || username.length > 30) {
+      console.log('Validation failed: Username must be 3-30 characters');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username must be between 3 and 30 characters');
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      console.log('Validation failed: Username contains invalid characters');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username can only contain letters, numbers, and underscores');
+    }
+
+    console.log('Checking if user exists...');
+    const user = await dbService.getUserById(userId);
+    
+    if (!user) {
+      console.log('User not found with ID:', userId);
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+    }
+
+    console.log('Checking if username is already taken...');
+    const existingUser = await dbService.getUserByUsername(username);
+    if (existingUser && existingUser.user_id !== userId) {
+      console.log('Username already taken by user:', existingUser.user_id);
+      return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_EXISTS, null, 'Username is already taken');
+    }
+
+    console.log('Updating username...');
+    const updatedUser = await dbService.updateUser(userId, { username });
+    
+    if (!updatedUser) {
+      console.log('Failed to update username');
+      return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to update username');
+    }
+
+    console.log('Username updated successfully');
+    
+    const responseData = {
+      userId: updatedUser.user_id,
+      username: updatedUser.username,
+      walletAddress: updatedUser.wallet_address,
+      updatedAt: updatedUser.updated_at
+    };
+
+    console.log('=== UPDATE USERNAME DEBUG END ===');
+    return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, responseData, 'Username updated successfully');
+
+  } catch (error) {
+    console.error('=== UPDATE USERNAME ERROR ===');
+    console.error('Error:', error);
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+      message: error.message
+    });
+  }
+});
+
+/**
+ * @route GET /api/auth/username/check/:username
+ * @desc Check if username is available
+ * @access Public (can be protected if you want)
+ */
+router.get('/username/check/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    console.log('=== CHECK USERNAME DEBUG START ===');
+    console.log('Checking username:', username);
+    console.log('Has token:', !!token);
+
+    if (!username) {
+      console.log('Validation failed: Username is required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username is required');
+    }
+
+    // Validate username format
+    if (username.length < 3 || username.length > 30) {
+      console.log('Validation failed: Username must be 3-30 characters');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username must be between 3 and 30 characters');
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      console.log('Validation failed: Username contains invalid characters');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username can only contain letters, numbers, and underscores');
+    }
+
+    console.log('Checking if username exists...');
+    const existingUser = await dbService.getUserByUsername(username);
+    
+    const isAvailable = !existingUser;
+    
+    console.log('Username availability:', isAvailable ? 'Available' : 'Taken');
+    
+    const responseData = {
+      username,
+      available: isAvailable,
+      exists: !!existingUser,
+      message: isAvailable ? 'Username is available' : 'Username is already taken'
+    };
+
+    // If token is provided, verify it and include user info
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+        responseData.currentUser = {
+          userId: decoded.userId,
+          canClaim: isAvailable
+        };
+        console.log('Token verified for user:', decoded.userId);
+      } catch (tokenError) {
+        console.log('Token invalid or expired:', tokenError.message);
+        responseData.tokenValid = false;
+      }
+    }
+
+    console.log('=== CHECK USERNAME DEBUG END ===');
+    return ResponseUtils.success(res, SuccessCodes.USERNAME_CHECKED, responseData, 
+      isAvailable ? 'Username is available' : 'Username is already taken');
+
+  } catch (error) {
+    console.error('=== CHECK USERNAME ERROR ===');
+    console.error('Error:', error);
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+      message: error.message
+    });
+  }
+});
 /**
  * @route GET /api/auth/session-status/:sessionId
  * @desc Get current status of signup session
@@ -816,7 +1010,14 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
           id: newUser.id, 
           userId: newUser.user_id,
           walletAddress: newUser.wallet_address,
-          authMethods: authMethods.map(m => m.type) 
+          authMethods: authMethods.map(m => m.type),
+          verificationMethod: verificationMethod,
+          zkCommitment: zkCommitment,
+          authDetails: {
+            method: 'signup',
+            verified: verificationMethod === 'phone' ? false : true,
+            isNewUser: true
+          }
         },
         process.env.JWT_SECRET || 'default-secret',
         { expiresIn: process.env.JWT_EXPIRATION || '24h' }
@@ -824,25 +1025,28 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
       console.log('JWT token generated successfully');
 
-      const response = {
-        success: true,
-        data: {
-          verified: verificationMethod === 'phone' ? false : true, 
-          userId: newUser.user_id,
-          verificationMethod,
-          authMethods: authMethods, 
-          message: 'DID created successfully. Welcome to K33P!',
-          depositAddress: finalUserAddress,
-          requiresDeposit: verificationMethod === 'phone',
-          zkCommitment: zkCommitment
+      const responseData = {
+        verified: verificationMethod === 'phone' ? false : true, 
+        userId: newUser.user_id,
+        walletAddress: newUser.wallet_address,
+        verificationMethod,
+        authMethods: authMethods, 
+        zkCommitment: zkCommitment,
+        requiresDeposit: verificationMethod === 'phone',
+        depositAddress: finalUserAddress,
+        authDetails: {
+          method: 'signup',
+          verified: verificationMethod === 'phone' ? false : true,
+          isNewUser: true
         },
         message: 'DID created successfully. Welcome to K33P!',
-        token
+        token: token
       };
 
       console.log('Response built successfully');
       console.log('=== SIGNUP DEBUG END (New User) ===');
-      return ResponseUtils.success(res, SuccessCodes.USER_CREATED, response.data, response.message);
+      
+      return ResponseUtils.success(res, SuccessCodes.USER_CREATED, responseData, 'DID created successfully. Welcome to K33P!');
 
     } catch (dbError) {
       console.error('❌ Database error during user creation:', dbError);

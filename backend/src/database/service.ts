@@ -462,6 +462,35 @@ async getUserByPhoneHash(phoneHash: string): Promise<any | null> {
     client.release();
   }
 }
+// Add these to your database service
+ async getUserByUsername(username: string) {
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      'SELECT user_id, username, wallet_address FROM users WHERE username = $1',
+      [username]
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
+
+ async updateUserName(userId : string, updates: string) {
+  const client = await pool.connect();
+  try {
+    const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 2}`).join(', ');
+    const values = [userId, ...Object.values(updates)];
+    
+    const result = await client.query(
+      `UPDATE users SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  } finally {
+    client.release();
+  }
+}
 
 // Then your existing createZKProof method:
 async createZKProof(proofData: any): Promise<any> {
