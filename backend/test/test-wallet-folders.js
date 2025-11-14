@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Combined Authentication & Wallet Folders Test - EXACT COPY OF WORKING FLOW
+ * Combined Authentication & Wallet Folders Test - PROPER DELETE HANDLING
  */
 
 import http from 'http';
@@ -24,7 +24,7 @@ let authToken = '';
 let zkCommitment = '';
 let zkProof = null;
 let aesKey = null;
-let storedAuthMethods = null; // Store auth methods from find-user
+let storedAuthMethods = null;
 
 // Test state for wallet folders
 let testFolderId = '';
@@ -52,7 +52,7 @@ function encryptAESDeterministic(data, key) {
   }
 }
 
-function makeRequest(method, path, data = null) {
+function makeRequest(method, path, data = null, customTimeout = 30000) { // Default 30s timeout
   return new Promise((resolve, reject) => {
     const options = {
       hostname: 'localhost',
@@ -62,7 +62,7 @@ function makeRequest(method, path, data = null) {
       headers: {
         'Content-Type': 'application/json',
       },
-      timeout: 15000
+      timeout: customTimeout
     };
 
     if (authToken) {
@@ -102,7 +102,7 @@ function makeRequest(method, path, data = null) {
 
     req.on('timeout', () => {
       req.destroy();
-      reject(new Error('Request timeout'));
+      reject(new Error(`Request timeout after ${customTimeout}ms for ${method} ${path}`));
     });
 
     if (data) {
@@ -166,7 +166,7 @@ class CombinedTests {
 const tests = new CombinedTests();
 
 // ============================================================================
-// AUTHENTICATION TESTS - EXACT COPY OF WORKING TEST
+// AUTHENTICATION TESTS
 // ============================================================================
 
 tests.addTest('Server connectivity', async () => {
@@ -426,7 +426,7 @@ tests.addTest('Verify Authentication', async () => {
 });
 
 // ============================================================================
-// WALLET FOLDERS TESTS
+// WALLET FOLDERS TESTS - WITH PROPER DELETE HANDLING
 // ============================================================================
 
 tests.addTest('Get initial wallet folders', async () => {
@@ -476,11 +476,10 @@ tests.addTest('Create folder with custom name', async () => {
   console.log(`   📁 Created custom folder: ${response.body.data.name}`);
 });
 
-tests.addTest('Add wallet to folder', async () => {
+tests.addTest('Add wallet to folder (name only - no keyType/fileId)', async () => {
   const response = await makeRequest('POST', `/api/wallet-folders/folders/${testFolderId}/wallets`, {
-    name: 'Test Ethereum Wallet',
-    keyType: '12',
-    fileId: 'test_file_123'
+    name: 'Test Ethereum Wallet'
+    // No keyType or fileId - should work with just name
   });
 
   if (response.status !== 201) {
@@ -491,12 +490,15 @@ tests.addTest('Add wallet to folder', async () => {
   createdWallets.push({ folderId: testFolderId, walletId: testWalletId });
   
   console.log(`   👛 Added wallet: ${response.body.data.name} (ID: ${testWalletId})`);
+  console.log(`   🔑 KeyType: ${response.body.data.keyType || 'Not set'}`);
+  console.log(`   📁 FileId: ${response.body.data.fileId || 'Not set'}`);
 });
 
-tests.addTest('Update wallet information', async () => {
+tests.addTest('Update wallet with recovery data (keyType + fileId)', async () => {
   const response = await makeRequest('PUT', `/api/wallet-folders/folders/${testFolderId}/wallets/${testWalletId}`, {
     name: 'Updated Wallet Name',
-    keyType: '24'
+    keyType: '12',
+    fileId: 'test_file_123'
   });
 
   if (response.status !== 200) {
@@ -504,21 +506,125 @@ tests.addTest('Update wallet information', async () => {
   }
 
   console.log(`   ✏️  Updated wallet to: ${response.body.data.name}`);
+  console.log(`   🔑 KeyType set to: ${response.body.data.keyType}`);
+  console.log(`   📁 FileId set to: ${response.body.data.fileId}`);
 });
 
-tests.addTest('Delete wallet from folder', async () => {
-  const response = await makeRequest('DELETE', `/api/wallet-folders/folders/${testFolderId}/wallets/${testWalletId}`);
+tests.addTest('Add recovery data via dedicated endpoint', async () => {
+  const response = await makeRequest('PATCH', `/api/wallet-folders/folders/${testFolderId}/wallets/${testWalletId}/recovery`, {
+    keyType: '24',
+    fileId: 'recovery_file_456'
+  });
 
   if (response.status !== 200) {
-    throw new Error(`Failed to delete wallet: ${response.status} - ${response.body.message}`);
+    throw new Error(`Failed to add recovery data: ${response.status} - ${response.body.message}`);
   }
 
-  console.log(`   🗑️  Successfully deleted wallet: ${testWalletId}`);
+  console.log(`   🔐 Added recovery data via PATCH endpoint`);
+  console.log(`   🔑 KeyType: ${response.body.data.keyType}`);
+  console.log(`   📁 FileId: ${response.body.data.fileId}`);
 });
 
-tests.addTest('Delete folder', async () => {
-  const response = await makeRequest('DELETE', `/api/wallet-folders/folders/${testFolderId}`);
+tests.addTest('Update wallet name only (no recovery data)', async () => {
+  const response = await makeRequest('PUT', `/api/wallet-folders/folders/${testFolderId}/wallets/${testWalletId}`, {
+    name: 'Final Wallet Name'
+    // No keyType or fileId - should only update name
+  });
 
+  if (response.status !== 200) {
+    throw new Error(`Failed to update wallet name: ${response.status} - ${response.body.message}`);
+  }
+
+  console.log(`   ✏️  Updated wallet name to: ${response.body.data.name}`);
+  console.log(`   🔑 KeyType preserved: ${response.body.data.keyType}`);
+  console.log(`   📁 FileId preserved: ${response.body.data.fileId}`);
+});
+
+tests.addTest('Add another wallet with just name', async () => {
+  const response = await makeRequest('POST', `/api/wallet-folders/folders/${testFolderId}/wallets`, {
+    name: 'Second Test Wallet'
+    // No keyType or fileId
+  });
+
+  if (response.status !== 201) {
+    throw new Error(`Failed to add second wallet: ${response.status} - ${response.body.message}`);
+  }
+
+  const secondWalletId = response.body.data.id;
+  createdWallets.push({ folderId: testFolderId, walletId: secondWalletId });
+  
+  console.log(`   👛 Added second wallet: ${response.body.data.name} (ID: ${secondWalletId})`);
+  console.log(`   🔑 KeyType: ${response.body.data.keyType || 'Not set'}`);
+  console.log(`   📁 FileId: ${response.body.data.fileId || 'Not set'}`);
+});
+
+tests.addTest('Get updated wallet folders', async () => {
+  const response = await makeRequest('GET', '/api/wallet-folders');
+
+  if (response.status !== 200) {
+    throw new Error(`Failed to get folders: ${response.status} - ${response.body?.message}`);
+  }
+
+  if (!response.body.success) {
+    throw new Error(`API error: ${response.body.message}`);
+  }
+
+  const currentFolder = response.body.data.folders?.find(f => f.id === testFolderId);
+  const walletCount = currentFolder?.items?.length || 0;
+  
+  console.log(`   📁 Folder "${currentFolder?.name}" has ${walletCount} wallets`);
+  
+  // Check wallet details
+  if (currentFolder?.items) {
+    currentFolder.items.forEach(wallet => {
+      console.log(`     👛 ${wallet.name} - KeyType: ${wallet.keyType || 'None'} - FileId: ${wallet.fileId || 'None'}`);
+    });
+  }
+});
+
+tests.addTest('Delete wallet WITHOUT fileId (fast operation)', async () => {
+  // First, let's create a wallet without fileId to test deletion
+  const walletResponse = await makeRequest('POST', `/api/wallet-folders/folders/${testFolderId}/wallets`, {
+    name: 'Wallet Without FileId'
+  });
+
+  if (walletResponse.status !== 201) {
+    throw new Error(`Failed to create test wallet: ${walletResponse.status}`);
+  }
+
+  const tempWalletId = walletResponse.body.data.id;
+  
+  console.log(`   👛 Created test wallet without fileId: ${tempWalletId}`);
+  
+  // Now delete it - this should work without calling vault (fast)
+  const response = await makeRequest('DELETE', `/api/wallet-folders/folders/${testFolderId}/wallets/${tempWalletId}`);
+  
+  if (response.status !== 200) {
+    throw new Error(`Failed to delete wallet without fileId: ${response.status} - ${response.body?.message}`);
+  }
+
+  console.log(`   🗑️  Successfully deleted wallet without fileId: ${tempWalletId}`);
+});
+
+tests.addTest('Delete wallet WITH fileId (longer timeout for vault)', async () => {
+  console.log(`   ⏳ Deleting wallet with fileId (may take up to 60s for vault operation)...`);
+  
+  // Use much longer timeout for wallet with fileId (vault operation)
+  const response = await makeRequest('DELETE', `/api/wallet-folders/folders/${testFolderId}/wallets/${testWalletId}`, null, 60000); // 60s timeout
+  
+  if (response.status !== 200) {
+    throw new Error(`Failed to delete wallet with fileId: ${response.status} - ${response.body?.message}`);
+  }
+
+  console.log(`   🗑️  Successfully deleted wallet with fileId: ${testWalletId}`);
+  console.log(`   ✅ Vault deletion completed successfully`);
+});
+
+tests.addTest('Delete folder (may also call vault)', async () => {
+  console.log(`   ⏳ Deleting folder (may take time for vault cleanup)...`);
+  
+  const response = await makeRequest('DELETE', `/api/wallet-folders/folders/${testFolderId}`, null, 60000); // 60s timeout
+  
   if (response.status !== 200) {
     throw new Error(`Failed to delete folder: ${response.status} - ${response.body.message}`);
   }
@@ -526,17 +632,20 @@ tests.addTest('Delete folder', async () => {
   console.log(`   🗑️  Successfully deleted folder: ${testFolderId}`);
 });
 
-tests.addTest('Clean up test data', async () => {
+tests.addTest('Clean up remaining test data', async () => {
   let cleanedCount = 0;
   
   for (const folderId of createdFolders) {
     try {
-      const response = await makeRequest('DELETE', `/api/wallet-folders/folders/${folderId}`);
+      console.log(`   ⏳ Cleaning up folder: ${folderId}...`);
+      const response = await makeRequest('DELETE', `/api/wallet-folders/folders/${folderId}`, null, 60000);
       if (response.status === 200) {
         cleanedCount++;
+        console.log(`   ✅ Cleaned up folder: ${folderId}`);
       }
     } catch (error) {
-      // Ignore errors during cleanup
+      // Ignore errors during cleanup, but log them
+      console.log(`   ⚠️  Could not clean up folder ${folderId}: ${error.message}`);
     }
   }
   
@@ -562,6 +671,11 @@ async function main() {
   console.log('• Wallet folders management');
   console.log('• Wallet operations (create, update, delete)');
   console.log('');
+  console.log('🛠️  PROPER DELETE HANDLING:');
+  console.log('• 60-second timeouts for vault operations');
+  console.log('• Waits for vault deletion to complete');
+  console.log('• Separate handling for wallets with/without fileId');
+  console.log('');
   console.log(`Test User: ${TEST_USER.phoneNumber}`);
   console.log(`User ID: ${TEST_USER.userId}`);
   console.log('');
@@ -586,3 +700,6 @@ process.on('SIGINT', () => {
 if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
+
+
+export { tests };

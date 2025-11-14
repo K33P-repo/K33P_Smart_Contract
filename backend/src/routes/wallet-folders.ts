@@ -16,8 +16,7 @@ interface CreateFolderRequest {
 
 interface AddWalletRequest {
   name: string;
-  keyType?: '12' | '24';
-  fileId?: string;
+  // keyType and fileId are optional when creating
 }
 
 interface UpdateWalletRequest {
@@ -119,29 +118,26 @@ router.post('/folders', authenticateToken, folderLimiter, async (req: express.Re
 });
 
 /**
- * Add a wallet to a folder
+ * Add a wallet to a folder - Only name is required
  * POST /api/wallet-folders/folders/:folderId/wallets
  */
 router.post('/folders/:folderId/wallets', authenticateToken, walletLimiter, async (req: express.Request, res: express.Response) => {
   try {
     const userId = req.user?.userId;
     const { folderId } = req.params;
-    const { name, keyType, fileId }: AddWalletRequest = req.body;
+    const { name }: AddWalletRequest = req.body; // Only name is required
 
     if (!userId) {
       return res.status(401).json({ success: false, message: 'User not authenticated' });
     }
 
+    // Only validate name - keyType and fileId are optional
     if (!name || name.trim().length === 0) {
       return res.status(400).json({ success: false, message: 'Wallet name is required' });
     }
 
     if (name.trim().length > 100) {
       return res.status(400).json({ success: false, message: 'Wallet name must be less than 100 characters' });
-    }
-
-    if (keyType && !['12', '24'].includes(keyType)) {
-      return res.status(400).json({ success: false, message: 'Key type must be either "12" or "24"' });
     }
 
     console.log(`Adding wallet to folder: ${folderId} for user: ${userId}, name: ${name}`);
@@ -163,13 +159,12 @@ router.post('/folders/:folderId/wallets', authenticateToken, walletLimiter, asyn
       return res.status(409).json({ success: false, message: 'A wallet with this name already exists in this folder' });
     }
 
-    // Create new wallet item
+    // Create new wallet item with only name (keyType and fileId can be added later)
     const newWallet: WalletItem = {
       id: `wallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       name: name.trim(),
       type: 'wallet',
-      keyType,
-      fileId,
+      // keyType and fileId are optional and will be undefined initially
       createdAt: new Date(),
       updatedAt: new Date()
     };
@@ -210,7 +205,7 @@ router.post('/folders/:folderId/wallets', authenticateToken, walletLimiter, asyn
 });
 
 /**
- * Update a wallet
+ * Update a wallet - Can update name, keyType, and fileId
  * PUT /api/wallet-folders/folders/:folderId/wallets/:walletId
  */
 router.put('/folders/:folderId/wallets/:walletId', authenticateToken, walletLimiter, async (req: express.Request, res: express.Response) => {
@@ -264,12 +259,12 @@ router.put('/folders/:folderId/wallets/:walletId', authenticateToken, walletLimi
       }
     }
 
-    // Update wallet
+    // Update wallet - all fields are optional for update
     const updatedWallet: WalletItem = {
       ...folder.items[walletIndex],
       ...(name && { name: name.trim() }),
-      ...(keyType && { keyType }),
-      ...(fileId && { fileId }),
+      ...(keyType !== undefined && { keyType }), // Allow setting keyType to undefined
+      ...(fileId !== undefined && { fileId }), // Allow setting fileId to undefined
       updatedAt: new Date()
     };
 
@@ -293,7 +288,11 @@ router.put('/folders/:folderId/wallets/:walletId', authenticateToken, walletLimi
       return res.status(500).json({ success: false, message: 'Failed to update wallet' });
     }
 
-    console.log(`Successfully updated wallet: ${walletId} for user: ${userId}`);
+    console.log(`Successfully updated wallet: ${walletId} for user: ${userId}`, {
+      nameUpdated: !!name,
+      keyTypeUpdated: keyType !== undefined,
+      fileIdUpdated: fileId !== undefined
+    });
 
     res.json({
       success: true,
@@ -311,9 +310,91 @@ router.put('/folders/:folderId/wallets/:walletId', authenticateToken, walletLimi
 });
 
 /**
- * Remove a wallet from a folder
- * DELETE /api/wallet-folders/folders/:folderId/wallets/:walletId
+ * Update wallet key type and file ID (specific endpoint for adding recovery data)
+ * PATCH /api/wallet-folders/folders/:folderId/wallets/:walletId/recovery
  */
+router.patch('/folders/:folderId/wallets/:walletId/recovery', authenticateToken, walletLimiter, async (req: express.Request, res: express.Response) => {
+  try {
+    const userId = req.user?.userId;
+    const { folderId, walletId } = req.params;
+    const { keyType, fileId }: { keyType: '12' | '24'; fileId: string } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'User not authenticated' });
+    }
+
+    if (!keyType || !fileId) {
+      return res.status(400).json({ success: false, message: 'Both keyType and fileId are required for recovery data' });
+    }
+
+    if (!['12', '24'].includes(keyType)) {
+      return res.status(400).json({ success: false, message: 'Key type must be either "12" or "24"' });
+    }
+
+    console.log(`Adding recovery data to wallet: ${walletId} in folder: ${folderId} for user: ${userId}`);
+
+    const user = await UserModel.findByUserId(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Find the folder and wallet
+    const folder = user.folders.find(f => f.id === folderId);
+    if (!folder) {
+      return res.status(404).json({ success: false, message: 'Folder not found' });
+    }
+
+    const walletIndex = folder.items.findIndex(w => w.id === walletId);
+    if (walletIndex === -1) {
+      return res.status(404).json({ success: false, message: 'Wallet not found' });
+    }
+
+    // Update wallet with recovery data
+    const updatedWallet: WalletItem = {
+      ...folder.items[walletIndex],
+      keyType,
+      fileId,
+      updatedAt: new Date()
+    };
+
+    // Update folder
+    const updatedItems = [...folder.items];
+    updatedItems[walletIndex] = updatedWallet;
+
+    const updatedFolder: Folder = {
+      ...folder,
+      items: updatedItems,
+      updatedAt: new Date()
+    };
+
+    // Update user's folders
+    const updatedFolders = user.folders.map(f => 
+      f.id === folderId ? updatedFolder : f
+    );
+
+    const updatedUser = await UserModel.update(userId, { folders: updatedFolders });
+    if (!updatedUser) {
+      return res.status(500).json({ success: false, message: 'Failed to update wallet recovery data' });
+    }
+
+    console.log(`Successfully added recovery data to wallet: ${walletId} for user: ${userId}`);
+
+    res.json({
+      success: true,
+      message: 'Wallet recovery data updated successfully',
+      data: updatedWallet
+    });
+  } catch (error) {
+    console.error('Error updating wallet recovery data:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update wallet recovery data',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+
 router.delete('/folders/:folderId/wallets/:walletId', authenticateToken, walletLimiter, async (req: express.Request, res: express.Response) => {
   try {
     const userId = req.user?.userId;
