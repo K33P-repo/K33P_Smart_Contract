@@ -1,0 +1,67 @@
+pragma language_version >= 0.16 && <= 0.18.0;
+
+import CompactStandardLibrary;
+
+struct RegisteredNOK {
+  nokHash: Field;
+  ownerIdentifier: Field;
+  registeredAt: Field;
+}
+
+export ledger noks: Map<Field, RegisteredNOK>;
+export ledger admin: Bytes<32>;
+export ledger round: Counter;
+
+// Hardcoded admin key
+//const HARDCODED_ADMIN_KEY: Bytes<32> = 0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef;
+
+constructor() {
+  admin = disclose("0123456789abcdef0123456789abcdef");
+}
+
+witness secretKey(): Bytes<32>;
+
+circuit publicKey(round: Field, sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<3, Bytes<32>>>(
+    [pad(32, "nok:access:pk"), round as Bytes<32>, sk]
+  );
+}
+
+export circuit register_nok(
+  owner_identifier: Field,
+  nok_hash: Field
+): [] {
+  const sk = secretKey();
+  const pk = publicKey(round, sk);
+  assert(admin == pk, "admin only");
+  
+  const record = RegisteredNOK {
+    nokHash: disclose(nok_hash),
+    ownerIdentifier: disclose(owner_identifier),
+    registeredAt: round.read()
+  };
+  
+  noks.insert(disclose(owner_identifier), record);
+  round.increment(1);
+}
+
+export circuit approve_nok_login(
+  owner_identifier: Field,
+  nok_hash: Field
+): Boolean {
+  const sk = secretKey();
+  const pk = publicKey(round, sk);
+  assert(admin == pk, "admin only");
+  
+  assert(noks.member(disclose(owner_identifier)), "no nok registered");
+  const record = noks.lookup(disclose(owner_identifier));
+  
+  assert(record.nokHash == disclose(nok_hash), "nok hash mismatch");
+  
+  round.increment(1);
+  return true;
+}
+
+export circuit check_nok_registered(owner_identifier: Field): Boolean {
+  return noks.member(disclose(owner_identifier));
+}

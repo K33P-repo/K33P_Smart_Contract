@@ -1,0 +1,30 @@
+{
+  "name": "nok-access-dapp",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "compile": "compact compile contracts/nok-access.compact contracts/managed/nok-access",
+    "build": "tsc",
+    "deploy": "node dist/deploy.js"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.9.0",
+    "@midnightntwrk/ledger": "4.0.0",
+    "@midnight-twrk/midnight-js-contracts": "2.0.2",
+    "@midnight-ntwrk/midnight-js-http-client-proof-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-indexer-public-data-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-level-private-state-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-node-zk-config-provider": "2.0.2",
+    "@midnight-ntwrk/midnight-js-network-id": "2.0.2",
+    "@midnight-ntwrk/midnight-js-types": "2.0.2",
+    "@midnight-ntwrk/wallet": "5.0.0",
+    "@midnight-ntwrk/wallet-api": "5.0.0",
+    "@midnight-ntwrk/zswap": "4.0.0",
+    "ws": "^8.183"
+  },
+  "devDependencies": {
+    "@types/node": "^24.4.0",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.9.2"
+  }
+}

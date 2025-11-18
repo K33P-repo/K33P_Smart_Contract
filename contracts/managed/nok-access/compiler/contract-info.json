@@ -1,0 +1,76 @@
+{
+  "circuits": [
+    {
+      "name": "register_nok",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "owner_identifier",
+          "type": {
+            "type-name": "Field"
+          }
+        },
+        {
+          "name": "nok_hash",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "approve_nok_login",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "owner_identifier",
+          "type": {
+            "type-name": "Field"
+          }
+        },
+        {
+          "name": "nok_hash",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Boolean"
+      }
+    },
+    {
+      "name": "check_nok_registered",
+      "pure": false,
+      "arguments": [
+        {
+          "name": "owner_identifier",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Boolean"
+      }
+    }
+  ],
+  "witnesses": [
+    {
+      "name": "secretKey",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    }
+  ],
+  "contracts": [
+  ]
+}
