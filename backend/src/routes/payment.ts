@@ -3,7 +3,7 @@ import { paystackService } from '../services/paystack-service.js';
 import { logger } from '../utils/logger.js';
 import pool from '../database/config.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { subscriptionService } from '@/services/subscription-service.js';
+import { subscriptionService } from '../services/subscription-service.js';
 
 const router = express.Router();
 
