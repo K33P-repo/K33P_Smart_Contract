@@ -4,6 +4,9 @@
 
 This project implements a decentralized identity (DID) system on the Cardano blockchain using Aiken smart contracts. The system allows users to sign up and log in by locking 2 ADA into a smart contract. Their biometric, passkey, and phone data is hashed off-chain and stored on-chain as datum. Only an authorized backend can refund the stake. Zero-knowledge proofs (ZKPs) ensure that login credentials match previously committed data without revealing them.
 
+Users can also add a Next of Kin (NOK), which is implemented on the Midnight network. The Midnight-related codebase is available on the branch [nok-access--dapp](https://github.com/K33P-repo/K33P_Smart_Contract/tree/nok-access-dapp) of this repository, and contains its own README.md.
+ 
+
 ## Architecture
 
 The system consists of the following components:
