@@ -2,7 +2,7 @@ import express from 'express';
 import { subscriptionService } from '../services/subscription-service.js';
 import { logger } from '../utils/logger.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { paystackService } from '@/services/paystack-service.js';
+import { paystackService } from '../services/paystack-service.js';
 
 const router = express.Router();
 
