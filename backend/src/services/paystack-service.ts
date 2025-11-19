@@ -428,6 +428,9 @@ async verifyWebhookSignature(payload: string, signature: string): Promise<boolea
 /**
  * Process webhook event
  */
+/**
+ * Process webhook event
+ */
 async processWebhookEvent(event: any): Promise<{ success: boolean; message: string }> {
   try {
     logger.info('Processing Paystack webhook event', { event: event.event });
@@ -452,7 +455,7 @@ async processWebhookEvent(event: any): Promise<{ success: boolean; message: stri
     }
   } catch (error: any) {
     logger.error('Webhook event processing failed', { error: error.message });
-    return { success: false, message: error.message };
+    return { success: false, message: error.message }; // Changed from error to message
   }
 }
 

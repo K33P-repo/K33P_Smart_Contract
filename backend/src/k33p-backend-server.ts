@@ -391,7 +391,7 @@ app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), asyn
     if (result.success) {
       res.status(200).json({ message: 'Webhook processed successfully' });
     } else {
-      res.status(400).json({ error: result.error });
+      res.status(400).json({ error: result.message });
     }
   } catch (error: any) {
     logger.error('Webhook processing error', { error: error.message });

@@ -378,7 +378,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     const payload = req.body.toString();
     
     // Verify webhook signature
-    if (!paystackService.verifyWebhookSignature(payload, signature)) {
+    const isValid = await paystackService.verifyWebhookSignature(payload, signature);
+    if (!isValid) {
       logger.warn('Invalid webhook signature');
       return res.status(400).json({ error: 'Invalid signature' });
     }
@@ -391,7 +392,7 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
     if (result.success) {
       res.status(200).json({ message: 'Webhook processed successfully' });
     } else {
-      res.status(400).json({ error: result.error });
+      res.status(400).json({ error: result.message }); // Changed from result.error to result.message
     }
   } catch (error: any) {
     logger.error('Webhook processing error', { error: error.message });

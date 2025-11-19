@@ -384,8 +384,8 @@ class SubscriptionService {
   /**
    * Verify Paystack webhook signature
    */
-  verifyPaystackWebhookSignature(payload: string, signature: string): boolean {
-    return paystackService.verifyWebhookSignature(payload, signature);
+  async verifyPaystackWebhookSignature(payload: string, signature: string): Promise<boolean> {
+    return await paystackService.verifyWebhookSignature(payload, signature);
   }
 
   /**
@@ -559,6 +559,9 @@ class SubscriptionService {
 /**
  * Initialize monthly recurring subscription with phone number
  */
+/**
+ * Initialize monthly recurring subscription with phone number
+ */
 async initializeMonthlyRecurringSubscription(
   userId: string, 
   phone: string, 
@@ -587,42 +590,39 @@ async initializeMonthlyRecurringSubscription(
 
     const planCode = planResult?.data?.plan_code;
 
-    // Initialize recurring subscription with phone number
-    // Fix line 197 - remove email from payment initialization
-const paymentResult = await paystackService.initializePayment({
-  amount: amount,
-  currency: 'NGN',
-  metadata: {
-    userId,
-    email, // Move email to metadata
-    subscriptionType: 'premium',
-    durationMonths,
-    custom_fields: [
-      {
-        display_name: "User ID",
-        variable_name: "user_id",
-        value: userId
-      },
-      {
-        display_name: "Email",
-        variable_name: "email",
-        value: email
-      },
-      {
-        display_name: "Subscription Type",
-        variable_name: "subscription_type", 
-        value: "premium"
-      },
-      {
-        display_name: "Duration",
-        variable_name: "duration_months",
-        value: durationMonths.toString()
+    // Initialize payment for recurring subscription
+    const paymentResult = await paystackService.initializePayment({
+      amount: amount,
+      currency: 'NGN',
+      metadata: {
+        userId,
+        phone,
+        subscriptionType: 'premium_monthly',
+        planCode: planCode,
+        custom_fields: [
+          {
+            display_name: "User ID",
+            variable_name: "user_id",
+            value: userId
+          },
+          {
+            display_name: "Phone",
+            variable_name: "phone", 
+            value: phone
+          },
+          {
+            display_name: "Subscription Type",
+            variable_name: "subscription_type",
+            value: "premium_monthly"
+          },
+          {
+            display_name: "Plan Code",
+            variable_name: "plan_code",
+            value: planCode
+          }
+        ]
       }
-    ]
-  }
-});
-
-// Fix line 702 - remove phone from SubscriptionUpdate
+    });
 
     if (paymentResult.success && paymentResult.data) {
       logger.info('Monthly recurring subscription initialized', {
@@ -663,7 +663,6 @@ const paymentResult = await paystackService.initializePayment({
     };
   }
 }
-
 /**
  * Process recurring payment webhook
  */
