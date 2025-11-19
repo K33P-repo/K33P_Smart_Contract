@@ -194,7 +194,6 @@ class SubscriptionService {
 
       // Use your existing Paystack service
       const paymentResult = await paystackService.initializePayment({
-        email,
         amount: amount,
         currency: 'NGN', // Use NGN for Paystack
         metadata: {
@@ -589,16 +588,41 @@ async initializeMonthlyRecurringSubscription(
     const planCode = planResult?.data?.plan_code;
 
     // Initialize recurring subscription with phone number
-    const paymentResult = await paystackService.initializeRecurringSubscription(
-      phone,
-      planCode,
+    // Fix line 197 - remove email from payment initialization
+const paymentResult = await paystackService.initializePayment({
+  amount: amount,
+  currency: 'NGN',
+  metadata: {
+    userId,
+    email, // Move email to metadata
+    subscriptionType: 'premium',
+    durationMonths,
+    custom_fields: [
       {
-        userId,
-        subscriptionType: 'premium_monthly',
-        durationMonths: 1,
-        amount: amount
+        display_name: "User ID",
+        variable_name: "user_id",
+        value: userId
+      },
+      {
+        display_name: "Email",
+        variable_name: "email",
+        value: email
+      },
+      {
+        display_name: "Subscription Type",
+        variable_name: "subscription_type", 
+        value: "premium"
+      },
+      {
+        display_name: "Duration",
+        variable_name: "duration_months",
+        value: durationMonths.toString()
       }
-    );
+    ]
+  }
+});
+
+// Fix line 702 - remove phone from SubscriptionUpdate
 
     if (paymentResult.success && paymentResult.data) {
       logger.info('Monthly recurring subscription initialized', {
@@ -699,7 +723,6 @@ private async handleRecurringChargeSuccess(data: any): Promise<{ success: boolea
       startDate: currentStatus.startDate || new Date(),
       endDate: newEndDate,
       autoRenew: true,
-      phone: phone
     });
 
     if (success) {

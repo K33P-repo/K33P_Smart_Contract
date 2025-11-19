@@ -32,10 +32,9 @@ class PaystackService {
     try {
       // Use generic email as shown in Paystack docs
       const paymentData = {
-        email: 'payment@k33p.app', // Generic email as per Paystack docs
+        email: 'payment@k33p.app', 
         amount: data.amount * 100, // Convert to kobo
         currency: data.currency || 'NGN',
-        //callback_url: data.callback_url,
         metadata: data.metadata
       };
 
@@ -404,6 +403,198 @@ async createAutoRenewSubscription(userId: string, email: string, amount: number 
       error: error.message
     };
   }
+}
+
+// Add these methods to your PaystackService class
+
+/**
+ * Verify Paystack webhook signature
+ */
+async verifyWebhookSignature(payload: string, signature: string): Promise<boolean> {
+  try {
+    const crypto = await import('crypto');
+    const hash = crypto
+      .createHmac('sha512', this.secretKey)
+      .update(payload)
+      .digest('hex');
+    
+    return hash === signature;
+  } catch (error) {
+    logger.error('Webhook signature verification failed', { error });
+    return false;
+  }
+}
+
+/**
+ * Process webhook event
+ */
+async processWebhookEvent(event: any): Promise<{ success: boolean; message: string }> {
+  try {
+    logger.info('Processing Paystack webhook event', { event: event.event });
+    
+    // Handle different event types
+    switch (event.event) {
+      case 'charge.success':
+        return await this.handleChargeSuccess(event.data);
+      
+      case 'subscription.create':
+        return await this.handleSubscriptionCreate(event.data);
+      
+      case 'subscription.disable':
+        return await this.handleSubscriptionDisable(event.data);
+      
+      case 'invoice.create':
+        return await this.handleInvoiceCreate(event.data);
+      
+      default:
+        logger.info('Unhandled webhook event', { event: event.event });
+        return { success: true, message: 'Event not handled' };
+    }
+  } catch (error: any) {
+    logger.error('Webhook event processing failed', { error: error.message });
+    return { success: false, message: error.message };
+  }
+}
+
+/**
+ * Get subscription details
+ */
+async getSubscription(subscriptionCode: string) {
+  try {
+    logger.info('Getting subscription details', { subscriptionCode });
+    
+    const response = await this.paystack.subscription.get(subscriptionCode);
+    
+    if (response.status) {
+      return {
+        success: true,
+        data: response.data
+      };
+    } else {
+      throw new Error(response.message || 'Failed to get subscription');
+    }
+  } catch (error: any) {
+    logger.error('Failed to get subscription', { error: error.message, subscriptionCode });
+    return {
+      success: false,
+      error: error.message || 'Failed to get subscription'
+    };
+  }
+}
+
+/**
+ * Create monthly subscription plan (alias for createSubscriptionPlan)
+ */
+async createMonthlySubscriptionPlan(amount: number, name?: string) {
+  return this.createSubscriptionPlan({
+    name: name || `K33P Premium Monthly - ${amount} NGN`,
+    amount: amount,
+    interval: 'monthly'
+  });
+}
+
+/**
+ * Initialize recurring subscription
+ */
+async initializeRecurringSubscription(
+  phone: string,
+  planCode: string,
+  metadata?: any
+) {
+  try {
+    const subscriptionData = {
+      customer: phone, // Using phone as customer identifier
+      plan: planCode,
+      authorization: '', // This should be set after initial authorization
+      metadata: metadata
+    };
+
+    logger.info('Initializing recurring subscription', { phone, planCode });
+
+    const response = await this.paystack.subscription.create(subscriptionData);
+    
+    if (response.status) {
+      return {
+        success: true,
+        data: {
+          subscription_code: response.data.subscription_code,
+          status: response.data.status,
+          next_payment_date: response.data.next_payment_date
+        }
+      };
+    } else {
+      throw new Error(response.message || 'Recurring subscription initialization failed');
+    }
+  } catch (error: any) {
+    logger.error('Recurring subscription initialization failed', { error: error.message });
+    return {
+      success: false,
+      error: error.message || 'Recurring subscription initialization failed'
+    };
+  }
+}
+
+/**
+ * Cancel subscription
+ */
+async cancelSubscription(subscriptionCode: string) {
+  try {
+    logger.info('Cancelling subscription', { subscriptionCode });
+    
+    const response = await this.paystack.subscription.disable(subscriptionCode);
+    
+    if (response.status) {
+      return {
+        success: true,
+        data: {
+          subscription_code: response.data.subscription_code,
+          status: response.data.status
+        }
+      };
+    } else {
+      throw new Error(response.message || 'Subscription cancellation failed');
+    }
+  } catch (error: any) {
+    logger.error('Subscription cancellation failed', { error: error.message, subscriptionCode });
+    return {
+      success: false,
+      error: error.message || 'Subscription cancellation failed'
+    };
+  }
+}
+
+// Private helper methods for webhook processing
+private async handleChargeSuccess(data: any): Promise<{ success: boolean; message: string }> {
+  logger.info('Charge successful', { 
+    reference: data.reference, 
+    amount: data.amount,
+    customer: data.customer?.email 
+  });
+  return { success: true, message: 'Charge success processed' };
+}
+
+private async handleSubscriptionCreate(data: any): Promise<{ success: boolean; message: string }> {
+  logger.info('Subscription created', { 
+    subscription_code: data.subscription_code,
+    customer: data.customer?.email 
+  });
+  return { success: true, message: 'Subscription creation processed' };
+}
+
+private async handleSubscriptionDisable(data: any): Promise<{ success: boolean; message: string }> {
+  logger.info('Subscription disabled', { 
+    subscription_code: data.subscription_code,
+    customer: data.customer?.email 
+  });
+  return { success: true, message: 'Subscription disable processed' };
+}
+
+private async handleInvoiceCreate(data: any): Promise<{ success: boolean; message: string }> {
+  logger.info('Invoice created', { 
+    subscription: data.subscription?.subscription_code,
+    amount: data.amount 
+  });
+  return { success: true, message: 'Invoice creation processed' };
 }
   /**
    * Get configuration for frontend

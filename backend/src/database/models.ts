@@ -1531,55 +1531,6 @@ export class DatabaseManager {
     }
   }
 
-  // NEW: Check database health and migration status
-  static async checkDatabaseHealth(): Promise<{
-    users: number;
-    usersWithAuthMethods: number;
-    usersWithFolders: number;
-    deposits: number;
-    transactions: number;
-    healthy: boolean;
-  }> {
-    const client = await pool.connect();
-    try {
-      const healthQuery = `
-        SELECT 
-          (SELECT COUNT(*) FROM users) as users_count,
-          (SELECT COUNT(*) FROM users WHERE jsonb_array_length(auth_methods) >= 3) as users_with_auth_methods,
-          (SELECT COUNT(*) FROM users WHERE jsonb_array_length(folders) >= 0) as users_with_folders,
-          (SELECT COUNT(*) FROM user_deposits) as deposits_count,
-          (SELECT COUNT(*) FROM transactions) as transactions_count
-      `;
-      
-      const result = await client.query(healthQuery);
-      const row = result.rows[0];
-      
-      const health = {
-        users: parseInt(row.users_count),
-        usersWithAuthMethods: parseInt(row.users_with_auth_methods),
-        usersWithFolders: parseInt(row.users_with_folders),
-        deposits: parseInt(row.deposits_count),
-        transactions: parseInt(row.transactions_count),
-        healthy: parseInt(row.users_with_auth_methods) === parseInt(row.users_count)
-      };
-      
-      console.log('🏥 Database Health Check:');
-      console.log(`   Total Users: ${health.users}`);
-      console.log(`   Users with Auth Methods: ${health.usersWithAuthMethods}`);
-      console.log(`   Users with Folders: ${health.usersWithFolders}`);
-      console.log(`   Total Deposits: ${health.deposits}`);
-      console.log(`   Total Transactions: ${health.transactions}`);
-      console.log(`   Overall Health: ${health.healthy ? '✅ HEALTHY' : '❌ NEEDS ATTENTION'}`);
-      
-      return health;
-      
-    } catch (error) {
-      console.error('❌ Database health check failed:', error);
-      throw error;
-    } finally {
-      client.release();
-    }
-  }
 
   // NEW: Run all migrations in sequence
  /*  static async runAllMigrations(): Promise<void> {
