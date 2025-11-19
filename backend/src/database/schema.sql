@@ -1,5 +1,5 @@
 -- K33P Database Schema
--- Updated with fixed validate_auth_methods trigger
+-- Updated with Payment and Subscription tables for Paystack integration
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto"; 
@@ -52,22 +52,51 @@ CREATE TABLE IF NOT EXISTS user_deposits (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
--- Subscriptions table
+-- NEW: Payment transactions table for Paystack
+CREATE TABLE IF NOT EXISTS payment_transactions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    reference VARCHAR(255) UNIQUE NOT NULL,
+    phone VARCHAR(50) NOT NULL,
+    customer_email VARCHAR(255),
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(10) DEFAULT 'NGN',
+    user_id VARCHAR(50),
+    status VARCHAR(50) NOT NULL,
+    customer_code VARCHAR(255),
+    plan_code VARCHAR(255),
+    authorization_code VARCHAR(255),
+    gateway_response TEXT,
+    channel VARCHAR(50),
+    fees DECIMAL(10,2),
+    paid_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+-- UPDATED: Subscriptions table with Paystack integration
 CREATE TABLE IF NOT EXISTS subscriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    subscription_code VARCHAR(255) UNIQUE,
     user_id VARCHAR(50) NOT NULL,
+    phone VARCHAR(50),
+    customer_code VARCHAR(255),
+    plan_code VARCHAR(255),
     tier VARCHAR(50) NOT NULL DEFAULT 'freemium' CHECK (tier IN ('freemium', 'premium')),
     is_active BOOLEAN NOT NULL DEFAULT false,
     start_date TIMESTAMPTZ,
     end_date TIMESTAMPTZ,
     auto_renew BOOLEAN NOT NULL DEFAULT true,
+    status VARCHAR(50) DEFAULT 'inactive',
+    next_payment_date TIMESTAMPTZ,
+    cancelled_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
     UNIQUE(user_id)
 );
 
--- Transactions table
+-- Transactions table (Cardano transactions)
 CREATE TABLE IF NOT EXISTS transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     tx_hash VARCHAR(128) UNIQUE NOT NULL,
@@ -201,7 +230,7 @@ CREATE TABLE IF NOT EXISTS account_activity (
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 );
 
--- Indexes
+-- Indexes for existing tables
 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
@@ -214,15 +243,27 @@ CREATE INDEX IF NOT EXISTS idx_user_deposits_tx_hash ON user_deposits(tx_hash);
 CREATE INDEX IF NOT EXISTS idx_user_deposits_verified ON user_deposits(verified);
 CREATE INDEX IF NOT EXISTS idx_user_deposits_refunded ON user_deposits(refunded);
 
+-- NEW: Indexes for payment transactions
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_reference ON payment_transactions(reference);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_phone ON payment_transactions(phone);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_user_id ON payment_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_status ON payment_transactions(status);
+CREATE INDEX IF NOT EXISTS idx_payment_transactions_created_at ON payment_transactions(created_at);
+
+-- UPDATED: Indexes for subscriptions
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_phone ON subscriptions(phone);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_tier ON subscriptions(tier);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_is_active ON subscriptions(is_active);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_end_date ON subscriptions(end_date);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_next_payment_date ON subscriptions(next_payment_date);
+
+-- Existing indexes for other tables
 CREATE INDEX IF NOT EXISTS idx_transactions_tx_hash ON transactions(tx_hash);
 CREATE INDEX IF NOT EXISTS idx_transactions_from_address ON transactions(from_address);
 CREATE INDEX IF NOT EXISTS idx_transactions_to_address ON transactions(to_address);
 CREATE INDEX IF NOT EXISTS idx_transactions_type ON transactions(transaction_type);
-
-CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_tier ON subscriptions(tier);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_is_active ON subscriptions(is_active);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_end_date ON subscriptions(end_date);
 
 CREATE INDEX IF NOT EXISTS idx_zk_proofs_user_id ON zk_proofs(user_id);
 CREATE INDEX IF NOT EXISTS idx_auth_data_user_id ON auth_data(user_id);
@@ -259,6 +300,9 @@ CREATE TRIGGER update_emergency_contacts_updated_at BEFORE UPDATE ON emergency_c
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 CREATE TRIGGER update_subscriptions_updated_at BEFORE UPDATE ON subscriptions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_payment_transactions_updated_at BEFORE UPDATE ON payment_transactions
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- FIXED: Updated validate_auth_methods function with proper CASE handling
@@ -318,7 +362,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Drop existing trigger if exists and recreate
---DROP TRIGGER IF EXISTS validate_auth_methods_trigger ON users;
+DROP TRIGGER IF EXISTS validate_auth_methods_trigger ON users;
 CREATE TRIGGER validate_auth_methods_trigger
   BEFORE INSERT OR UPDATE ON users
   FOR EACH ROW
@@ -419,6 +463,24 @@ FROM user_deposits ud
 LEFT JOIN users u ON ud.user_id = u.user_id
 LEFT JOIN transactions t ON ud.tx_hash = t.tx_hash;
 
+-- NEW: Payment and subscription summary view
+CREATE OR REPLACE VIEW payment_subscription_summary AS
+SELECT 
+    u.user_id,
+    u.email,
+    u.phone_hash,
+    s.tier as subscription_tier,
+    s.is_active as subscription_active,
+    s.end_date as subscription_end_date,
+    s.auto_renew as subscription_auto_renew,
+    COUNT(pt.id) as total_payments,
+    SUM(CASE WHEN pt.status = 'success' THEN pt.amount ELSE 0 END) as total_paid_amount,
+    MAX(pt.created_at) as last_payment_date
+FROM users u
+LEFT JOIN subscriptions s ON u.user_id = s.user_id
+LEFT JOIN payment_transactions pt ON u.user_id = pt.user_id
+GROUP BY u.user_id, u.email, u.phone_hash, s.tier, s.is_active, s.end_date, s.auto_renew;
+
 CREATE OR REPLACE VIEW active_users AS
 SELECT 
     u.*,
@@ -448,11 +510,24 @@ VALUES
 ]'::jsonb)
 ON CONFLICT (user_id) DO NOTHING;
 
+-- NEW: Insert sample payment and subscription data for testing
+INSERT INTO payment_transactions (reference, phone, customer_email, amount, currency, user_id, status, customer_code, plan_code)
+VALUES 
+('test_pay_ref_001', '+2347012345678', '2347012345678@k33p.app', 5000.00, 'NGN', 'test-user-1', 'success', 'CUS_test001', 'PLN_monthly_5000')
+ON CONFLICT (reference) DO NOTHING;
+
+INSERT INTO subscriptions (user_id, phone, tier, is_active, start_date, end_date, auto_renew, subscription_code, customer_code, plan_code, status)
+VALUES 
+('test-user-1', '+2347012345678', 'premium', true, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP + INTERVAL '1 month', true, 'SUB_test001', 'CUS_test001', 'PLN_monthly_5000', 'active')
+ON CONFLICT (user_id) DO NOTHING;
+
 COMMIT;
 
 -- Print success message
 DO $$ 
 BEGIN
-  RAISE NOTICE 'Database schema created successfully with fixed validate_auth_methods trigger';
-  RAISE NOTICE 'The CASE statement now includes proper ELSE handling for unknown auth types';
+  RAISE NOTICE 'Database schema created successfully with Payment and Subscription tables';
+  RAISE NOTICE 'Added: payment_transactions table with Paystack integration';
+  RAISE NOTICE 'Updated: subscriptions table with Paystack fields';
+  RAISE NOTICE 'Added: payment_subscription_summary view';
 END $$;

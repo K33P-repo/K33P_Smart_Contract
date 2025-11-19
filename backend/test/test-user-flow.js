@@ -334,6 +334,7 @@ async function testSignup(userData, expectSuccess = true) {
 
 async function testUsernameSetup(userData) {
   console.log(`\n=== Testing Username Setup for ${userData.userId} ===`);
+  console.log(authToken);
   
   if (!authToken) {
     console.log('❌ No auth token available for username setup');

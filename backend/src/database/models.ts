@@ -125,14 +125,41 @@ export interface User {
 // INTERFACES - Add Subscription Interface
 // ============================================================================
 
+export interface PaymentTransaction {
+  id?: string;
+  reference: string;
+  phone: string;
+  customer_email?: string;
+  amount: number;
+  currency: string;
+  user_id?: string;
+  status: string;
+  customer_code?: string;
+  plan_code?: string;
+  authorization_code?: string;
+  gateway_response?: string;
+  channel?: string;
+  fees?: number;
+  paid_at?: Date;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
 export interface Subscription {
   id?: string;
+  subscription_code?: string;
   user_id: string;
+  phone?: string;
+  customer_code?: string;
+  plan_code?: string;
   tier: 'freemium' | 'premium';
   is_active: boolean;
   start_date?: Date;
   end_date?: Date;
   auto_renew: boolean;
+  status?: string;
+  next_payment_date?: Date;
+  cancelled_at?: Date;
   created_at?: Date;
   updated_at?: Date;
 }
@@ -144,6 +171,8 @@ export interface SubscriptionStatus {
   endDate?: Date;
   daysRemaining?: number;
   autoRenew: boolean;
+  status?: string;
+  nextPaymentDate?: Date;
 }
 // ============================================================================
 // USER MODEL
@@ -763,22 +792,198 @@ export class AuthDataModel {
 // SUBSCRIPTION MODEL
 // ============================================================================
 
+// ============================================================================
+// PAYMENT TRANSACTION MODEL
+// ============================================================================
+
+export class PaymentTransactionModel {
+  static async create(transaction: Omit<PaymentTransaction, 'id' | 'created_at' | 'updated_at'>): Promise<PaymentTransaction> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        INSERT INTO payment_transactions (
+          reference, phone, customer_email, amount, currency, user_id, status,
+          customer_code, plan_code, authorization_code, gateway_response, channel, fees, paid_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+        RETURNING *
+      `;
+      const values = [
+        transaction.reference,
+        transaction.phone,
+        transaction.customer_email,
+        transaction.amount,
+        transaction.currency,
+        transaction.user_id,
+        transaction.status,
+        transaction.customer_code,
+        transaction.plan_code,
+        transaction.authorization_code,
+        transaction.gateway_response,
+        transaction.channel,
+        transaction.fees,
+        transaction.paid_at
+      ];
+      const result = await client.query(query, values);
+      return result.rows[0];
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findByReference(reference: string): Promise<PaymentTransaction | null> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM payment_transactions WHERE reference = $1';
+      const result = await client.query(query, [reference]);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findByUserId(userId: string): Promise<PaymentTransaction[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM payment_transactions WHERE user_id = $1 ORDER BY created_at DESC';
+      const result = await client.query(query, [userId]);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findByPhone(phone: string): Promise<PaymentTransaction[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM payment_transactions WHERE phone = $1 ORDER BY created_at DESC';
+      const result = await client.query(query, [phone]);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async update(reference: string, updates: Partial<PaymentTransaction>): Promise<PaymentTransaction | null> {
+    const client = await pool.connect();
+    try {
+      const setClause = Object.keys(updates)
+        .filter(key => key !== 'id' && key !== 'reference' && key !== 'created_at' && key !== 'updated_at')
+        .map((key, index) => `${key} = $${index + 2}`)
+        .join(', ');
+      
+      if (!setClause) return null;
+      
+      const query = `
+        UPDATE payment_transactions 
+        SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+        WHERE reference = $1
+        RETURNING *
+      `;
+      
+      const values = [reference, ...Object.values(updates).filter((_, index) => {
+        const key = Object.keys(updates)[index];
+        return key !== 'id' && key !== 'reference' && key !== 'created_at' && key !== 'updated_at';
+      })];
+      
+      const result = await client.query(query, values);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async updateStatus(reference: string, status: string, additionalData?: Partial<PaymentTransaction>): Promise<PaymentTransaction | null> {
+    const client = await pool.connect();
+    try {
+      let query = 'UPDATE payment_transactions SET status = $1, updated_at = CURRENT_TIMESTAMP';
+      const values: any[] = [status, reference];
+      let paramIndex = 3;
+
+      if (additionalData) {
+        if (additionalData.gateway_response) {
+          query += `, gateway_response = $${paramIndex++}`;
+          values.splice(1, 0, additionalData.gateway_response);
+        }
+        if (additionalData.paid_at) {
+          query += `, paid_at = $${paramIndex++}`;
+          values.splice(1, 0, additionalData.paid_at);
+        }
+        if (additionalData.channel) {
+          query += `, channel = $${paramIndex++}`;
+          values.splice(1, 0, additionalData.channel);
+        }
+        if (additionalData.fees) {
+          query += `, fees = $${paramIndex++}`;
+          values.splice(1, 0, additionalData.fees);
+        }
+        if (additionalData.authorization_code) {
+          query += `, authorization_code = $${paramIndex++}`;
+          values.splice(1, 0, additionalData.authorization_code);
+        }
+      }
+
+      query += ' WHERE reference = $2 RETURNING *';
+      
+      const result = await client.query(query, values);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getAll(): Promise<PaymentTransaction[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM payment_transactions ORDER BY created_at DESC';
+      const result = await client.query(query);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async getByStatus(status: string): Promise<PaymentTransaction[]> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM payment_transactions WHERE status = $1 ORDER BY created_at DESC';
+      const result = await client.query(query, [status]);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+}
+
+// ============================================================================
+// UPDATED SUBSCRIPTION MODEL
+// ============================================================================
+
 export class SubscriptionModel {
   static async create(subscription: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>): Promise<Subscription> {
     const client = await pool.connect();
     try {
       const query = `
-        INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO subscriptions (
+          user_id, phone, tier, is_active, start_date, end_date, auto_renew,
+          subscription_code, customer_code, plan_code, status, next_payment_date
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         RETURNING *
       `;
       const values = [
         subscription.user_id,
+        subscription.phone,
         subscription.tier,
         subscription.is_active,
         subscription.start_date,
         subscription.end_date,
-        subscription.auto_renew
+        subscription.auto_renew,
+        subscription.subscription_code,
+        subscription.customer_code,
+        subscription.plan_code,
+        subscription.status || 'inactive',
+        subscription.next_payment_date
       ];
       const result = await client.query(query, values);
       return result.rows[0];
@@ -792,6 +997,28 @@ export class SubscriptionModel {
     try {
       const query = 'SELECT * FROM subscriptions WHERE user_id = $1';
       const result = await client.query(query, [userId]);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findBySubscriptionCode(subscriptionCode: string): Promise<Subscription | null> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM subscriptions WHERE subscription_code = $1';
+      const result = await client.query(query, [subscriptionCode]);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
+  static async findByCustomerCode(customerCode: string): Promise<Subscription | null> {
+    const client = await pool.connect();
+    try {
+      const query = 'SELECT * FROM subscriptions WHERE customer_code = $1';
+      const result = await client.query(query, [customerCode]);
       return result.rows[0] || null;
     } finally {
       client.release();
@@ -827,29 +1054,73 @@ export class SubscriptionModel {
     }
   }
 
+  static async updateBySubscriptionCode(subscriptionCode: string, updates: Partial<Subscription>): Promise<Subscription | null> {
+    const client = await pool.connect();
+    try {
+      const setClause = Object.keys(updates)
+        .filter(key => key !== 'id' && key !== 'subscription_code' && key !== 'created_at' && key !== 'updated_at')
+        .map((key, index) => `${key} = $${index + 2}`)
+        .join(', ');
+      
+      if (!setClause) return null;
+      
+      const query = `
+        UPDATE subscriptions 
+        SET ${setClause}, updated_at = CURRENT_TIMESTAMP
+        WHERE subscription_code = $1
+        RETURNING *
+      `;
+      
+      const values = [subscriptionCode, ...Object.values(updates).filter((_, index) => {
+        const key = Object.keys(updates)[index];
+        return key !== 'id' && key !== 'subscription_code' && key !== 'created_at' && key !== 'updated_at';
+      })];
+      
+      const result = await client.query(query, values);
+      return result.rows[0] || null;
+    } finally {
+      client.release();
+    }
+  }
+
   static async upsert(subscription: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>): Promise<Subscription> {
     const client = await pool.connect();
     try {
       const query = `
-        INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
-        VALUES ($1, $2, $3, $4, $5, $6)
+        INSERT INTO subscriptions (
+          user_id, phone, tier, is_active, start_date, end_date, auto_renew,
+          subscription_code, customer_code, plan_code, status, next_payment_date
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
         ON CONFLICT (user_id) 
         DO UPDATE SET 
+          phone = EXCLUDED.phone,
           tier = EXCLUDED.tier,
           is_active = EXCLUDED.is_active,
           start_date = EXCLUDED.start_date,
           end_date = EXCLUDED.end_date,
           auto_renew = EXCLUDED.auto_renew,
+          subscription_code = EXCLUDED.subscription_code,
+          customer_code = EXCLUDED.customer_code,
+          plan_code = EXCLUDED.plan_code,
+          status = EXCLUDED.status,
+          next_payment_date = EXCLUDED.next_payment_date,
           updated_at = CURRENT_TIMESTAMP
         RETURNING *
       `;
       const values = [
         subscription.user_id,
+        subscription.phone,
         subscription.tier,
         subscription.is_active,
         subscription.start_date,
         subscription.end_date,
-        subscription.auto_renew
+        subscription.auto_renew,
+        subscription.subscription_code,
+        subscription.customer_code,
+        subscription.plan_code,
+        subscription.status || 'inactive',
+        subscription.next_payment_date
       ];
       const result = await client.query(query, values);
       return result.rows[0];
@@ -858,7 +1129,7 @@ export class SubscriptionModel {
     }
   }
 
-  static async activatePremium(userId: string, durationMonths: number = 1): Promise<Subscription> {
+  static async activatePremium(userId: string, durationMonths: number = 1, subscriptionData?: Partial<Subscription>): Promise<Subscription> {
     const client = await pool.connect();
     try {
       const startDate = new Date();
@@ -866,19 +1137,35 @@ export class SubscriptionModel {
       endDate.setMonth(endDate.getMonth() + durationMonths);
 
       const query = `
-        INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
-        VALUES ($1, 'premium', true, $2, $3, true)
+        INSERT INTO subscriptions (
+          user_id, phone, tier, is_active, start_date, end_date, auto_renew,
+          subscription_code, customer_code, plan_code, status
+        )
+        VALUES ($1, $2, 'premium', true, $3, $4, true, $5, $6, $7, 'active')
         ON CONFLICT (user_id) 
         DO UPDATE SET 
           tier = 'premium',
           is_active = true,
-          start_date = $2,
-          end_date = $3,
+          start_date = $3,
+          end_date = $4,
           auto_renew = true,
+          phone = COALESCE($2, subscriptions.phone),
+          subscription_code = COALESCE($5, subscriptions.subscription_code),
+          customer_code = COALESCE($6, subscriptions.customer_code),
+          plan_code = COALESCE($7, subscriptions.plan_code),
+          status = 'active',
           updated_at = CURRENT_TIMESTAMP
         RETURNING *
       `;
-      const values = [userId, startDate, endDate];
+      const values = [
+        userId,
+        subscriptionData?.phone,
+        startDate,
+        endDate,
+        subscriptionData?.subscription_code,
+        subscriptionData?.customer_code,
+        subscriptionData?.plan_code
+      ];
       const result = await client.query(query, values);
       return result.rows[0];
     } finally {
@@ -891,7 +1178,8 @@ export class SubscriptionModel {
     try {
       const query = `
         UPDATE subscriptions 
-        SET tier = 'freemium', is_active = false, auto_renew = false, updated_at = CURRENT_TIMESTAMP
+        SET tier = 'freemium', is_active = false, auto_renew = false, 
+            status = 'cancelled', cancelled_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP
         WHERE user_id = $1
         RETURNING *
       `;
@@ -909,6 +1197,7 @@ export class SubscriptionModel {
         SELECT * FROM subscriptions 
         WHERE tier = 'premium' 
         AND is_active = true 
+        AND status = 'active'
         AND end_date BETWEEN NOW() AND NOW() + INTERVAL '${daysThreshold} days'
         ORDER BY end_date ASC
       `;
@@ -926,6 +1215,7 @@ export class SubscriptionModel {
         SELECT * FROM subscriptions 
         WHERE tier = 'premium' 
         AND is_active = true 
+        AND status = 'active'
         AND end_date < NOW()
         ORDER BY end_date ASC
       `;
@@ -947,6 +1237,21 @@ export class SubscriptionModel {
     }
   }
 
+  static async getActiveSubscriptions(): Promise<Subscription[]> {
+    const client = await pool.connect();
+    try {
+      const query = `
+        SELECT * FROM subscriptions 
+        WHERE tier = 'premium' AND is_active = true AND status = 'active'
+        ORDER BY created_at DESC
+      `;
+      const result = await client.query(query);
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
   // Helper method to calculate subscription status
   static async getSubscriptionStatus(userId: string): Promise<SubscriptionStatus | null> {
     const subscription = await this.findByUserId(userId);
@@ -956,7 +1261,8 @@ export class SubscriptionModel {
       return {
         tier: 'freemium',
         isActive: false,
-        autoRenew: false
+        autoRenew: false,
+        status: 'inactive'
       };
     }
 
@@ -967,10 +1273,16 @@ export class SubscriptionModel {
       const diffTime = endDate.getTime() - now.getTime();
       daysRemaining = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      // Auto-expire if past end date
-      if (daysRemaining < 0 && subscription.is_active) {
-        await this.update(userId, { is_active: false });
+      // Auto-expire if past end date and still marked as active
+      if (daysRemaining < 0 && subscription.is_active && subscription.status === 'active') {
+        await this.update(userId, { 
+          is_active: false, 
+          status: 'expired',
+          auto_renew: false 
+        });
         subscription.is_active = false;
+        subscription.status = 'expired';
+        subscription.auto_renew = false;
       }
     }
 
@@ -980,13 +1292,12 @@ export class SubscriptionModel {
       startDate: subscription.start_date,
       endDate: subscription.end_date,
       daysRemaining: daysRemaining,
-      autoRenew: subscription.auto_renew
+      autoRenew: subscription.auto_renew,
+      status: subscription.status,
+      nextPaymentDate: subscription.next_payment_date
     };
   }
 }
-// ============================================================================
-// DATABASE MIGRATION AND INITIALIZATION
-// ============================================================================
 
 // ============================================================================
 // DATABASE MIGRATION AND INITIALIZATION
@@ -1365,6 +1676,138 @@ export class DatabaseManager {
   }
 
   // Update runAllMigrations to include subscription migration
+  static async runPaymentMigration(): Promise<void> {
+    const client = await pool.connect();
+    try {
+      console.log('🔄 Running payment and subscription table migration...');
+      
+      // Check if payment_transactions table exists
+      const checkPaymentTable = `
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_name = 'payment_transactions'
+        );
+      `;
+      const paymentTableExists = await client.query(checkPaymentTable);
+      
+      if (!paymentTableExists.rows[0].exists) {
+        // Create payment_transactions table
+        const createPaymentTable = `
+          CREATE TABLE payment_transactions (
+            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+            reference VARCHAR(255) UNIQUE NOT NULL,
+            phone VARCHAR(50) NOT NULL,
+            customer_email VARCHAR(255),
+            amount DECIMAL(10,2) NOT NULL,
+            currency VARCHAR(10) DEFAULT 'NGN',
+            user_id VARCHAR(50),
+            status VARCHAR(50) NOT NULL,
+            customer_code VARCHAR(255),
+            plan_code VARCHAR(255),
+            authorization_code VARCHAR(255),
+            gateway_response TEXT,
+            channel VARCHAR(50),
+            fees DECIMAL(10,2),
+            paid_at TIMESTAMPTZ,
+            created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
+          );
+        `;
+        await client.query(createPaymentTable);
+        console.log('✅ Created payment_transactions table');
+        
+        // Create indexes for payment_transactions
+        const createPaymentIndexes = `
+          CREATE INDEX idx_payment_transactions_reference ON payment_transactions(reference);
+          CREATE INDEX idx_payment_transactions_phone ON payment_transactions(phone);
+          CREATE INDEX idx_payment_transactions_user_id ON payment_transactions(user_id);
+          CREATE INDEX idx_payment_transactions_status ON payment_transactions(status);
+          CREATE INDEX idx_payment_transactions_created_at ON payment_transactions(created_at);
+        `;
+        await client.query(createPaymentIndexes);
+        console.log('✅ Created payment transaction indexes');
+        
+        // Add trigger for payment_transactions
+        const addPaymentTrigger = `
+          CREATE TRIGGER update_payment_transactions_updated_at BEFORE UPDATE ON payment_transactions
+          FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+        `;
+        await client.query(addPaymentTrigger);
+        console.log('✅ Created payment transaction trigger');
+      } else {
+        console.log('✅ payment_transactions table already exists');
+      }
+      
+      // Update subscriptions table if needed
+      const checkSubscriptionColumns = `
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = 'subscriptions' 
+        AND column_name IN ('subscription_code', 'phone', 'customer_code', 'plan_code', 'status', 'next_payment_date', 'cancelled_at')
+      `;
+      const subscriptionColumns = await client.query(checkSubscriptionColumns);
+      
+      if (subscriptionColumns.rows.length < 7) {
+        // Add missing columns to subscriptions table
+        const alterSubscriptionTable = `
+          ALTER TABLE subscriptions 
+          ADD COLUMN IF NOT EXISTS subscription_code VARCHAR(255) UNIQUE,
+          ADD COLUMN IF NOT EXISTS phone VARCHAR(50),
+          ADD COLUMN IF NOT EXISTS customer_code VARCHAR(255),
+          ADD COLUMN IF NOT EXISTS plan_code VARCHAR(255),
+          ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'inactive',
+          ADD COLUMN IF NOT EXISTS next_payment_date TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS cancelled_at TIMESTAMPTZ;
+        `;
+        await client.query(alterSubscriptionTable);
+        console.log('✅ Updated subscriptions table with new columns');
+        
+        // Create new indexes for subscriptions
+        const createSubscriptionIndexes = `
+          CREATE INDEX IF NOT EXISTS idx_subscriptions_phone ON subscriptions(phone);
+          CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(status);
+          CREATE INDEX IF NOT EXISTS idx_subscriptions_next_payment_date ON subscriptions(next_payment_date);
+        `;
+        await client.query(createSubscriptionIndexes);
+        console.log('✅ Created new subscription indexes');
+      } else {
+        console.log('✅ subscriptions table already has all required columns');
+      }
+      
+      // Create payment_subscription_summary view
+      const createPaymentSummaryView = `
+        CREATE OR REPLACE VIEW payment_subscription_summary AS
+        SELECT 
+            u.user_id,
+            u.email,
+            u.phone_hash,
+            s.tier as subscription_tier,
+            s.is_active as subscription_active,
+            s.end_date as subscription_end_date,
+            s.auto_renew as subscription_auto_renew,
+            COUNT(pt.id) as total_payments,
+            SUM(CASE WHEN pt.status = 'success' THEN pt.amount ELSE 0 END) as total_paid_amount,
+            MAX(pt.created_at) as last_payment_date
+        FROM users u
+        LEFT JOIN subscriptions s ON u.user_id = s.user_id
+        LEFT JOIN payment_transactions pt ON u.user_id = pt.user_id
+        GROUP BY u.user_id, u.email, u.phone_hash, s.tier, s.is_active, s.end_date, s.auto_renew;
+      `;
+      await client.query(createPaymentSummaryView);
+      console.log('✅ Created payment_subscription_summary view');
+      
+      console.log('🎉 Payment and subscription migration completed successfully!');
+      
+    } catch (error) {
+      console.error('❌ Payment and subscription migration failed:', error);
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  // Update runAllMigrations to include payment migration
   static async runAllMigrations(): Promise<void> {
     try {
       console.log('🚀 Starting all database migrations...\n');
@@ -1377,8 +1820,8 @@ export class DatabaseManager {
       await this.runAuthMethodsMigration();
       console.log('');
       
-      // 3. Run subscription migration
-      await this.runSubscriptionMigration();
+      // 3. Run payment and subscription migration
+      await this.runPaymentMigration();
       console.log('');
       
       // 4. Migrate data from JSON files
@@ -1394,6 +1837,68 @@ export class DatabaseManager {
     } catch (error) {
       console.error('❌ Migration process failed:', error);
       throw error;
+    }
+  }
+
+  // Update health check to include payment and subscription data
+  static async checkDatabaseHealth(): Promise<{
+    users: number;
+    usersWithAuthMethods: number;
+    usersWithFolders: number;
+    deposits: number;
+    transactions: number;
+    paymentTransactions: number;
+    subscriptions: number;
+    activeSubscriptions: number;
+    healthy: boolean;
+  }> {
+    const client = await pool.connect();
+    try {
+      const healthQuery = `
+        SELECT 
+          (SELECT COUNT(*) FROM users) as users_count,
+          (SELECT COUNT(*) FROM users WHERE jsonb_array_length(auth_methods) >= 3) as users_with_auth_methods,
+          (SELECT COUNT(*) FROM users WHERE jsonb_array_length(folders) >= 0) as users_with_folders,
+          (SELECT COUNT(*) FROM user_deposits) as deposits_count,
+          (SELECT COUNT(*) FROM transactions) as transactions_count,
+          (SELECT COUNT(*) FROM payment_transactions) as payment_transactions_count,
+          (SELECT COUNT(*) FROM subscriptions) as subscriptions_count,
+          (SELECT COUNT(*) FROM subscriptions WHERE tier = 'premium' AND is_active = true) as active_subscriptions_count
+      `;
+      
+      const result = await client.query(healthQuery);
+      const row = result.rows[0];
+      
+      const health = {
+        users: parseInt(row.users_count),
+        usersWithAuthMethods: parseInt(row.users_with_auth_methods),
+        usersWithFolders: parseInt(row.users_with_folders),
+        deposits: parseInt(row.deposits_count),
+        transactions: parseInt(row.transactions_count),
+        paymentTransactions: parseInt(row.payment_transactions_count),
+        subscriptions: parseInt(row.subscriptions_count),
+        activeSubscriptions: parseInt(row.active_subscriptions_count),
+        healthy: parseInt(row.users_with_auth_methods) === parseInt(row.users_count)
+      };
+      
+      console.log('🏥 Database Health Check:');
+      console.log(`   Total Users: ${health.users}`);
+      console.log(`   Users with Auth Methods: ${health.usersWithAuthMethods}`);
+      console.log(`   Users with Folders: ${health.usersWithFolders}`);
+      console.log(`   Total Deposits: ${health.deposits}`);
+      console.log(`   Total Transactions: ${health.transactions}`);
+      console.log(`   Payment Transactions: ${health.paymentTransactions}`);
+      console.log(`   Total Subscriptions: ${health.subscriptions}`);
+      console.log(`   Active Subscriptions: ${health.activeSubscriptions}`);
+      console.log(`   Overall Health: ${health.healthy ? '✅ HEALTHY' : '❌ NEEDS ATTENTION'}`);
+      
+      return health;
+      
+    } catch (error) {
+      console.error('❌ Database health check failed:', error);
+      throw error;
+    } finally {
+      client.release();
     }
   }
 }

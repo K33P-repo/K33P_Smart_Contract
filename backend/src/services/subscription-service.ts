@@ -555,6 +555,254 @@ class SubscriptionService {
     }
   }
 
+  // Add these methods to your existing SubscriptionService class
+
+/**
+ * Initialize monthly recurring subscription with phone number
+ */
+async initializeMonthlyRecurringSubscription(
+  userId: string, 
+  phone: string, 
+  amount: number = 5000 // 5000 NGN = Monthly subscription
+): Promise<PaymentResult> {
+  try {
+    // Check if user already has active premium subscription
+    const currentStatus = await this.getSubscriptionStatus(userId);
+    if (currentStatus?.tier === 'premium' && currentStatus.isActive) {
+      return {
+        success: false,
+        message: 'User already has an active premium subscription'
+      };
+    }
+
+    // Create monthly plan if it doesn't exist
+    const planName = `K33P Premium Monthly - ${amount} NGN`;
+    const planResult = await paystackService.createMonthlySubscriptionPlan(amount, planName);
+    
+    if (!planResult.success) {
+      return {
+        success: false,
+        message: planResult.error || 'Failed to create subscription plan'
+      };
+    }
+
+    const planCode = planResult?.data?.plan_code;
+
+    // Initialize recurring subscription with phone number
+    const paymentResult = await paystackService.initializeRecurringSubscription(
+      phone,
+      planCode,
+      {
+        userId,
+        subscriptionType: 'premium_monthly',
+        durationMonths: 1,
+        amount: amount
+      }
+    );
+
+    if (paymentResult.success && paymentResult.data) {
+      logger.info('Monthly recurring subscription initialized', {
+        userId,
+        phone,
+        amount,
+        planCode,
+        reference: paymentResult.data.reference
+      });
+
+      return {
+        success: true,
+        paymentUrl: paymentResult.data.authorization_url,
+        reference: paymentResult.data.reference,
+        message: 'Monthly subscription payment initialized successfully'
+      };
+    } else {
+      logger.error('Failed to initialize monthly subscription', {
+        userId,
+        error: paymentResult.error
+      });
+
+      return {
+        success: false,
+        message: paymentResult.error || 'Failed to initialize monthly subscription'
+      };
+    }
+  } catch (error) {
+    logger.error('Error initializing monthly recurring subscription', {
+      error,
+      userId,
+      phone
+    });
+
+    return {
+      success: false,
+      message: 'Failed to initialize monthly subscription'
+    };
+  }
+}
+
+/**
+ * Process recurring payment webhook
+ */
+async handleRecurringPaymentWebhook(event: any): Promise<{ success: boolean; message: string }> {
+  try {
+    logger.info('Processing recurring payment webhook', { event: event.event });
+
+    switch (event.event) {
+      case 'charge.success':
+        return await this.handleRecurringChargeSuccess(event.data);
+      
+      case 'subscription.create':
+        return await this.handleRecurringSubscriptionCreated(event.data);
+      
+      case 'invoice.create':
+        return await this.handleMonthlyInvoiceCreated(event.data);
+      
+      default:
+        return { success: true, message: 'Event not handled by recurring service' };
+    }
+  } catch (error) {
+    logger.error('Error processing recurring payment webhook', { error });
+    return { success: false, message: 'Recurring webhook processing failed' };
+  }
+}
+
+/**
+ * Handle successful recurring charge
+ */
+private async handleRecurringChargeSuccess(data: any): Promise<{ success: boolean; message: string }> {
+  try {
+    const metadata = data.metadata || {};
+    const userId = metadata.userId;
+    const phone = metadata.userPhone;
+
+    if (!userId || !phone) {
+      logger.error('User ID or phone not found in recurring payment', { reference: data.reference });
+      return { success: false, message: 'User ID or phone not found' };
+    }
+
+    // Extend subscription by 1 month
+    const currentStatus = await this.getSubscriptionStatus(userId);
+    let newEndDate = new Date();
+    
+    if (currentStatus.endDate && currentStatus.endDate > new Date()) {
+      // Extend from current end date
+      newEndDate = new Date(currentStatus.endDate);
+      newEndDate.setMonth(newEndDate.getMonth() + 1);
+    } else {
+      // Start new subscription period
+      newEndDate.setMonth(newEndDate.getMonth() + 1);
+    }
+
+    const success = await this.updateSubscription(userId, {
+      tier: 'premium',
+      isActive: true,
+      startDate: currentStatus.startDate || new Date(),
+      endDate: newEndDate,
+      autoRenew: true,
+      phone: phone
+    });
+
+    if (success) {
+      logger.info('Monthly recurring subscription extended', {
+        userId,
+        phone,
+        reference: data.reference,
+        newEndDate
+      });
+
+      return { success: true, message: 'Monthly subscription extended successfully' };
+    } else {
+      return { success: false, message: 'Failed to extend subscription' };
+    }
+  } catch (error) {
+    logger.error('Error handling recurring charge success', { error, reference: data.reference });
+    return { success: false, message: 'Failed to process recurring payment' };
+  }
+}
+
+/**
+ * Handle recurring subscription created
+ */
+private async handleRecurringSubscriptionCreated(data: any): Promise<{ success: boolean; message: string }> {
+  try {
+    logger.info('Recurring subscription activated', {
+      subscription_code: data.subscription_code,
+      customer_code: data.customer.customer_code,
+      next_payment_date: data.next_payment_date
+    });
+
+    // Update subscription record with subscription code
+    const client = await pool.connect();
+    try {
+      await client.query(
+        `UPDATE subscriptions 
+         SET subscription_code = $1, next_payment_date = $2, status = 'active'
+         WHERE customer_code = $3`,
+        [data.subscription_code, new Date(data.next_payment_date), data.customer.customer_code]
+      );
+    } finally {
+      client.release();
+    }
+
+    return { success: true, message: 'Recurring subscription activated' };
+  } catch (error) {
+    logger.error('Error handling recurring subscription creation', { error });
+    return { success: false, message: 'Failed to activate recurring subscription' };
+  }
+}
+
+/**
+ * Handle monthly invoice creation
+ */
+private async handleMonthlyInvoiceCreated(data: any): Promise<{ success: boolean; message: string }> {
+  logger.info('Monthly invoice created for recurring subscription', {
+    subscription_code: data.subscription.subscription_code,
+    amount: data.amount / 100,
+    due_date: data.due_date
+  });
+
+  // You can send payment reminders here if needed
+  return { success: true, message: 'Monthly invoice noted' };
+}
+
+/**
+ * Cancel recurring subscription
+ */
+async cancelRecurringSubscription(userId: string): Promise<boolean> {
+  try {
+    // Get subscription code from database
+    const client = await pool.connect();
+    try {
+      const result = await client.query(
+        'SELECT subscription_code FROM subscriptions WHERE user_id = $1',
+        [userId]
+      );
+
+      if (result.rows.length > 0 && result.rows[0].subscription_code) {
+        const subscriptionCode = result.rows[0].subscription_code;
+        
+        // Cancel with Paystack
+        const cancelResult = await paystackService.cancelSubscription(subscriptionCode);
+        
+        if (cancelResult.success) {
+          // Update local subscription record
+          await this.cancelSubscription(userId);
+          logger.info('Recurring subscription cancelled', { userId, subscriptionCode });
+          return true;
+        }
+      }
+      
+      // Fallback to local cancellation
+      return await this.cancelSubscription(userId);
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    logger.error('Failed to cancel recurring subscription', { error, userId });
+    return false;
+  }
+}
+
   /**
    * Process expired subscriptions
    */

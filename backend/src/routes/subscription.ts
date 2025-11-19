@@ -1,39 +1,19 @@
-import express, { Request, Response } from 'express';
-import { body, param, query, validationResult } from 'express-validator';
+import express from 'express';
 import { subscriptionService } from '../services/subscription-service.js';
-import { authenticateToken } from '../middleware/auth.js';
-import { 
-  requirePremiumSubscription, 
-  attachSubscriptionStatus,
-  checkExpiringSubscription 
-} from '../middleware/subscription-middleware.js';
 import { logger } from '../utils/logger.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { paystackService } from '@/services/paystack-service.js';
 
 const router = express.Router();
 
-// Apply authentication to all subscription routes
-router.use(authenticateToken);
-
-// Validation middleware
-const handleValidationErrors = (req: Request, res: Response, next: any) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({
-      success: false,
-      message: 'Validation failed',
-      errors: errors.array()
-    });
-  }
-  next();
-};
-
 /**
+ * Get user subscription status
  * GET /api/subscription/status
- * Get current subscription status for authenticated user
  */
-router.get('/status', async (req: Request, res: Response) => {
+router.get('/status', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user!.userId;
+    const { userId } = req.user!;
+    
     const subscriptionStatus = await subscriptionService.getSubscriptionStatus(userId);
     
     res.json({
@@ -47,367 +27,94 @@ router.get('/status', async (req: Request, res: Response) => {
         autoRenew: subscriptionStatus.autoRenew
       }
     });
-  } catch (error) {
-    logger.error('Failed to get subscription status', { error, userId: req.user?.userId });
+  } catch (error: any) {
+    logger.error('Failed to get subscription status', { error: error.message });
     res.status(500).json({
       success: false,
-      message: 'Failed to retrieve subscription status'
+      error: 'Internal server error'
     });
   }
 });
 
 /**
- * POST /api/subscription/initialize-payment
- * Initialize Paystack payment for premium subscription
- */
-router.post('/initialize-payment', [
-  body('email')
-    .isEmail()
-    .withMessage('Valid email is required'),
-  body('durationMonths')
-    .optional()
-    .isInt({ min: 1, max: 12 })
-    .withMessage('Duration must be between 1 and 12 months'),
-  body('amount')
-    .optional()
-    .isInt({ min: 1000 })
-    .withMessage('Amount must be at least 1000 (10 NGN)'),
-  handleValidationErrors
-], async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.userId;
-    const { email, durationMonths = 1, amount = 5000 } = req.body;
-    
-    const paymentResult = await subscriptionService.initializePremiumSubscription(
-      userId,
-      email,
-      durationMonths,
-      amount
-    );
-    
-    if (!paymentResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: paymentResult.message
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: paymentResult.message,
-      data: {
-        paymentUrl: paymentResult.paymentUrl,
-        reference: paymentResult.reference
-      }
-    });
-  } catch (error) {
-    logger.error('Failed to initialize subscription payment', { 
-      error, 
-      userId: req.user?.userId 
-    });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to initialize payment'
-    });
-  }
-});
-
-/**
- * GET /api/subscription/verify-payment
- * Verify Paystack payment and activate subscription
- */
-router.get('/verify-payment', [
-  query('reference')  // CHANGE FROM param() TO query()
-    .notEmpty()
-    .withMessage('Payment reference is required'),
-  handleValidationErrors
-], async (req: Request, res: Response) => {
-  try {
-    const { reference } = req.query;
-    
-    console.log('Verifying payment with reference:', reference);
-    
-    const verificationResult = await subscriptionService.verifyAndActivateSubscription(reference as string);
-    
-    if (!verificationResult.success) {
-      return res.status(400).json({
-        success: false,
-        message: verificationResult.message
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: verificationResult.message,
-      data: {
-        activated: true,
-        reference: reference
-      }
-    });
-  } catch (error) {
-    logger.error('Failed to verify subscription payment', { error });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to verify payment'
-    });
-  }
-});
-
-/**
- * POST /api/subscription/webhook/paystack
- * Handle Paystack webhook events for subscriptions
- */
-router.post('/webhook/paystack', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
-  try {
-    // Verify webhook signature
-    const signature = req.headers['x-paystack-signature'] as string;
-    const payload = JSON.stringify(req.body);
-    
-    const isValidSignature = subscriptionService.verifyPaystackWebhookSignature(payload, signature);
-    
-    if (!isValidSignature) {
-      logger.warn('Invalid Paystack webhook signature', { signature });
-      return res.status(401).json({ success: false, message: 'Invalid signature' });
-    }
-    
-    // Process the webhook event
-    const result = await subscriptionService.handlePaystackWebhook(req.body);
-    
-    if (result.success) {
-      res.status(200).json({ success: true, message: 'Webhook processed' });
-    } else {
-      res.status(400).json({ success: false, message: result.message });
-    }
-  } catch (error) {
-    logger.error('Paystack webhook processing failed', { error });
-    res.status(500).json({ success: false, message: 'Webhook processing failed' });
-  }
-});
-
-/**
- * POST /api/subscription/cancel
- * Cancel current premium subscription
- */
-router.post('/cancel', requirePremiumSubscription, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user!.userId;
-    const success = await subscriptionService.cancelSubscription(userId);
-    
-    if (!success) {
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to cancel subscription'
-      });
-    }
-    
-    logger.info('Subscription cancelled', { userId });
-    
-    res.json({
-      success: true,
-      message: 'Subscription cancelled successfully',
-      data: {
-        tier: 'freemium',
-        cancelledAt: new Date().toISOString()
-      }
-    });
-  } catch (error) {
-    logger.error('Failed to cancel subscription', { error, userId: req.user?.userId });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to cancel subscription'
-    });
-  }
-});
-
-/**
+ * Activate premium subscription after payment
  * POST /api/subscription/activate
- * Activate premium subscription directly (admin only or for testing)
  */
-router.post('/activate', [
-  body('durationMonths')
-    .optional()
-    .isInt({ min: 1, max: 12 })
-    .withMessage('Duration must be between 1 and 12 months'),
-  handleValidationErrors
-], async (req: Request, res: Response) => {
+router.post('/activate', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user!.userId;
-    const { durationMonths = 1 } = req.body;
+    const { userId } = req.user!;
+    const { reference, durationMonths = 1 } = req.body;
     
-    // Check if user already has active premium subscription
-    const currentStatus = await subscriptionService.getSubscriptionStatus(userId);
-    if (currentStatus?.tier === 'premium' && currentStatus.isActive) {
+    if (!reference) {
       return res.status(400).json({
         success: false,
-        message: 'User already has an active premium subscription',
-        data: {
-          currentTier: currentStatus.tier,
-          endDate: currentStatus.endDate,
-          daysRemaining: currentStatus.daysRemaining
-        }
+        error: 'Payment reference is required'
       });
     }
+
+    // Verify payment first
+    const paymentResult = await paystackService.verifyPayment(reference);
     
+    if (!paymentResult.success || paymentResult.data?.status !== 'success') {
+      return res.status(400).json({
+        success: false,
+        error: 'Payment verification failed or payment not successful'
+      });
+    }
+
+    // Activate subscription
     const success = await subscriptionService.activatePremiumSubscription(userId, durationMonths);
     
-    if (!success) {
-      return res.status(500).json({
+    if (success) {
+      logger.info('Premium subscription activated', { userId });
+      
+      res.json({
+        success: true,
+        message: 'Premium subscription activated successfully'
+      });
+    } else {
+      res.status(400).json({
         success: false,
-        message: 'Failed to activate premium subscription'
+        error: 'Failed to activate subscription'
       });
     }
-    
-    const newStatus = await subscriptionService.getSubscriptionStatus(userId);
-    
-    logger.info('Premium subscription activated', { 
-      userId, 
-      durationMonths,
-      endDate: newStatus?.endDate 
-    });
-    
-    res.json({
-      success: true,
-      message: 'Premium subscription activated successfully',
-      data: {
-        tier: 'premium',
-        startDate: newStatus?.startDate,
-        endDate: newStatus?.endDate,
-        daysRemaining: newStatus?.daysRemaining
-      }
-    });
-  } catch (error) {
-    logger.error('Failed to activate subscription', { error, userId: req.user?.userId });
+  } catch (error: any) {
+    logger.error('Failed to activate subscription', { error: error.message });
     res.status(500).json({
       success: false,
-      message: 'Failed to activate subscription'
+      error: 'Internal server error'
     });
   }
 });
 
 /**
- * GET /api/subscription/check-expiry
- * Check if subscription is expired or expiring soon
+ * Cancel subscription
+ * POST /api/subscription/cancel
  */
-router.get('/check-expiry', attachSubscriptionStatus, checkExpiringSubscription, async (req: Request, res: Response) => {
+router.post('/cancel', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user!.userId;
-    const isExpired = await subscriptionService.isSubscriptionExpired(userId);
-    const subscriptionStatus = await subscriptionService.getSubscriptionStatus(userId);
+    const { userId } = req.user!;
     
-    const isExpiringSoon = subscriptionStatus.tier === 'premium' && 
-                          subscriptionStatus.isActive && 
-                          subscriptionStatus.daysRemaining <= 7;
+    const success = await subscriptionService.cancelSubscription(userId);
     
-    res.json({
-      success: true,
-      data: {
-        isExpired,
-        isExpiringSoon,
-        daysRemaining: subscriptionStatus.daysRemaining,
-        tier: subscriptionStatus.tier,
-        isActive: subscriptionStatus.isActive,
-        endDate: subscriptionStatus.endDate
-      }
-    });
-  } catch (error) {
-    logger.error('Failed to check subscription expiry', { error, userId: req.user?.userId });
+    if (success) {
+      logger.info('Subscription cancelled successfully', { userId });
+      
+      res.json({
+        success: true,
+        message: 'Subscription cancelled successfully'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Failed to cancel subscription'
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to cancel subscription', { error: error.message });
     res.status(500).json({
       success: false,
-      message: 'Failed to check subscription expiry'
-    });
-  }
-});
-
-/**
- * GET /api/subscription/statistics (Admin only)
- * Get subscription statistics
- */
-router.get('/statistics', async (req: Request, res: Response) => {
-  try {
-    // TODO: Add admin authentication middleware
-    const stats = await subscriptionService.getSubscriptionStatistics();
-    
-    res.json({
-      success: true,
-      data: stats
-    });
-  } catch (error) {
-    logger.error('Failed to get subscription statistics', { error });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve subscription statistics'
-    });
-  }
-});
-
-/**
- * POST /api/subscription/manual-renewal-check (Admin only)
- * Manually trigger renewal check
- */
-router.post('/manual-renewal-check', async (req: Request, res: Response) => {
-  try {
-    // TODO: Add admin authentication middleware
-    await subscriptionService.runRenewalCheck();
-    
-    res.json({
-      success: true,
-      message: 'Manual renewal check completed'
-    });
-  } catch (error) {
-    logger.error('Failed to run manual renewal check', { error });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to run renewal check'
-    });
-  }
-});
-
-/**
- * GET /api/subscription/expiring
- * Get users with expiring subscriptions (Admin only)
- */
-router.get('/expiring', async (req: Request, res: Response) => {
-  try {
-    // TODO: Add admin authentication middleware
-    const expiringUserIds = await subscriptionService.getExpiringSubscriptions();
-    
-    res.json({
-      success: true,
-      data: {
-        count: expiringUserIds.length,
-        userIds: expiringUserIds
-      }
-    });
-  } catch (error) {
-    logger.error('Failed to get expiring subscriptions', { error });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve expiring subscriptions'
-    });
-  }
-});
-
-/**
- * GET /api/subscription/expired
- * Get users with expired subscriptions (Admin only)
- */
-router.get('/expired', async (req: Request, res: Response) => {
-  try {
-    // TODO: Add admin authentication middleware
-    const expiredUserIds = await subscriptionService.getExpiredSubscriptions();
-    
-    res.json({
-      success: true,
-      data: {
-        count: expiredUserIds.length,
-        userIds: expiredUserIds
-      }
-    });
-  } catch (error) {
-    logger.error('Failed to get expired subscriptions', { error });
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve expired subscriptions'
+      error: 'Internal server error'
     });
   }
 });

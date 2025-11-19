@@ -5,69 +5,41 @@ import pool from '../database/config.js';
 
 dotenv.config();
 
-interface PaystackConfig {
-  secretKey: string;
-  publicKey: string;
-  webhookSecret: string;
-  subscriptionAmount: number;
-  subscriptionCurrency: string;
-}
-
-interface PaymentInitializationData {
-  email: string;
-  amount: number;
-  currency?: string;
-  plan?: string;
-  callback_url?: string;
-  metadata?: {
-    userId: string;
-    subscriptionType: 'premium';
-    [key: string]: any;
-  };
-}
-
-interface SubscriptionData {
-  userId: string;
-  email: string;
-  planCode?: string;
-}
-
 class PaystackService {
   private paystack: any;
-  private config: PaystackConfig;
+  private secretKey: string;
 
   constructor() {
-    this.config = {
-      secretKey: process.env.PAYSTACK_SECRET_KEY || '',
-      publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
-      webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || '',
-      subscriptionAmount: parseInt(process.env.SUBSCRIPTION_AMOUNT || '5000'),
-      subscriptionCurrency: process.env.SUBSCRIPTION_CURRENCY || 'NGN'
-    };
-
-    if (!this.config.secretKey) {
+    this.secretKey = process.env.PAYSTACK_SECRET_KEY || '';
+    
+    if (!this.secretKey) {
       throw new Error('PAYSTACK_SECRET_KEY is required');
     }
 
-    this.paystack = Paystack(this.config.secretKey);
+    this.paystack = Paystack(this.secretKey);
     logger.info('PaystackService initialized successfully');
   }
 
   /**
-   * Initialize a payment transaction
+   * Initialize one-time payment
    */
-  async initializePayment(data: PaymentInitializationData) {
+  async initializePayment(data: {
+    amount: number;
+    currency?: string;
+    callback_url?: string;
+    metadata?: any;
+  }) {
     try {
+      // Use generic email as shown in Paystack docs
       const paymentData = {
-        email: data.email,
-        amount: data.amount * 100, // Paystack expects amount in kobo (cents)
-        currency: data.currency || this.config.subscriptionCurrency,
-        callback_url: data.callback_url,
-        metadata: data.metadata || {}
+        email: 'payment@k33p.app', // Generic email as per Paystack docs
+        amount: data.amount * 100, // Convert to kobo
+        currency: data.currency || 'NGN',
+        //callback_url: data.callback_url,
+        metadata: data.metadata
       };
 
       logger.info('Initializing Paystack payment', { 
-        email: data.email, 
         amount: data.amount,
         currency: paymentData.currency
       });
@@ -78,11 +50,11 @@ class PaystackService {
         // Store payment initialization in database
         await this.storePaymentRecord({
           reference: response.data.reference,
-          email: data.email,
           amount: data.amount,
           currency: paymentData.currency,
           userId: data.metadata?.userId,
-          status: 'initialized'
+          status: 'initialized',
+          access_code: response.data.access_code
         });
 
         return {
@@ -106,70 +78,153 @@ class PaystackService {
   }
 
   /**
-   * Verify a payment transaction
+   * Verify payment transaction
    */
-  async verifyPayment(reference: string) {
+  /**
+ * Verify payment transaction
+ */
+async verifyPayment(reference: string) {
+  try {
+    logger.info('Verifying Paystack payment', { reference });
+    
+    const response = await this.paystack.transaction.verify(reference);
+    
+    if (response.status) {
+      const paymentData = response.data;
+      
+      // Update payment record regardless of status
+      await this.updatePaymentRecord(reference, {
+        status: paymentData.status,
+        gateway_response: paymentData.gateway_response,
+        paid_at: paymentData.paid_at ? new Date(paymentData.paid_at) : null,
+        authorization: paymentData.authorization
+      });
+
+      // Check the actual payment status
+      if (paymentData.status === 'success') {
+        return {
+          success: true,
+          data: {
+            reference: paymentData.reference,
+            amount: paymentData.amount / 100,
+            status: paymentData.status,
+            authorization: paymentData.authorization,
+            customer: paymentData.customer,
+            metadata: paymentData.metadata
+          }
+        };
+      } else {
+        // Payment verification was successful, but payment itself failed
+        return {
+          success: false,
+          error: `Payment status: ${paymentData.status}. ${paymentData.gateway_response || 'Payment not completed'}`,
+          data: paymentData // Include the data for debugging
+        };
+      }
+    } else {
+      // Paystack API call failed
+      await this.updatePaymentRecord(reference, {
+        status: 'failed',
+        gateway_response: response.message || 'Payment verification failed'
+      });
+      
+      return {
+        success: false,
+        error: response.message || 'Payment verification failed'
+      };
+    }
+  } catch (error: any) {
+    logger.error('Payment verification failed', { error: error.message, reference });
+    
+    // Update status to failed in database
+    await this.updatePaymentRecord(reference, {
+      status: 'failed',
+      gateway_response: error.message
+    });
+    
+    return {
+      success: false,
+      error: error.message || 'Payment verification failed'
+    };
+  }
+}
+
+  /**
+   * Charge authorization for recurring payments
+   */
+  async chargeAuthorization(data: {
+    authorization_code: string;
+    email: string;
+    amount: number;
+    currency?: string;
+    metadata?: any;
+  }) {
     try {
-      logger.info('Verifying Paystack payment', { reference });
+      const chargeData = {
+        authorization_code: data.authorization_code,
+        email: data.email,
+        amount: data.amount * 100,
+        currency: data.currency || 'NGN',
+        metadata: data.metadata
+      };
+
+      logger.info('Charging authorization for recurring payment', {
+        authorization_code: data.authorization_code,
+        amount: data.amount
+      });
+
+      const response = await this.paystack.transaction.charge_authorization(chargeData);
       
-      const response = await this.paystack.transaction.verify(reference);
-      
-      if (response.status && response.data.status === 'success') {
-        // Update payment record in database
-        await this.updatePaymentRecord(reference, {
-          status: 'success',
-          gateway_response: response.data.gateway_response,
-          paid_at: new Date(response.data.paid_at),
-          channel: response.data.channel,
-          fees: response.data.fees / 100 // Convert from kobo to main currency
+      if (response.status) {
+        // Store recurring charge record
+        await this.storePaymentRecord({
+          reference: response.data.reference,
+          amount: data.amount,
+          currency: chargeData.currency,
+          userId: data.metadata?.userId,
+          status: 'initialized',
+          authorization_code: data.authorization_code,
+          is_recurring: true
         });
 
         return {
           success: true,
           data: {
             reference: response.data.reference,
-            amount: response.data.amount / 100, // Convert from kobo
-            currency: response.data.currency,
-            status: response.data.status,
-            paid_at: response.data.paid_at,
-            customer: response.data.customer,
-            metadata: response.data.metadata
+            status: response.data.status
           }
         };
       } else {
-        await this.updatePaymentRecord(reference, {
-          status: 'failed',
-          gateway_response: response.data?.gateway_response || 'Payment verification failed'
-        });
-        
-        return {
-          success: false,
-          error: response.message || 'Payment verification failed'
-        };
+        throw new Error(response.message || 'Charge authorization failed');
       }
     } catch (error: any) {
-      logger.error('Payment verification failed', { error: error.message, reference });
+      logger.error('Charge authorization failed', { error: error.message });
       return {
         success: false,
-        error: error.message || 'Payment verification failed'
+        error: error.message || 'Charge authorization failed'
       };
     }
   }
 
   /**
-   * Create a subscription plan
+   * Create subscription plan
    */
-  async createSubscriptionPlan() {
+  async createSubscriptionPlan(data: {
+    name: string;
+    amount: number;
+    interval: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
+    currency?: string;
+  }) {
     try {
       const planData = {
-        name: 'K33P Premium Monthly',
-        interval: 'monthly',
-        amount: this.config.subscriptionAmount * 100, // Convert to kobo
-        currency: this.config.subscriptionCurrency,
-        description: 'K33P Premium subscription - Monthly billing'
+        name: data.name,
+        interval: data.interval,
+        amount: data.amount * 100,
+        currency: data.currency || 'NGN',
+        description: `K33P Premium subscription - ${data.interval} billing`
       };
 
-      logger.info('Creating Paystack subscription plan', planData);
+      logger.info('Creating subscription plan', planData);
       
       const response = await this.paystack.plan.create(planData);
       
@@ -180,37 +235,39 @@ class PaystackService {
             plan_code: response.data.plan_code,
             name: response.data.name,
             amount: response.data.amount / 100,
-            interval: response.data.interval,
-            currency: response.data.currency
+            interval: response.data.interval
           }
         };
       } else {
-        throw new Error(response.message || 'Plan creation failed');
+        throw new Error(response.message || 'Subscription plan creation failed');
       }
     } catch (error: any) {
       logger.error('Subscription plan creation failed', { error: error.message });
       return {
         success: false,
-        error: error.message || 'Plan creation failed'
+        error: error.message || 'Subscription plan creation failed'
       };
     }
   }
 
   /**
-   * Create a subscription for a customer
+   * Create subscription
    */
-  async createSubscription(data: SubscriptionData) {
+  async createSubscription(data: {
+    customer: string;
+    plan: string;
+    authorization: string;
+  }) {
     try {
       const subscriptionData = {
-        customer: data.email,
-        plan: data.planCode,
-        authorization: '', // This should be obtained from a successful transaction
-        start_date: new Date().toISOString()
+        customer: data.customer,
+        plan: data.plan,
+        authorization: data.authorization
       };
 
-      logger.info('Creating Paystack subscription', { 
-        email: data.email, 
-        planCode: data.planCode 
+      logger.info('Creating subscription', { 
+        customer: data.customer,
+        plan: data.plan
       });
       
       const response = await this.paystack.subscription.create(subscriptionData);
@@ -220,7 +277,6 @@ class PaystackService {
           success: true,
           data: {
             subscription_code: response.data.subscription_code,
-            email_token: response.data.email_token,
             status: response.data.status,
             next_payment_date: response.data.next_payment_date
           }
@@ -238,192 +294,6 @@ class PaystackService {
   }
 
   /**
-   * Cancel a subscription
-   */
-  async cancelSubscription(subscriptionCode: string) {
-    try {
-      logger.info('Cancelling Paystack subscription', { subscriptionCode });
-      
-      const response = await this.paystack.subscription.disable({
-        code: subscriptionCode,
-        token: '' // Email token from subscription creation
-      });
-      
-      if (response.status) {
-        return {
-          success: true,
-          message: 'Subscription cancelled successfully'
-        };
-      } else {
-        throw new Error(response.message || 'Subscription cancellation failed');
-      }
-    } catch (error: any) {
-      logger.error('Subscription cancellation failed', { error: error.message });
-      return {
-        success: false,
-        error: error.message || 'Subscription cancellation failed'
-      };
-    }
-  }
-
-  /**
-   * Verify webhook signature
-   */
-  verifyWebhookSignature(payload: string, signature: string): boolean {
-    try {
-      const crypto = require('crypto');
-      const hash = crypto.createHmac('sha512', this.config.webhookSecret)
-        .update(payload)
-        .digest('hex');
-      
-      return hash === signature;
-    } catch (error) {
-      logger.error('Webhook signature verification failed', { error });
-      return false;
-    }
-  }
-
-  /**
-   * Process webhook events
-   */
-  async processWebhookEvent(event: any) {
-    try {
-      logger.info('Processing Paystack webhook event', { event: event.event });
-      
-      switch (event.event) {
-        case 'charge.success':
-          await this.handleSuccessfulPayment(event.data);
-          break;
-        case 'subscription.create':
-          await this.handleSubscriptionCreated(event.data);
-          break;
-        case 'subscription.disable':
-          await this.handleSubscriptionCancelled(event.data);
-          break;
-        case 'invoice.create':
-        case 'invoice.payment_failed':
-          await this.handleInvoiceEvent(event.data, event.event);
-          break;
-        default:
-          logger.info('Unhandled webhook event', { event: event.event });
-      }
-      
-      return { success: true };
-    } catch (error: any) {
-      logger.error('Webhook event processing failed', { error: error.message });
-      return { success: false, error: error.message };
-    }
-  }
-
-  /**
-   * Handle successful payment
-   */
-  private async handleSuccessfulPayment(data: any) {
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      
-      // Update payment record
-      await client.query(
-        `UPDATE payment_transactions 
-         SET status = 'success', paid_at = $1, gateway_response = $2 
-         WHERE reference = $3`,
-        [new Date(data.paid_at), data.gateway_response, data.reference]
-      );
-      
-      // If this is a subscription payment, update user subscription in subscriptions table
-      if (data.metadata && data.metadata.userId) {
-        const durationMonths = parseInt(data.metadata.durationMonths || '1');
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setMonth(endDate.getMonth() + durationMonths);
-
-        // Check if subscription exists
-        const existingSubscription = await client.query(
-          'SELECT id FROM subscriptions WHERE user_id = $1',
-          [data.metadata.userId]
-        );
-
-        if (existingSubscription.rows.length === 0) {
-          // Create new subscription
-          await client.query(
-            `INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew)
-             VALUES ($1, 'premium', true, $2, $3, true)`,
-            [data.metadata.userId, startDate, endDate]
-          );
-        } else {
-          // Update existing subscription
-          await client.query(
-            `UPDATE subscriptions 
-             SET tier = 'premium', is_active = true, start_date = $1, end_date = $2, auto_renew = true
-             WHERE user_id = $3`,
-            [startDate, endDate, data.metadata.userId]
-          );
-        }
-      }
-      
-      await client.query('COMMIT');
-      logger.info('Successfully processed payment and updated subscription', { reference: data.reference });
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
-  }
-
-  /**
-   * Handle subscription created
-   */
-  private async handleSubscriptionCreated(data: any) {
-    logger.info('Subscription created', { 
-      subscription_code: data.subscription_code,
-      customer: data.customer.email 
-    });
-  }
-
-  /**
-   * Handle subscription cancelled
-   */
-  private async handleSubscriptionCancelled(data: any) {
-    const client = await pool.connect();
-    try {
-      // Find user by email and update subscription status in subscriptions table
-      const userResult = await client.query(
-        'SELECT user_id FROM users WHERE email = $1',
-        [data.customer.email]
-      );
-
-      if (userResult.rows.length > 0) {
-        const userId = userResult.rows[0].user_id;
-        await client.query(
-          `UPDATE subscriptions 
-           SET tier = 'freemium', is_active = false, auto_renew = false
-           WHERE user_id = $1`,
-          [userId]
-        );
-        
-        logger.info('Subscription cancelled via webhook', { 
-          subscription_code: data.subscription_code,
-          userId: userId
-        });
-      }
-    } finally {
-      client.release();
-    }
-  }
-
-  /**
-   * Handle invoice events
-   */
-  private async handleInvoiceEvent(data: any, eventType: string) {
-    logger.info('Invoice event received', { 
-      event: eventType,
-      subscription: data.subscription.subscription_code 
-    });
-  }
-
-  /**
    * Store payment record in database
    */
   private async storePaymentRecord(data: any) {
@@ -431,9 +301,18 @@ class PaystackService {
     try {
       await client.query(
         `INSERT INTO payment_transactions 
-         (reference, email, amount, currency, user_id, status, created_at) 
-         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`,
-        [data.reference, data.email, data.amount, data.currency, data.userId, data.status]
+         (reference, amount, currency, user_id, status, access_code, authorization_code, is_recurring, created_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)`,
+        [
+          data.reference, 
+          data.amount,
+          data.currency, 
+          data.userId, 
+          data.status,
+          data.access_code,
+          data.authorization_code,
+          data.is_recurring || false
+        ]
       );
     } catch (error) {
       logger.error('Failed to store payment record', { error });
@@ -464,13 +343,9 @@ class PaystackService {
         updateFields.push(`paid_at = $${paramIndex++}`);
         values.push(data.paid_at);
       }
-      if (data.channel) {
-        updateFields.push(`channel = $${paramIndex++}`);
-        values.push(data.channel);
-      }
-      if (data.fees) {
-        updateFields.push(`fees = $${paramIndex++}`);
-        values.push(data.fees);
+      if (data.authorization) {
+        updateFields.push(`authorization_code = $${paramIndex++}`);
+        values.push(data.authorization.authorization_code);
       }
 
       if (updateFields.length > 0) {
@@ -487,14 +362,57 @@ class PaystackService {
     }
   }
 
+  // Add this to PaystackService
+async createAutoRenewSubscription(userId: string, email: string, amount: number = 5000) {
+  try {
+    // Create monthly plan
+    const planResult = await this.createSubscriptionPlan({
+      name: `K33P Premium Monthly - ${amount} NGN`,
+      amount: amount,
+      interval: 'monthly'
+    });
+
+    if (!planResult.success) {
+      return planResult;
+    }
+
+    // Initialize subscription (not one-time payment)
+    const subscriptionData = {
+      customer: email,
+      plan: planResult?.data?.plan_code,
+      authorization: '' // You need authorization from initial payment
+    };
+
+    const response = await this.paystack.subscription.create(subscriptionData);
+    
+    if (response.status) {
+      return {
+        success: true,
+        data: {
+          subscription_code: response.data.subscription_code,
+          status: response.data.status,
+          next_payment_date: response.data.next_payment_date
+        }
+      };
+    } else {
+      throw new Error(response.message);
+    }
+  } catch (error: any) {
+    logger.error('Auto-renew subscription creation failed', { error: error.message });
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
   /**
    * Get configuration for frontend
    */
   getPublicConfig() {
     return {
-      publicKey: this.config.publicKey,
-      subscriptionAmount: this.config.subscriptionAmount,
-      subscriptionCurrency: this.config.subscriptionCurrency
+      publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
+      subscriptionAmount: parseInt(process.env.SUBSCRIPTION_AMOUNT || '5000'),
+      subscriptionCurrency: process.env.SUBSCRIPTION_CURRENCY || 'NGN'
     };
   }
 }

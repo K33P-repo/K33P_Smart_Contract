@@ -3,41 +3,26 @@ import { paystackService } from '../services/paystack-service.js';
 import { logger } from '../utils/logger.js';
 import pool from '../database/config.js';
 import { authenticateToken } from '../middleware/auth.js';
-
-// Extend Express Request interface
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        userId: string;
-        [key: string]: any;
-      };
-    }
-  }
-}
+import { subscriptionService } from '@/services/subscription-service.js';
 
 const router = express.Router();
 
 /**
- * Initialize payment for premium subscription
+ * Initialize one-time payment
  * POST /api/payment/initialize
  */
 router.post('/initialize', authenticateToken, async (req, res) => {
   try {
-    const { email, userId } = req.body;
-    
-    if (!email || !userId) {
-      return res.status(400).json({
-        success: false,
-        error: 'Email and userId are required'
-      });
-    }
+    const { amount = 5000 } = req.body;
+    const userId = req.user!.userId;
 
-    // Check if user exists
+    // Check if user exists and get their email/phone hash for metadata
     const client = await pool.connect();
+    let userEmail = 'user@k33p.app';
+    
     try {
       const userResult = await client.query(
-        'SELECT id, email, subscription_tier FROM users WHERE user_id = $1',
+        'SELECT email, phone_hash FROM users WHERE user_id = $1',
         [userId]
       );
 
@@ -49,50 +34,50 @@ router.post('/initialize', authenticateToken, async (req, res) => {
       }
 
       const user = userResult.rows[0];
-      
-      // Check if user is already premium
-      if (user.subscription_tier === 'premium') {
-        return res.status(400).json({
-          success: false,
-          error: 'User already has premium subscription'
-        });
-      }
-
-      // Initialize payment with Paystack
-      const paymentData = {
-        email: email,
-        amount: 3.99, // $3.99 subscription amount
-        currency: 'USD',
-        callback_url: `${process.env.FRONTEND_URL}/payment/callback`,
-        metadata: {
-          userId: userId,
-          subscriptionType: 'premium' as const,
-          userEmail: email
-        }
-      };
-
-      const result = await paystackService.initializePayment(paymentData);
-      
-      if (result.success) {
-        logger.info('Payment initialized successfully', { 
-          userId, 
-          email, 
-          reference: result.data?.reference 
-        });
-        
-        res.json({
-          success: true,
-          data: result.data
-        });
-      } else {
-        logger.error('Payment initialization failed', { userId, email, error: result.error });
-        res.status(400).json({
-          success: false,
-          error: result.error
-        });
-      }
+      userEmail = user.email || `user_${userId}@k33p.app`;
     } finally {
       client.release();
+    }
+
+    // Check if user already has premium
+    const subscriptionResult = await client.query(
+      'SELECT tier FROM subscriptions WHERE user_id = $1 AND tier = $2 AND is_active = true',
+      [userId, 'premium']
+    );
+
+    if (subscriptionResult.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'User already has active premium subscription'
+      });
+    }
+
+    // Initialize payment with Paystack
+    const paymentData = {
+      amount: amount,
+      currency: 'NGN',
+      callback_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback`,
+      metadata: {
+        userId: userId,
+        subscriptionType: 'premium'
+      }
+    };
+
+    const result = await paystackService.initializePayment(paymentData);
+    
+    if (result.success) {
+      logger.info('Payment initialized successfully', { userId });
+      
+      res.json({
+        success: true,
+        data: result.data
+      });
+    } else {
+      logger.error('Payment initialization failed', { userId, error: result.error });
+      res.status(400).json({
+        success: false,
+        error: result.error
+      });
     }
   } catch (error: any) {
     logger.error('Payment initialization error', { error: error.message });
@@ -104,7 +89,7 @@ router.post('/initialize', authenticateToken, async (req, res) => {
 });
 
 /**
- * Verify payment transaction
+ * Verify payment and activate subscription
  * POST /api/payment/verify
  */
 router.post('/verify', authenticateToken, async (req, res) => {
@@ -123,31 +108,42 @@ router.post('/verify', authenticateToken, async (req, res) => {
     if (result.success) {
       logger.info('Payment verified successfully', { reference });
       
-      // If payment is successful, update user subscription
-      if (result.data?.status === 'success' && result.data?.metadata?.userId) {
+      // If payment is successful and has authorization, activate subscription
+      if (result.data?.status === 'success' && result.data?.authorization) {
         const client = await pool.connect();
         try {
           await client.query('BEGIN');
           
-          await client.query(
-            `UPDATE users 
-             SET subscription_tier = 'premium',
-                 subscription_start_date = CURRENT_TIMESTAMP,
-                 subscription_end_date = CURRENT_TIMESTAMP + INTERVAL '1 month'
-             WHERE user_id = $1`,
-            [result.data.metadata.userId]
-          );
+          const userId = result.data.metadata?.userId;
+          
+          if (userId) {
+            // Update user subscription
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setMonth(endDate.getMonth() + 1); // 1 month subscription
+
+            await client.query(
+              `INSERT INTO subscriptions (user_id, tier, is_active, start_date, end_date, auto_renew, authorization_code)
+               VALUES ($1, 'premium', true, $2, $3, true, $4)
+               ON CONFLICT (user_id) 
+               DO UPDATE SET 
+                 tier = 'premium',
+                 is_active = true,
+                 start_date = $2,
+                 end_date = $3,
+                 auto_renew = true,
+                 authorization_code = $4,
+                 updated_at = CURRENT_TIMESTAMP`,
+              [userId, startDate, endDate, result.data.authorization.authorization_code]
+            );
+
+            logger.info('Premium subscription activated', { userId });
+          }
           
           await client.query('COMMIT');
-          logger.info('User subscription updated to premium', { 
-            userId: result.data.metadata.userId 
-          });
         } catch (dbError) {
           await client.query('ROLLBACK');
-          logger.error('Failed to update user subscription', { 
-            error: dbError, 
-            userId: result.data.metadata.userId 
-          });
+          logger.error('Failed to activate subscription', { error: dbError });
         } finally {
           client.release();
         }
@@ -166,6 +162,80 @@ router.post('/verify', authenticateToken, async (req, res) => {
     }
   } catch (error: any) {
     logger.error('Payment verification error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * Process recurring payment using stored authorization
+ * POST /api/payment/charge-recurring
+ */
+router.post('/charge-recurring', authenticateToken, async (req, res) => {
+  try {
+    const { amount = 5000 } = req.body;
+    const userId = req.user!.userId;
+
+    const client = await pool.connect();
+    try {
+      // Get user's authorization code
+      const subscriptionResult = await client.query(
+        'SELECT authorization_code FROM subscriptions WHERE user_id = $1 AND tier = $2 AND is_active = true',
+        [userId, 'premium']
+      );
+
+      if (subscriptionResult.rows.length === 0 || !subscriptionResult.rows[0].authorization_code) {
+        return res.status(400).json({
+          success: false,
+          error: 'No active subscription with authorization found'
+        });
+      }
+
+      const authorizationCode = subscriptionResult.rows[0].authorization_code;
+      const userEmail = `user_${userId}@k33p.app`; // Use consistent email
+
+      // Charge using authorization
+      const chargeResult = await paystackService.chargeAuthorization({
+        authorization_code: authorizationCode,
+        email: userEmail,
+        amount: amount,
+        currency: 'NGN',
+        metadata: {
+          userId: userId,
+          subscriptionType: 'premium_recurring'
+        }
+      });
+
+      if (chargeResult.success) {
+        // Extend subscription
+        const newEndDate = new Date();
+        newEndDate.setMonth(newEndDate.getMonth() + 1);
+
+        await client.query(
+          'UPDATE subscriptions SET end_date = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2',
+          [newEndDate, userId]
+        );
+
+        logger.info('Recurring payment processed successfully', { userId });
+        
+        res.json({
+          success: true,
+          data: chargeResult.data
+        });
+      } else {
+        logger.error('Recurring payment failed', { userId, error: chargeResult.error });
+        res.status(400).json({
+          success: false,
+          error: chargeResult.error
+        });
+      }
+    } finally {
+      client.release();
+    }
+  } catch (error: any) {
+    logger.error('Recurring payment error', { error: error.message });
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -373,6 +443,176 @@ router.get('/history', authenticateToken, async (req, res) => {
     }
   } catch (error: any) {
     logger.error('Failed to get payment history', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+// Add these new routes to your existing payment routes
+
+/**
+ * Initialize monthly recurring subscription with phone number
+ * POST /api/payment/initialize-monthly
+ */
+router.post('/initialize-monthly', authenticateToken, async (req, res) => {
+  try {
+    const { phone, amount } = req.body;
+    const userId = req.user!.userId;
+    
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        error: 'Phone number is required for monthly subscription'
+      });
+    }
+
+    // Validate phone number format
+    const phoneRegex = /^\+?[\d\s-()]{10,}$/;
+    if (!phoneRegex.test(phone)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid phone number is required'
+      });
+    }
+
+    // Initialize monthly recurring subscription
+    const result = await subscriptionService.initializeMonthlyRecurringSubscription(
+      userId,
+      phone,
+      amount || 5000 // Default to 5000 NGN
+    );
+    
+    if (result.success) {
+      logger.info('Monthly subscription payment initialized successfully', { 
+        userId, 
+        phone 
+      });
+      
+      res.json({
+        success: true,
+        data: {
+          paymentUrl: result.paymentUrl,
+          reference: result.reference
+        }
+      });
+    } else {
+      logger.error('Monthly subscription initialization failed', { 
+        userId, 
+        phone, 
+        error: result.message 
+      });
+      res.status(400).json({
+        success: false,
+        error: result.message
+      });
+    }
+  } catch (error: any) {
+    logger.error('Monthly subscription initialization error', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * Get recurring subscription details
+ * GET /api/payment/subscription/details
+ */
+router.get('/subscription/details', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.user!;
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(
+        `SELECT s.subscription_code, s.phone, s.status, s.next_payment_date, 
+                s.auto_renew, s.created_at, s.cancelled_at,
+                pt.reference, pt.amount, pt.currency
+         FROM subscriptions s
+         LEFT JOIN payment_transactions pt ON s.user_id = pt.user_id 
+         WHERE s.user_id = $1 AND s.tier = 'premium'
+         ORDER BY pt.created_at DESC LIMIT 1`,
+        [userId]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'No active subscription found'
+        });
+      }
+      
+      const subscription = result.rows[0];
+      
+      // If we have a subscription code, get details from Paystack
+      let paystackDetails = null;
+      if (subscription.subscription_code) {
+        const paystackResult = await paystackService.getSubscription(subscription.subscription_code);
+        if (paystackResult.success) {
+          paystackDetails = paystackResult.data;
+        }
+      }
+      
+      res.json({
+        success: true,
+        data: {
+          subscription: {
+            code: subscription.subscription_code,
+            phone: subscription.phone,
+            status: subscription.status,
+            nextPaymentDate: subscription.next_payment_date,
+            autoRenew: subscription.auto_renew,
+            createdAt: subscription.created_at,
+            cancelledAt: subscription.cancelled_at
+          },
+          lastPayment: {
+            reference: subscription.reference,
+            amount: subscription.amount,
+            currency: subscription.currency
+          },
+          paystackDetails: paystackDetails
+        }
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error: any) {
+    logger.error('Failed to get subscription details', { error: error.message });
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * Cancel recurring subscription
+ * POST /api/payment/subscription/cancel-recurring
+ */
+router.post('/subscription/cancel-recurring', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.user!;
+    
+    const success = await subscriptionService.cancelRecurringSubscription(userId);
+    
+    if (success) {
+      logger.info('Recurring subscription cancelled successfully', { userId });
+      
+      res.json({
+        success: true,
+        message: 'Recurring subscription cancelled successfully'
+      });
+    } else {
+      res.status(400).json({
+        success: false,
+        error: 'Failed to cancel recurring subscription'
+      });
+    }
+  } catch (error: any) {
+    logger.error('Failed to cancel recurring subscription', { error: error.message });
     res.status(500).json({
       success: false,
       error: 'Internal server error'

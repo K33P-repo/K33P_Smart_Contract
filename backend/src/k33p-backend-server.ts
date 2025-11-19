@@ -44,6 +44,7 @@ import subscriptionRoutes from './routes/subscription.js';
 import walletFoldersRoutes from './routes/wallet-folders.js'; // ADD THIS LINE
 
 import swaggerSpec from './swagger.js';
+import { paystackService } from './services/paystack-service.js';
 
 // Load environment variables
 dotenv.config();
@@ -350,6 +351,51 @@ app.post('/api/user/profile', async (req: Request, res: Response) => {
   } catch (error) {
     logger.error('Error getting user profile:', error);
     res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get user profile'));
+  }
+});
+
+// In your main server file (app.ts or server.ts)
+
+// Paystack webhook endpoint - must be before express.json() middleware
+app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers['x-paystack-signature'] as string;
+    
+    // For local development, you might want to log the webhook for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📩 Webhook received:', {
+        signature: signature ? 'present' : 'missing',
+        body: req.body.toString().substring(0, 500) + '...'
+      });
+    }
+
+    // Verify webhook signature
+    const isValid = paystackService.verifyWebhookSignature(req.body.toString(), signature);
+    
+    if (!isValid) {
+      logger.warn('Invalid webhook signature', { signature });
+      return res.status(401).json({ error: 'Invalid signature' });
+    }
+
+    const event = JSON.parse(req.body.toString());
+    
+    // Log webhook event for debugging
+    logger.info('Processing Paystack webhook', { 
+      event: event.event,
+      reference: event.data?.reference 
+    });
+
+    // Process the webhook
+    const result = await paystackService.processWebhookEvent(event);
+    
+    if (result.success) {
+      res.status(200).json({ message: 'Webhook processed successfully' });
+    } else {
+      res.status(400).json({ error: result.error });
+    }
+  } catch (error: any) {
+    logger.error('Webhook processing error', { error: error.message });
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
