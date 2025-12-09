@@ -46,7 +46,7 @@ import subscriptionRoutes from './routes/subscription.js';
 // @ts-ignore
 import walletFoldersRoutes from './routes/wallet-folders.js';
 // @ts-ignore
-import imageNumberRoutes from './routes/image-number-routes.ts';
+import imageNumberRoutes from './routes/image-number-routes.js';
 
 import swaggerSpec from './swagger.js';
 import { paystackService } from './services/paystack-service.js';
