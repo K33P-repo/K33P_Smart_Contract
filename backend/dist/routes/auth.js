@@ -764,7 +764,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
             // Generate JWT token for updated existing user
             console.log('🔵 [6.6/11] GENERATING JWT TOKEN FOR UPDATED USER...');
             const token = jwt.sign(
-                { id: existingUser.id, walletAddress: finalUserAddress || existingUser.walletAddress },
+                { id: existingUser.id, user_id: existingUser.userId, walletAddress: finalUserAddress || existingUser.walletAddress },
                 process.env.JWT_SECRET || 'default-secret',
                 { expiresIn: process.env.JWT_EXPIRATION || '24h' }
             );
@@ -857,7 +857,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
                     // Generate JWT token for updated existing user
                     const token = jwt.sign(
-                        { id: existingWalletUser.id, walletAddress: finalUserAddress },
+                        { id: existingWalletUser.id, user_id: existingUser.userId,  walletAddress: finalUserAddress },
                         process.env.JWT_SECRET || 'default-secret',
                         { expiresIn: process.env.JWT_EXPIRATION || '24h' }
                     );
@@ -1003,7 +1003,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
         console.log('🔵 [11/11] GENERATING JWT TOKEN AND SESSION...');
         const token = jwt.sign(
-            { id: user.id, walletAddress: user.walletAddress },
+            { id: user.id , user_id: user.userId, walletAddress: user.walletAddress },
             process.env.JWT_SECRET || 'default-secret',
             { expiresIn: process.env.JWT_EXPIRATION || '24h' }
         );
@@ -1080,7 +1080,7 @@ router.post('/login', verifyZkProof, async (req, res) => {
             return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
         }
         // Generate JWT token
-        const token = jwt.sign({ id: user.id, walletAddress: user.walletAddress }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+        const token = jwt.sign({ id: user.id, user_id: user.userId, walletAddress: user.walletAddress }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '24h' });
         // Create session in Iagon
         await iagon.createSession({ userId: user.id, token, expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) });
         return ResponseUtils.success(res, SuccessCodes.AUTH_LOGIN_SUCCESS, { token, hasWallet: !!user.walletAddress });
@@ -1166,7 +1166,7 @@ router.post('/signin', async (req, res) => {
             id: user.id,
             walletAddress: user.walletAddress,
             phoneNumber: user.phoneNumber,
-            userId: user.userId
+            user_id: user.userId
         }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
         console.log('JWT token generated successfully');
         console.log('Step 6: Creating session...');

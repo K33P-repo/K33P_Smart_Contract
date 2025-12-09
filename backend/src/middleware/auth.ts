@@ -23,10 +23,40 @@ export const verifyToken = (req: AuthenticatedRequest, res: Response, next: Next
     const token = authHeader.split(' ')[1];
     
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret') as any;
+    console.log('JWT Decoded:', decoded);
+    // Debug: Log what's in the token
+    console.log('JWT Decoded:', {
+      id: decoded.id,
+      user_id: decoded.user_id,
+      userId: decoded.userId,
+      walletAddress: decoded.walletAddress
+    });
+    
+    // Extract the correct user ID
+    // Priority: user_id (string) > id (could be UUID) > userId
+    const userId = decoded.userId || decoded.user_id || decoded.id;
+    
+    if (!userId) {
+      console.error('No user ID found in JWT token');
+      return ResponseUtils.error(res, ErrorCodes.AUTH_TOKEN_INVALID);
+    }
     
     // Add user data to request
-    req.user = decoded;
+    req.user = {
+      id: userId,  // This should be the string ID
+      userId: userId,  // For consistency
+      walletAddress: decoded.walletAddress,
+      phoneNumber: decoded.phoneNumber,
+      username: decoded.username,
+      // Include other fields as needed
+      ...decoded
+    };
+    
+    console.log('Request user assigned:', {
+      id: req.user.id,
+      userId: req.user.userId
+    });
     
     next();
   } catch (error: any) {

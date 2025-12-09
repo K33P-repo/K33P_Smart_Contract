@@ -15,7 +15,7 @@
     "lint:fix": "eslint . --ext .ts --fix",
     "postinstall": "npm run build",
     "db:init": "ts-node --esm src/database/init.ts",
-    "db:migrate": "ts-node --esm src/database/migrate.ts",
+    "db:migrate": "ts-node --esm src/database/run-migration.ts",
     "db:reset": "ts-node --esm src/database/reset.ts"
   },
   "keywords": [

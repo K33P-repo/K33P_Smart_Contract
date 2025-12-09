@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS users (
     verification_method VARCHAR(50) DEFAULT 'phone',
     biometric_type VARCHAR(50),
     sender_wallet_address TEXT,
+    image_number INTEGER DEFAULT 1 CHECK (image_number IN (1, 2, 3)),
     verified BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
@@ -229,6 +230,97 @@ CREATE TABLE IF NOT EXISTS account_activity (
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
 );
+-- ============================================================================
+-- NOTIFICATIONS TABLE
+-- ============================================================================
+
+-- Notifications table
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    notification_type VARCHAR(50) NOT NULL DEFAULT 'system' CHECK (notification_type IN (
+        'system', 
+        'transaction', 
+        'security', 
+        'subscription', 
+        'wallet', 
+        'backup', 
+        'emergency',
+        'promotion'
+    )),
+    priority VARCHAR(20) DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent')),
+    is_read BOOLEAN DEFAULT FALSE,
+    is_seen BOOLEAN DEFAULT FALSE,
+    action_url TEXT,
+    action_label VARCHAR(100),
+    metadata JSONB DEFAULT '{}'::jsonb,
+    expires_at TIMESTAMPTZ,
+    scheduled_for TIMESTAMPTZ,
+    sent_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    read_at TIMESTAMPTZ,
+    deleted_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Indexes for notifications
+CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_is_seen ON notifications(is_seen);
+CREATE INDEX IF NOT EXISTS idx_notifications_notification_type ON notifications(notification_type);
+CREATE INDEX IF NOT EXISTS idx_notifications_priority ON notifications(priority);
+CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_expires_at ON notifications(expires_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_scheduled_for ON notifications(scheduled_for);
+CREATE INDEX IF NOT EXISTS idx_notifications_deleted_at ON notifications(deleted_at) WHERE deleted_at IS NOT NULL;
+
+-- Create trigger for notifications updated_at
+CREATE TRIGGER update_notifications_updated_at BEFORE UPDATE ON notifications
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Notification preferences table
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR(50) NOT NULL,
+    notification_type VARCHAR(50) NOT NULL,
+    enabled BOOLEAN DEFAULT TRUE,
+    email_enabled BOOLEAN DEFAULT FALSE,
+    push_enabled BOOLEAN DEFAULT TRUE,
+    sms_enabled BOOLEAN DEFAULT FALSE,
+    quiet_hours_start TIME DEFAULT '22:00:00',
+    quiet_hours_end TIME DEFAULT '07:00:00',
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    UNIQUE(user_id, notification_type)
+);
+
+-- Indexes for notification preferences
+CREATE INDEX IF NOT EXISTS idx_notification_preferences_user_id ON notification_preferences(user_id);
+CREATE INDEX IF NOT EXISTS idx_notification_preferences_enabled ON notification_preferences(enabled);
+
+-- Create trigger for notification_preferences updated_at
+CREATE TRIGGER update_notification_preferences_updated_at BEFORE UPDATE ON notification_preferences
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- View for user notification summary
+CREATE OR REPLACE VIEW user_notification_summary AS
+SELECT 
+    u.user_id,
+    u.email,
+    u.name,
+    u.username,
+    COUNT(n.id) as total_notifications,
+    COUNT(CASE WHEN n.is_read = false THEN 1 END) as unread_count,
+    COUNT(CASE WHEN n.is_seen = false THEN 1 END) as unseen_count,
+    COUNT(CASE WHEN n.priority = 'urgent' AND n.is_read = false THEN 1 END) as urgent_unread_count,
+    MAX(n.created_at) as latest_notification_time
+FROM users u
+LEFT JOIN notifications n ON u.user_id = n.user_id AND n.deleted_at IS NULL
+GROUP BY u.user_id, u.email, u.name, u.username;
 
 -- Indexes for existing tables
 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id);

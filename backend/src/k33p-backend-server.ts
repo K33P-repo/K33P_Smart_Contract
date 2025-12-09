@@ -8,7 +8,7 @@ import { dbService } from './database/service.js';
 import { autoRefundMonitor } from './services/auto-refund-monitor.js';
 import { subscriptionService } from './services/subscription-service.js';
 import { MockDatabaseService } from './database/mock-service.js';
-import { initializeDatabase, testConnection } from './database/config.js';
+import {testConnection } from './database/config.js';
 import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
@@ -35,13 +35,18 @@ import seedPhraseRoutes from './routes/seed-phrase-routes.js';
 // @ts-ignore
 import userRoutes from './routes/user-routes.js';
 // @ts-ignore
+import notificationRoutes from './routes/notification-routes.js';
+
+// @ts-ignore
 import autoRefundRoutes from './routes/auto-refund-routes.js';
 // @ts-ignore
 import paymentRoutes from './routes/payment.js';
 // @ts-ignore
 import subscriptionRoutes from './routes/subscription.js';
 // @ts-ignore
-import walletFoldersRoutes from './routes/wallet-folders.js'; // ADD THIS LINE
+import walletFoldersRoutes from './routes/wallet-folders.js';
+// @ts-ignore
+import imageNumberRoutes from './routes/image-number-routes.ts';
 
 import swaggerSpec from './swagger.js';
 import { paystackService } from './services/paystack-service.js';
@@ -81,7 +86,7 @@ async function initializeK33P() {
     console.log('🔧 Initializing database connection to Supabase...');
     
     // Initialize database first
-    const dbReady = await initializeDatabase();
+    /* const dbReady = await;
     
     if (!dbReady) {
       logger.warn('Database initialization failed, using mock database...');
@@ -91,7 +96,7 @@ async function initializeK33P() {
       logger.info('✅ Database connected and schema ready');
       usingMockDatabase = false;
     }
-    
+     */
     // Initialize K33P Manager - but skip Cardano if disabled
     k33pManager = new EnhancedK33PManagerDB();
     
@@ -177,10 +182,13 @@ app.use('/api/recovery', recoveryRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/seed-phrases', seedPhraseRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
-app.use('/api/wallet-folders', walletFoldersRoutes); // ADD THIS LINE
+app.use('/api/wallet-folders', walletFoldersRoutes); imageNumberRoutes
+app.use('/api/image-number', imageNumberRoutes);
+
 
 // Global error handler (must be last middleware)
 app.use(globalErrorHandler);

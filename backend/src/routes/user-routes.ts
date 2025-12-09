@@ -13,7 +13,7 @@ import { createRateLimiter } from '../middleware/rate-limiter.js';
 import { logger } from '../utils/logger.js';
 import { Pool } from 'pg';
 import { EnhancedK33PManagerDB } from '../enhanced-k33p-manager-db.js';
-import { AuthDataModel } from '../database/models.js';
+import { AuthDataModel, UserModel } from '../database/models.js';
 import { hashPhone, hashBiometric } from '../utils/hash.js';
 import crypto from 'crypto';
 import multer from 'multer';
@@ -3443,9 +3443,6 @@ router.delete('/account/:userId',
   })
 );
 
-// ============================================================================
-// ERROR HANDLING MIDDLEWARE
-// ============================================================================
 
 router.use((error: any, req: Request, res: Response, next: any) => {
   logger.error('User route error:', error);

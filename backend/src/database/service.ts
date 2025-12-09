@@ -23,6 +23,7 @@ export class DatabaseService {
     pinHash?: string; 
     authMethods: AuthMethod[];  
     folders?: any[]; 
+    imageNumber?: number;
   }): Promise<User> {
     
     // Create default auth methods if not provided
@@ -51,7 +52,8 @@ export class DatabaseService {
       pin_hash: userData.pinHash,
       zk_commitment: userData.zkCommitment,
       auth_methods: userData.authMethods || defaultAuthMethods,  
-      folders: userData.folders || []                            
+      folders: userData.folders || [] ,
+      image_number: userData.imageNumber || 1                          
     });
     
     try {
