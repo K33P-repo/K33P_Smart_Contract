@@ -154,10 +154,10 @@ router.post('/folders/:folderId/wallets', authenticateToken, walletLimiter, asyn
     }
 
     // Check if wallet name already exists in this folder
-    const existingWallet = folder.items.find(w => w.name === name.trim());
+    /* const existingWallet = folder.items.find(w => w.name === name.trim());
     if (existingWallet) {
       return res.status(409).json({ success: false, message: 'A wallet with this name already exists in this folder' });
-    }
+    } */
 
     // Create new wallet item with only name (keyType and fileId can be added later)
     const newWallet: WalletItem = {
