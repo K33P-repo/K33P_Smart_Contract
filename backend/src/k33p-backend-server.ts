@@ -186,7 +186,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
-app.use('/api/wallet-folders', walletFoldersRoutes); imageNumberRoutes
+app.use('/api/wallet-folders', walletFoldersRoutes); 
 app.use('/api/image-number', imageNumberRoutes);
 
 
