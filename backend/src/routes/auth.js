@@ -15,7 +15,7 @@ import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { sendOtp, verifyOtp } from '../utils/twilio.js';
-import { UserModel } from '@/database/models.js';
+import { UserModel } from '../database/models.js';
 
 const router = express.Router();
 
