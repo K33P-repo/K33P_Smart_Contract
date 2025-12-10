@@ -15,6 +15,7 @@ import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
 import { sendOtp, verifyOtp } from '../utils/twilio.js';
+import { UserModel } from '@/database/models.js';
 
 const router = express.Router();
 
@@ -104,6 +105,77 @@ router.post('/signup/passkey', async (req, res) => {
 router.post('/signup', async (req, res) => {
   return handleSignup(req, res);
 });
+
+router.delete('/user', verifyToken, createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 delete attempts per 15 minutes
+  message: 'Too many delete account attempts, please try again later'
+}), asyncHandler(async (req, res) => {
+  try {
+    const userId = req.user.userId;  
+    
+    console.log('=== DELETE USER DEBUG START ===');
+    console.log('Authenticated user ID from token:', userId);
+
+    if (!userId) {
+      console.log('Validation failed: User ID not found in token');
+      return ResponseUtils.error(res, ErrorCodes.UNAUTHORIZED, null, 'Invalid token');
+    }
+
+    // Check if user exists
+    console.log('Finding user by ID:', userId);
+    const user = await UserModel.findByUserId(userId);
+    
+    if (!user) {
+      console.log('User not found with ID:', userId);
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+    }
+
+    console.log('User found, proceeding with deletion...');
+    
+    // Start the deletion process
+    const deletionResult = await UserModel.deleteUser(userId);
+    
+    if (!deletionResult) {
+      console.log('User deletion failed');
+      return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to delete user account');
+    }
+
+    console.log('User deletion completed successfully');
+    
+    // Also clear any active sessions for this user
+    try {
+      await iagon.deleteSessions({ userId: user.id });
+      console.log('User sessions cleared from Iagon');
+    } catch (sessionError) {
+      console.warn('Could not clear user sessions:', sessionError.message);
+      // Don't fail the deletion if session cleanup fails
+    }
+
+    console.log('=== DELETE USER DEBUG END ===');
+    
+    return ResponseUtils.success(res, SuccessCodes.USER_DELETED, {
+      message: 'User account and all associated data have been successfully deleted',
+      userId: userId,
+      timestamp: new Date().toISOString()
+    }, 'Your account has been permanently deleted. All your data has been removed from our systems.');
+
+  } catch (error) {
+    console.error('=== DELETE USER ERROR ===');
+    console.error('Error:', error);
+    
+    // Handle specific error cases
+    if (error.message.includes('foreign key constraint')) {
+      return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Failed to delete account due to database constraints. Please contact support.');
+    }
+    
+    if (error.message.includes('transaction')) {
+      return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Database transaction failed. Please try again.');
+    }
+    
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to delete user account: ' + error.message);
+  }
+}));
 
 /**
  * @route POST /api/auth/send-otp

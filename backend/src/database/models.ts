@@ -312,6 +312,118 @@ export class UserModel {
     }
   }
 
+  static async deleteUser(userId: string): Promise<boolean> {
+    const client = await pool.connect();
+    
+    // Start a transaction to ensure all deletions succeed or fail together
+    await client.query('BEGIN');
+    
+    try {
+      console.log(`🗑️  Starting deletion process for user: ${userId}`);
+      
+      // 1. First, check if user exists
+      const userExists = await this.findByUserId(userId);
+      if (!userExists) {
+        console.log(`❌ User ${userId} not found, nothing to delete`);
+        await client.query('ROLLBACK');
+        return false;
+      }
+      
+      // 2. Delete all related data in correct order (handle foreign key constraints)
+      // Order is important due to foreign key relationships
+      
+      // Delete from notification_preferences first (references users)
+      try {
+        const deletePreferencesQuery = 'DELETE FROM notification_preferences WHERE user_id = $1';
+        const prefResult = await client.query(deletePreferencesQuery, [userId]);
+        console.log(`✅ Deleted ${prefResult.rowCount} notification preferences`);
+      } catch (error) {
+        console.log(`ℹ️  No notification preferences found for user ${userId}`);
+      }
+      
+      // Delete from notifications (references users)
+      try {
+        const deleteNotificationsQuery = 'DELETE FROM notifications WHERE user_id = $1';
+        const notifResult = await client.query(deleteNotificationsQuery, [userId]);
+        console.log(`✅ Deleted ${notifResult.rowCount} notifications`);
+      } catch (error) {
+        console.log(`ℹ️  No notifications found for user ${userId}`);
+      }
+      
+      // Delete from payment_transactions (references users)
+      try {
+        const deletePaymentQuery = 'DELETE FROM payment_transactions WHERE user_id = $1';
+        const paymentResult = await client.query(deletePaymentQuery, [userId]);
+        console.log(`✅ Deleted ${paymentResult.rowCount} payment transactions`);
+      } catch (error) {
+        console.log(`ℹ️  No payment transactions found for user ${userId}`);
+      }
+      
+      // Delete from subscriptions (references users)
+      try {
+        const deleteSubscriptionsQuery = 'DELETE FROM subscriptions WHERE user_id = $1';
+        const subResult = await client.query(deleteSubscriptionsQuery, [userId]);
+        console.log(`✅ Deleted ${subResult.rowCount} subscriptions`);
+      } catch (error) {
+        console.log(`ℹ️  No subscriptions found for user ${userId}`);
+      }
+      
+      // Delete from auth_data (references users)
+      try {
+        const deleteAuthDataQuery = 'DELETE FROM auth_data WHERE user_id = $1';
+        const authResult = await client.query(deleteAuthDataQuery, [userId]);
+        console.log(`✅ Deleted ${authResult.rowCount} auth data records`);
+      } catch (error) {
+        console.log(`ℹ️  No auth data found for user ${userId}`);
+      }
+      
+      // Delete from user_deposits (references users)
+      try {
+        const deleteDepositsQuery = 'DELETE FROM user_deposits WHERE user_id = $1';
+        const depositResult = await client.query(deleteDepositsQuery, [userId]);
+        console.log(`✅ Deleted ${depositResult.rowCount} user deposits`);
+      } catch (error) {
+        console.log(`ℹ️  No user deposits found for user ${userId}`);
+      }
+      
+      // Note: transactions table has user_deposit_id foreign key, but cascade delete
+      // should handle this when user_deposits are deleted
+      
+      // 3. Finally, delete the user from users table
+      const deleteUserQuery = 'DELETE FROM users WHERE user_id = $1';
+      const userResult = await client.query(deleteUserQuery, [userId]);
+      
+      if (userResult.rowCount === 0) {
+        throw new Error(`Failed to delete user ${userId} from users table`);
+      }
+      
+      console.log(`✅ Deleted user ${userId} from users table`);
+      
+      // 4. Commit the transaction
+      await client.query('COMMIT');
+      
+      console.log(`🎉 User ${userId} and all associated data have been completely deleted`);
+      return true;
+      
+    } catch (error: any) {
+      // Rollback on any error
+      await client.query('ROLLBACK');
+      console.error(`❌ Failed to delete user ${userId}:`, error.message);
+      
+      // Log more detailed error information
+      if (error.code) {
+        console.error(`Database error code: ${error.code}`);
+      }
+      if (error.detail) {
+        console.error(`Error detail: ${error.detail}`);
+      }
+      
+      throw new Error(`Failed to delete user account: ${error.message}`);
+    } finally {
+      client.release();
+    }
+  }
+
   // Helper method to create default notification preferences
   private static async createDefaultNotificationPreferences(client: PoolClient, userId: string): Promise<void> {
     const defaultPreferences = [
