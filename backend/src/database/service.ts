@@ -508,7 +508,11 @@ async createZKProof(proofData: any): Promise<any> {
     client.release();
   }
 }
+async updatePin(userId: string, pinHash: string, authMethods?: AuthMethod[]): Promise<User | null> {
+  return await UserModel.updatePin(userId, pinHash, authMethods);
 }
+}
+
 
 
 

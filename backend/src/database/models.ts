@@ -630,6 +630,174 @@ export class UserModel {
     }
   }
 
+  // In your UserModel class, add this method after the update method
+  static async updatePin(userId: string, pinHash: string, authMethods?: AuthMethod[]): Promise<User | null> {
+    const client = await pool.connect();
+    
+    // Start a transaction to ensure both updates succeed or fail together
+    await client.query('BEGIN');
+    
+    try {
+      // Get current user to update auth methods if needed
+      const user = await this.findByUserId(userId);
+      if (!user) {
+        throw new Error(`User ${userId} not found`);
+      }
+      
+      console.log(`🔐 Updating PIN for user: ${userId}`);
+      
+      // Prepare updates object
+      const updates: Record<string, any> = {};
+      
+      // 1. Update pin_hash column if it exists (optional)
+      try {
+        // Check if pin_hash column exists
+        const columnCheck = await client.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = 'users' 
+          AND column_name = 'pin_hash'
+        `);
+        
+        const hasPinHashColumn = columnCheck.rows.length > 0;
+        
+        if (hasPinHashColumn) {
+          updates.pin_hash = pinHash;
+          console.log(`✅ Will update pin_hash column`);
+        } else {
+          console.log(`ℹ️  pin_hash column not found in database, skipping column update`);
+        }
+      } catch (columnError: unknown) {
+        const errorMessage = columnError instanceof Error ? columnError.message : 'Unknown error';
+        console.log(`⚠️  Could not check for pin_hash column:`, errorMessage);
+      }
+      
+      // 2. Update auth_methods array (required - this is where PIN is primarily stored)
+      let updatedAuthMethods: AuthMethod[];
+      
+      if (authMethods && authMethods.length > 0) {
+        updatedAuthMethods = authMethods;
+      } else {
+        // Update existing auth methods to include new PIN hash
+        updatedAuthMethods = user.auth_methods.map(method => {
+          if (method.type === 'pin') {
+            // Create updated method with only properties that exist in AuthMethod type
+            const updatedMethod: AuthMethod = {
+              type: method.type,
+              data: pinHash,
+              createdAt: method.createdAt,
+              lastUsed: new Date()  // Only use properties that exist in AuthMethod
+              // Don't include updatedAt if it's not in the AuthMethod type
+            };
+            return updatedMethod;
+          }
+          return method;
+        });
+      }
+      
+      // Validate we have at least 3 auth methods
+      if (updatedAuthMethods.length < 3) {
+        throw new Error('At least 3 authentication methods are required');
+      }
+      
+      updates.auth_methods = JSON.stringify(updatedAuthMethods);
+      console.log(`✅ Updated PIN in auth_methods array`);
+      
+      // Build dynamic update query
+      const setClause = Object.keys(updates)
+        .map((key, index) => {
+          if (key === 'auth_methods') {
+            return `${key} = $${index + 2}::jsonb`;
+          }
+          return `${key} = $${index + 2}`;
+        })
+        .join(', ');
+      
+      // Add updated_at
+      const finalSetClause = `${setClause}, updated_at = CURRENT_TIMESTAMP`;
+      
+      const query = `
+        UPDATE users 
+        SET ${finalSetClause}
+        WHERE user_id = $1
+        RETURNING *
+      `;
+      
+      const values = [userId, ...Object.values(updates)];
+      
+      console.log(`📝 Executing update query:`, query);
+      console.log(`📝 Values:`, values);
+      
+      const result = await client.query(query, values);
+      
+      if (result.rows.length === 0) {
+        throw new Error(`Failed to update PIN for user ${userId}`);
+      }
+      
+      // Commit transaction
+      await client.query('COMMIT');
+      
+      console.log(`✅ PIN updated successfully for user: ${userId}`);
+      return this.parseUser(result.rows[0]);
+      
+    } catch (error: unknown) {
+      // Rollback on error
+      await client.query('ROLLBACK');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error(`❌ Failed to update PIN for user ${userId}:`, errorMessage);
+      
+      // Check for specific database errors
+      if (error instanceof Error && (error as any).code === '42703') {
+        console.error(`Database error: Column not found. Attempting alternative update...`);
+        
+        // Try alternative approach - update only auth_methods
+        await client.query('BEGIN');
+        try {
+          const user = await this.findByUserId(userId);
+          if (!user) throw new Error('User not found');
+          
+          const updatedAuthMethods: AuthMethod[] = user.auth_methods.map(method => {
+            if (method.type === 'pin') {
+              return {
+                type: method.type,
+                data: pinHash,
+                createdAt: method.createdAt,
+                lastUsed: new Date()  // Only include properties that exist
+              };
+            }
+            return method;
+          });
+          
+          const altQuery = `
+            UPDATE users 
+            SET auth_methods = $1::jsonb, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = $2
+            RETURNING *
+          `;
+          
+          const altResult = await client.query(altQuery, [
+            JSON.stringify(updatedAuthMethods), 
+            userId
+          ]);
+          
+          await client.query('COMMIT');
+          
+          console.log(`✅ PIN updated via alternative method for user: ${userId}`);
+          return this.parseUser(altResult.rows[0]);
+          
+        } catch (altError: unknown) {
+          await client.query('ROLLBACK');
+          const altErrorMessage = altError instanceof Error ? altError.message : 'Unknown error';
+          throw new Error(`Alternative update failed: ${altErrorMessage}`);
+        }
+      }
+      
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
   // NEW: Update authentication methods
   static async updateAuthMethods(userId: string, authMethods: AuthMethod[]): Promise<User | null> {
     if (authMethods.length < 3) {

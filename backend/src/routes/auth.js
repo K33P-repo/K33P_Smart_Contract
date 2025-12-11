@@ -838,6 +838,153 @@ router.post('/verify-otp', createRateLimiter({
   }
 });
 
+// Add a test endpoint to generate token
+router.post('/test-token', asyncHandler(async (req, res) => {
+  const { userId } = req.body;
+  
+  const token = jwt.sign(
+    { 
+      id: 'test-id-123',
+      userId: userId || 'testuser123',
+      walletAddress: 'test_wallet_address',
+      authMethods: ['phone', 'pin', 'fingerprint'],
+      verificationMethod: 'phone',
+      zkCommitment: 'test_zk_commitment'
+    },
+    process.env.JWT_SECRET || 'default-secret',
+    { expiresIn: '1h' }
+  );
+  
+  return ResponseUtils.success(res, SuccessCodes.TOKEN_GENERATED, {
+    token,
+    decoded: jwt.decode(token)
+  });
+}));
+
+/**
+ * @route PUT /api/auth/update-pin
+ * @desc Update user's PIN
+ * @access Private (requires JWT)
+ */
+router.put('/update-pin', verifyToken, createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 PIN update attempts per 15 minutes
+  message: 'Too many PIN update attempts, please try again later'
+}), asyncHandler(async (req, res) => {
+  try {
+    const { pinHash } = req.body;
+    const userId = req.user.userId;
+    
+    console.log('=== UPDATE PIN DEBUG START ===');
+    console.log('Authenticated user ID from token:', userId);
+    console.log('New PIN hash provided:', pinHash ? `${pinHash.substring(0, 20)}...` : 'No');
+
+    if (!pinHash) {
+      console.log('Validation failed: PIN hash is required');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN hash is required');
+    }
+
+    // Validate PIN hash format (basic validation)
+    if (typeof pinHash !== 'string' || pinHash.length < 10) {
+      console.log('Validation failed: Invalid PIN hash format');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid PIN hash format');
+    }
+
+    console.log('Finding user by ID:', userId);
+    const user = await dbService.getUserById(userId);
+    
+    if (!user) {
+      console.log('User not found with ID:', userId);
+      return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+    }
+
+    console.log('User found, current auth methods:', user.auth_methods?.map(m => ({
+      type: m.type,
+      hasData: !!m.data,
+      dataLength: m.data?.length
+    })));
+
+    // Check if PIN method exists
+    const hasPinMethod = user.auth_methods?.some(m => m.type === 'pin');
+    if (!hasPinMethod) {
+      console.log('User does not have PIN authentication method');
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN authentication not setup for this user');
+    }
+
+    console.log('Updating PIN using dbService.updatePin...');
+    
+    try {
+      // Use the new updatePin method
+      const updatedUser = await dbService.updatePin(userId, pinHash);
+      
+      if (!updatedUser) {
+        console.log('Failed to update PIN - no user returned');
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to update PIN');
+      }
+
+      console.log('PIN updated successfully');
+      
+      // Verify the update was successful
+      const updatedPinMethod = updatedUser.auth_methods?.find(m => m.type === 'pin');
+      console.log('Verification - Updated PIN method:', {
+        type: updatedPinMethod?.type,
+        hasData: !!updatedPinMethod?.data,
+        dataLength: updatedPinMethod?.data?.length,
+        lastUsed: updatedPinMethod?.lastUsed
+      });
+
+      const responseData = {
+        userId: updatedUser.user_id,
+        updatedAt: updatedUser.updated_at,
+        pinUpdated: true,
+        authMethodsUpdated: true,
+        message: 'PIN updated successfully'
+      };
+
+      console.log('=== UPDATE PIN DEBUG END ===');
+      return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, responseData, 'PIN updated successfully');
+      
+    } catch (updateError) {
+      console.error('Error in dbService.updatePin:', updateError);
+      
+      // Handle specific error cases
+      if (updateError.message?.includes('At least 3 authentication methods')) {
+        return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, updateError.message);
+      }
+      
+      if (updateError.message?.includes('User not found')) {
+        return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, updateError.message);
+      }
+      
+      throw updateError;
+    }
+
+  } catch (error) {
+    console.error('=== UPDATE PIN ERROR ===');
+    console.error('Error name:', error.name);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
+    console.error('Full error:', error);
+    
+    // Handle specific error cases
+    if (error.code === '42703') {
+      return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, {
+        hint: 'Database column might not exist. Check database schema.'
+      }, 'Database configuration error');
+    }
+    
+    if (error.message?.includes('foreign key constraint')) {
+      return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Database constraint violation');
+    }
+    
+    if (error.message?.includes('connection')) {
+      return ResponseUtils.error(res, ErrorCodes.SERVICE_UNAVAILABLE, error, 'Database connection error');
+    }
+    
+    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to update PIN');
+  }
+}));
+
 async function handleSignup(req, res, defaultVerificationMethod = null, defaultBiometricType = null) {
   try {
     console.log('=== SIGNUP DEBUG START ===');
