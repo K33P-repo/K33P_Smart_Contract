@@ -530,78 +530,38 @@ export class EnhancedK33PManagerDB {
     
     try {
       const currentDbService = this.getDbService();
+      const deposit = await currentDbService.getDepositByUserAddress(userAddress);
       
       console.log(`🔍 Processing refund for user: ${userAddress}`);
-      
-      // Get the deposit record
-      const deposit = await currentDbService.getDepositByUserAddress(userAddress);
       console.log(`📊 Deposit found: ${!!deposit}`);
+      if (deposit) {
+        console.log(`📊 Deposit refunded status: ${deposit.refunded}`);
+      }
       
-      // CRITICAL: Check if deposit exists
-      if (!deposit) {
-        console.log(`❌ No deposit found for user: ${userAddress}`);
+      // Check if deposit exists and has already been refunded
+      if (deposit && deposit.refunded) {
+        console.log(`❌ Refund already processed for user: ${userAddress}`);
         return {
           success: false,
-          message: 'No deposit found for this user address. Refund requires an existing deposit.'
+          message: 'Deposit has already been refunded'
         };
       }
       
-      // Check if deposit is already refunded
-      if (deposit.refunded) {
-        console.log(`🔄 Deposit already refunded for user: ${userAddress}, resetting for new deposit...`);
-        
-        // RESET LOGIC: Set refunded to false and verified to false to allow new deposit
-        await currentDbService.updateDeposit(userAddress, {
-          refunded: false,
-          verified: false,
-          signup_completed: false,
-          verification_attempts: 0,
-          tx_hash: null,
-          refund_tx_hash: null,
-          refund_timestamp: null,
-          last_verification_attempt: null
-        });
-        
-        console.log(`✅ Reset deposit status for user: ${userAddress}. Ready for new deposit.`);
-        
-        return {
-          success: true,
-          message: 'Deposit status reset successfully. You can now make a new deposit.'
-        };
-      }
+      // Determine refund address - prioritize walletAddress, then deposit sender, then userAddress
+      const refundAddress = walletAddress || (deposit?.sender_wallet_address) || userAddress;
       
-      // Check if deposit is verified (user completed verification)
-      if (!deposit.verified) {
-        console.log(`❌ Deposit not verified for user: ${userAddress}`);
-        return {
-          success: false,
-          message: 'Deposit must be verified before refund'
-        };
-      }
-      
-      // Check if user completed signup (optional requirement)
-      if (!deposit.signup_completed) {
-        console.log(`⚠️  Signup not completed for user: ${userAddress}, but proceeding with refund...`);
-      }
-      
-      console.log(`📊 Deposit details:`, {
-        amount: deposit.amount,
-        verified: deposit.verified,
-        signupCompleted: deposit.signup_completed,
-        createdAt: deposit.created_at || deposit.timestamp
-      });
-      
-      // Determine refund address
-      const refundAddress = walletAddress || deposit.sender_wallet_address || userAddress;
-      
-      console.log(`💰 Processing refund of ${deposit.amount} lovelace to ${refundAddress}...`);
+      console.log(`💰 Processing refund to ${refundAddress}...`);
       
       let txHash: string;
       
       if (this.usingMockDatabase) {
+        // Simulate refund transaction for mock database
         txHash = 'mock_refund_' + Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
         console.log(`📝 Mock refund transaction simulated: ${txHash}`);
       } else {
+        // Process the actual refund transaction
+        // Note: This is a simplified refund - in production, you'd need to find the actual UTXO
+        // For now, we'll create a direct payment transaction
         const lucid = this.lucid!;
         const tx = await lucid.newTx()
           .payToAddress(refundAddress, { lovelace: CONFIG.refundAmount })
@@ -611,45 +571,99 @@ export class EnhancedK33PManagerDB {
         txHash = await signedTx.submit();
       }
       
-      // Mark the deposit as refunded AND reset for new deposit
-      await currentDbService.markRefunded(userAddress, txHash);
-      console.log(`✅ Marked deposit as refunded: ${userAddress}`);
-      
-      // Generate ZK proof for refund operation
+      // Generate ZK proof for refund operation - WITHOUT requiring a user
       try {
         const { ZKProofService } = await import('./services/zk-proof-service');
         
+        // Generate ZK proof using data method instead of user method
         await ZKProofService.generateAndStoreDataZKProof(
-          deposit.user_id,
+          `refund_${Date.now()}`, // Use timestamp as user ID for tracking
           'refund_operation',
           {
             userAddress,
             refundAddress,
             txHash,
             amount: CONFIG.refundAmount,
-            originalDepositAmount: deposit.amount,
             timestamp: new Date().toISOString(),
-            depositId: deposit.id
+            depositExists: !!deposit,
+            operationType: 'external_refund' // Mark as external refund
           }
         );
         
         console.log(`✅ ZK proof generated for refund operation`);
       } catch (zkError) {
         console.error('Failed to generate ZK proof for refund:', zkError);
-        // Don't fail refund if ZK proof fails
+        // Don't fail the refund if ZK proof generation fails
       }
       
-      // Create transaction record
-      await currentDbService.createTransaction({
-        txHash,
-        fromAddress: this.depositAddress,
-        toAddress: refundAddress,
-        amount: CONFIG.refundAmount,
-        confirmations: 0,
-        transactionType: 'refund',
-        status: 'pending',
-        deposit_id: deposit.id
-      });
+      // If deposit exists, mark as refunded in database
+      if (deposit) {
+        await currentDbService.markRefunded(userAddress, txHash);
+        console.log(`✅ Marked existing deposit as refunded: ${userAddress}`);
+      } else {
+        // Create a deposit record for tracking WITHOUT creating a user
+        console.log(`📝 Creating deposit record for refund tracking (without user): ${userAddress}`);
+        
+       /*  try {
+          // Create deposit directly WITHOUT creating a user first
+          const userId = `refund_${Date.now()}`; // Generate a temporary ID for tracking
+          
+          // Use a simplified deposit creation that doesn't require foreign key to users table
+          const client = await pool.connect();
+          try {
+            const result = await client.query(
+              `INSERT INTO user_deposits (
+                user_address, 
+                user_id, 
+                phone_hash, 
+                tx_hash, 
+                amount, 
+                refunded, 
+                verified, 
+                signup_completed,
+                sender_wallet_address,
+                verification_method
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+              [
+                userAddress,
+                userId,
+                'dummy_refund_phone_hash', // Dummy phone hash
+                txHash,
+                CONFIG.refundAmount,
+                true, // Mark as refunded immediately
+                false,
+                false,
+                refundAddress,
+                'external_refund' // Special verification method for external refunds
+              ]
+            );
+            
+            console.log(`✅ Created deposit record for refund: ${userId}`);
+          } finally {
+            client.release();
+          }
+          
+        } catch (depositError) {
+          console.error('Failed to create deposit record:', depositError);
+          // Continue anyway - the refund transaction is already processed
+        } */
+      }
+      
+      // Create refund transaction record
+      try {
+        await currentDbService.createTransaction({
+          txHash,
+          fromAddress: this.depositAddress,
+          toAddress: refundAddress,
+          amount: CONFIG.refundAmount,
+          confirmations: 0,
+          transactionType: 'refund',
+          status: 'pending'
+        });
+      } catch (transactionError) {
+        console.error('Failed to create transaction record:', transactionError);
+        // Continue anyway - the refund transaction is already processed
+      }
       
       console.log(`✅ Refund processed successfully: ${txHash}`);
       
@@ -667,6 +681,7 @@ export class EnhancedK33PManagerDB {
       };
     }
   }
+
 
   private hashData(data: string): string {
     return crypto.createHash('sha256').update(data).digest('hex');

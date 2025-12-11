@@ -362,7 +362,6 @@ app.post('/api/user/profile', async (req: Request, res: Response) => {
   }
 });
 
-// In your main server file (app.ts or server.ts)
 
 // Paystack webhook endpoint - must be before express.json() middleware
 app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
@@ -442,9 +441,6 @@ app.get('/api/deposit-address',
   }
 });
 
-// Signup route removed - use /api/auth/signup instead
-
-// Retry verification for a user
 app.post('/api/retry-verification', [
   body('userAddress')
     .isLength({ min: 50, max: 200 })
@@ -674,6 +670,7 @@ app.post('/api/refund', [
     ));
   }
 });
+
 
 // ============================================================================
 // ERROR HANDLING
