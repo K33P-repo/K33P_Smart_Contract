@@ -14,7 +14,7 @@ import { dbService } from '../database/service.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { sendOtp, verifyOtp } from '../utils/twilio.js';
+import { sendOtp, verifyOtp } from '../utils/termii.js';
 import { UserModel } from '../database/models.js';
 
 const router = express.Router();
@@ -837,7 +837,34 @@ router.post('/verify-otp', createRateLimiter({
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify OTP');
   }
 });
-
+/**
+ * @route POST /api/auth/resend-otp
+ * @desc Resend OTP to phone number during signup (generates a new OTP, invalidating the old one)
+ * @access Public
+ */
+router.post('/resend-otp', createRateLimiter({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 3, // 3 resend requests per 5 minutes
+  message: 'Too many resend requests, please try again later'
+}), asyncHandler(async (req, res) => {
+  const { phoneNumber } = req.body;
+ 
+  if (!phoneNumber) {
+    throw new K33PError(ErrorCodes.VALIDATION_ERROR, 'Phone number is required');
+  }
+ 
+  console.log(`Resending OTP to ${phoneNumber}`);
+  const result = await sendOtp(phoneNumber);
+ 
+  if (result.success) {
+    ResponseUtils.success(res, SuccessCodes.OTP_SENT, {
+      requestId: result.requestId,
+      expiresIn: 300 // 5 minutes
+    });
+  } else {
+    throw new K33PError(ErrorCodes.OTP_SEND_FAILED, result.error || 'Failed to resend OTP');
+  }
+}));
 // Add a test endpoint to generate token
 router.post('/test-token', asyncHandler(async (req, res) => {
   const { userId } = req.body;
