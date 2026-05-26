@@ -250,7 +250,7 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.SERVER_ERROR]: 'Something went wrong on our end. Please try again later',
   [ErrorCodes.DATABASE_ERROR]: 'Database connection error. Please try again later',
   [ErrorCodes.EXTERNAL_SERVICE_ERROR]: 'External service temporarily unavailable. Please try again later',
-
+  [ErrorCodes.OTP_ALREADY_SENT]: 'An OTP has already been sent. Please wait before requesting a new one',
   // Storage & Seed Phrases
   [ErrorCodes.SEED_PHRASE_NOT_FOUND]: 'Seed phrase not found',
   [ErrorCodes.SEED_PHRASE_ENCRYPTION_FAILED]: 'Failed to encrypt seed phrase',
@@ -400,7 +400,7 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.SERVER_ERROR]: 500,
   [ErrorCodes.DATABASE_ERROR]: 500,
   [ErrorCodes.EXTERNAL_SERVICE_ERROR]: 503,
-
+  [ErrorCodes.OTP_ALREADY_SENT]: 429,
   // Storage & Seed Phrases (404, 500)
   [ErrorCodes.SEED_PHRASE_NOT_FOUND]: 404,
   [ErrorCodes.SEED_PHRASE_ENCRYPTION_FAILED]: 500,
