@@ -3,7 +3,7 @@ import { body, validationResult } from 'express-validator';
 import { ResponseUtils, ErrorCodes } from '../middleware/error-handler.js';
 import { redisClient } from '../utils/redis.js';
 import { logger } from '../utils/logger.js';
-import { infobipService } from '@/services/infobip-service.js';
+import { infobipService } from '../services/infobip-service.js';
 
 const router = express.Router();
 
