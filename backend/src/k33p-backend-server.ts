@@ -8,12 +8,11 @@ import { dbService } from './database/service.js';
 import { autoRefundMonitor } from './services/auto-refund-monitor.js';
 import { subscriptionService } from './services/subscription-service.js';
 import { MockDatabaseService } from './database/mock-service.js';
-import {testConnection } from './database/config.js';
+import { testConnection } from './database/config.js';
 import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
 import { globalErrorHandler } from './middleware/error-handler.js';
-import swaggerUi from 'swagger-ui-express';
 
 // Import routes
 // @ts-ignore
@@ -36,7 +35,7 @@ import seedPhraseRoutes from './routes/seed-phrase-routes.js';
 import userRoutes from './routes/user-routes.js';
 // @ts-ignore
 import notificationRoutes from './routes/notification-routes.js';
-
+// Import routes (add this line)
 // @ts-ignore
 import autoRefundRoutes from './routes/auto-refund-routes.js';
 // @ts-ignore
@@ -48,14 +47,13 @@ import walletFoldersRoutes from './routes/wallet-folders.js';
 // @ts-ignore
 import imageNumberRoutes from './routes/image-number-routes.js';
 
-import swaggerSpec from './swagger.js';
 import { paystackService } from './services/paystack-service.js';
 
 // Load environment variables
 dotenv.config();
 
 // Constants
-const PORT = process.env.PORT || 3000;
+const PORT = 3501;
 
 // Initialize logger
 const logger = winston.createLogger({
@@ -84,7 +82,7 @@ let usingMockDatabase = false;
 async function initializeK33P() {
   try {
     console.log('🔧 Initializing database connection to Supabase...');
-    
+
     // Initialize database first
     /* const dbReady = await;
     
@@ -99,7 +97,7 @@ async function initializeK33P() {
      */
     // Initialize K33P Manager - but skip Cardano if disabled
     k33pManager = new EnhancedK33PManagerDB();
-    
+
     // Only initialize Cardano features if not disabled
     if (process.env.DISABLE_CARDANO !== "true") {
       try {
@@ -112,15 +110,15 @@ async function initializeK33P() {
           logger.warn('❌ Cardano initialization failed, continuing without Cardano features:', cardanoError);
         }
       }
-      
+
     } else {
       console.log("🚫 Cardano features disabled via DISABLE_CARDANO");
       // Set a flag or property to indicate Cardano is disabled
       (k33pManager as any).cardanoEnabled = false;
     }
-    
+
     logger.info('K33P Manager initialized successfully');
-    
+
     // Initialize auto-refund monitor only if we have a real database AND Cardano is working
     if (!usingMockDatabase) {
       try {
@@ -136,7 +134,7 @@ async function initializeK33P() {
         logger.warn('Auto-Refund Monitor failed to start:', error);
       }
     }
-    
+
   } catch (error) {
     logger.error('Failed to initialize K33P Manager:', error);
     throw error;
@@ -151,17 +149,10 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
-  explorer: true,
-  customCss: '.swagger-ui .topbar { display: none }',
-  customSiteTitle: 'K33P API Documentation'
-}));
+
 
 // Optional: Add a JSON endpoint for the swagger spec
-app.get('/api-docs.json', (req: Request, res: Response) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.send(swaggerSpec);
-});
+
 
 // Request logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -186,9 +177,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
-app.use('/api/wallet-folders', walletFoldersRoutes); 
+app.use('/api/wallet-folders', walletFoldersRoutes);
 app.use('/api/image-number', imageNumberRoutes);
-
 
 // Global error handler (must be last middleware)
 app.use(globalErrorHandler);
@@ -291,7 +281,7 @@ app.get('/api/version', systemEndpointLimiter, (req: Request, res: Response) => 
 app.get('/api/user/profile', authenticateToken, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.id;
-    
+
     if (!userId) {
       return res.status(401).json(createResponse(false, undefined, undefined, 'User not authenticated'));
     }
@@ -299,11 +289,11 @@ app.get('/api/user/profile', authenticateToken, async (req: Request, res: Respon
     // Try to find user by user ID
     const deposits = await dbService.getAllDeposits();
     const userDeposit = deposits.find((d: any) => d.user_id === userId);
-    
+
     if (!userDeposit) {
       return res.status(404).json(createResponse(false, undefined, undefined, 'User profile not found'));
     }
-    
+
     const profile = {
       userId: userDeposit.user_id,
       userAddress: userDeposit.user_address,
@@ -314,7 +304,7 @@ app.get('/api/user/profile', authenticateToken, async (req: Request, res: Respon
       createdAt: userDeposit.timestamp?.toISOString() || new Date().toISOString(),
       verificationAttempts: userDeposit.verification_attempts
     };
-    
+
     res.json(createResponse(true, profile, undefined, 'User profile retrieved'));
   } catch (error) {
     logger.error('Error getting user profile:', error);
@@ -325,7 +315,7 @@ app.get('/api/user/profile', authenticateToken, async (req: Request, res: Respon
 app.post('/api/user/profile', async (req: Request, res: Response) => {
   try {
     const { walletAddress, userId } = req.body;
-    
+
     if (!walletAddress && !userId) {
       return res.status(400).json(createResponse(false, undefined, undefined, 'Either walletAddress or userId is required'));
     }
@@ -339,11 +329,11 @@ app.post('/api/user/profile', async (req: Request, res: Response) => {
       const deposits = await dbService.getAllDeposits();
       userDeposit = deposits.find((d: any) => d.user_id === userId);
     }
-    
+
     if (!userDeposit) {
       return res.status(404).json(createResponse(false, undefined, undefined, 'User profile not found'));
     }
-    
+
     const profile = {
       userId: userDeposit.user_id,
       userAddress: userDeposit.user_address,
@@ -354,7 +344,7 @@ app.post('/api/user/profile', async (req: Request, res: Response) => {
       createdAt: userDeposit.timestamp?.toISOString() || new Date().toISOString(),
       verificationAttempts: userDeposit.verification_attempts
     };
-    
+
     res.json(createResponse(true, profile, undefined, 'User profile retrieved'));
   } catch (error) {
     logger.error('Error getting user profile:', error);
@@ -367,7 +357,7 @@ app.post('/api/user/profile', async (req: Request, res: Response) => {
 app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), async (req: Request, res: Response) => {
   try {
     const signature = req.headers['x-paystack-signature'] as string;
-    
+
     // For local development, you might want to log the webhook for debugging
     if (process.env.NODE_ENV === 'development') {
       console.log('📩 Webhook received:', {
@@ -378,23 +368,23 @@ app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), asyn
 
     // Verify webhook signature
     const isValid = paystackService.verifyWebhookSignature(req.body.toString(), signature);
-    
+
     if (!isValid) {
       logger.warn('Invalid webhook signature', { signature });
       return res.status(401).json({ error: 'Invalid signature' });
     }
 
     const event = JSON.parse(req.body.toString());
-    
+
     // Log webhook event for debugging
-    logger.info('Processing Paystack webhook', { 
+    logger.info('Processing Paystack webhook', {
       event: event.event,
-      reference: event.data?.reference 
+      reference: event.data?.reference
     });
 
     // Process the webhook
     const result = await paystackService.processWebhookEvent(event);
-    
+
     if (result.success) {
       res.status(200).json({ message: 'Webhook processed successfully' });
     } else {
@@ -413,7 +403,7 @@ app.get('/', (req: Request, res: Response) => {
     version: '1.0.0',
     endpoints: [
       '/api/health',
-      '/api/status', 
+      '/api/status',
       '/api/version',
       '/api/auth/*',
       '/api/utxo/*',
@@ -429,17 +419,17 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 // Get deposit address
-app.get('/api/deposit-address', 
+app.get('/api/deposit-address',
   createRateLimiter({ windowMs: 60 * 1000, max: 20 }), // 20 requests per minute
   async (req: Request, res: Response) => {
-  try {
-    const address = await k33pManager.getDepositAddress();
-    res.json(createResponse(true, { address }, undefined, 'Deposit address retrieved'));
-  } catch (error) {
-    logger.error('Error getting deposit address:', error);
-    res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get deposit address'));
-  }
-});
+    try {
+      const address = await k33pManager.getDepositAddress();
+      res.json(createResponse(true, { address }, undefined, 'Deposit address retrieved'));
+    } catch (error) {
+      logger.error('Error getting deposit address:', error);
+      res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get deposit address'));
+    }
+  });
 
 app.post('/api/retry-verification', [
   body('userAddress')
@@ -448,11 +438,11 @@ app.post('/api/retry-verification', [
 ], handleValidationErrors, async (req: Request, res: Response) => {
   try {
     const { userAddress }: VerificationRequest = req.body;
-    
+
     logger.info('Retrying verification', { userAddress });
-    
+
     const result = await k33pManager.retryVerification(userAddress);
-    
+
     if (result.success) {
       res.json(createResponse(true, { verified: true }, result.message));
     } else {
@@ -472,13 +462,13 @@ app.get('/api/user/:address/status', [
 ], handleValidationErrors, async (req: Request, res: Response) => {
   try {
     const userAddress = req.params.address;
-    
+
     const userDeposit = await dbService.getDepositByUserAddress(userAddress);
-    
+
     if (!userDeposit) {
       return res.status(404).json(createResponse(false, undefined, undefined, 'User not found'));
     }
-    
+
     const status: UserStatus = {
       userAddress: userDeposit.user_address,
       userId: userDeposit.user_id,
@@ -490,7 +480,7 @@ app.get('/api/user/:address/status', [
       timestamp: userDeposit.timestamp?.toISOString() || new Date().toISOString(),
       verificationAttempts: userDeposit.verification_attempts
     };
-    
+
     res.json(createResponse(true, status, 'User status retrieved'));
   } catch (error) {
     logger.error('Error getting user status:', error);
@@ -506,7 +496,7 @@ app.get('/api/admin/users', async (req: Request, res: Response) => {
     if (apiKey !== process.env.ADMIN_API_KEY) {
       return res.status(401).json(createResponse(false, undefined, undefined, 'Unauthorized'));
     }
-    
+
     const deposits = await dbService.getAllDeposits();
     const users = deposits.map((d: any) => ({
       userAddress: d.user_address,
@@ -519,7 +509,7 @@ app.get('/api/admin/users', async (req: Request, res: Response) => {
       timestamp: d.timestamp?.toISOString() || new Date().toISOString(),
       verificationAttempts: d.verification_attempts
     }));
-    
+
     res.json(createResponse(true, { users, total: users.length }, 'Users retrieved'));
   } catch (error) {
     logger.error('Error getting all users:', error);
@@ -534,10 +524,10 @@ app.post('/api/admin/auto-verify', async (req: Request, res: Response) => {
     if (apiKey !== process.env.ADMIN_API_KEY) {
       return res.status(401).json(createResponse(false, undefined, undefined, 'Unauthorized'));
     }
-    
+
     logger.info('Starting auto-verification process');
     await k33pManager.autoVerifyDeposits();
-    
+
     res.json(createResponse(true, undefined, 'Auto-verification completed'));
   } catch (error) {
     logger.error('Error during auto-verification:', error);
@@ -552,7 +542,7 @@ app.get('/api/admin/monitor', async (req: Request, res: Response) => {
     if (apiKey !== process.env.ADMIN_API_KEY) {
       return res.status(401).json(createResponse(false, undefined, undefined, 'Unauthorized'));
     }
-    
+
     await k33pManager.monitorIncomingTransactions();
     res.json(createResponse(true, undefined, 'Transaction monitoring completed'));
   } catch (error) {
@@ -572,16 +562,16 @@ app.post('/api/admin/process-signup', [
     if (apiKey !== process.env.ADMIN_API_KEY) {
       return res.status(401).json(createResponse(false, undefined, undefined, 'Unauthorized'));
     }
-    
+
     const { userAddress } = req.body;
-    
+
     logger.info('Processing signup completion', { userAddress });
     const txHash = await k33pManager.processSignup(userAddress);
-    
+
     res.json(createResponse(true, { txHash }, 'Signup processed successfully'));
   } catch (error) {
     logger.error('Error processing signup:', error);
-    res.status(500).json(createResponse(false, undefined, undefined, 
+    res.status(500).json(createResponse(false, undefined, undefined,
       error instanceof Error ? error.message : 'Failed to process signup'
     ));
   }
@@ -599,9 +589,9 @@ app.post('/api/refund', [
 ], handleValidationErrors, async (req: Request, res: Response) => {
   try {
     const { userAddress, walletAddress } = req.body;
-    
-    logger.info('🔄 Processing immediate refund request', { 
-      userAddress, 
+
+    logger.info('🔄 Processing immediate refund request', {
+      userAddress,
       walletAddress,
       requestBody: req.body,
       headers: {
@@ -609,23 +599,23 @@ app.post('/api/refund', [
         'user-agent': req.headers['user-agent']
       }
     });
-    
+
     // Validate input parameters
     if (!userAddress || typeof userAddress !== 'string') {
       logger.error('❌ Invalid userAddress provided', { userAddress });
       return res.status(400).json(createResponse(false, undefined, undefined, 'Invalid or missing userAddress'));
     }
-    
+
     if (walletAddress && typeof walletAddress !== 'string') {
       logger.error('❌ Invalid walletAddress provided', { walletAddress });
       return res.status(400).json(createResponse(false, undefined, undefined, 'Invalid walletAddress format'));
     }
-    
+
     // Check if user exists in database
     try {
       const userDeposit = await dbService.getDepositByUserAddress(userAddress);
-      logger.info('📊 User deposit lookup result', { 
-        userAddress, 
+      logger.info('📊 User deposit lookup result', {
+        userAddress,
         depositFound: !!userDeposit,
         depositRefunded: userDeposit?.refunded,
         depositVerified: userDeposit?.verified
@@ -633,30 +623,30 @@ app.post('/api/refund', [
     } catch (dbError) {
       logger.error('❌ Database lookup error during refund', { userAddress, error: dbError });
     }
-    
+
     // Process the refund using the K33P manager
     logger.info('🔄 Calling k33pManager.processRefund', { userAddress, walletAddress });
     const result = await k33pManager.processRefund(userAddress, walletAddress);
-    
-    logger.info('📊 Refund processing result', { 
-      userAddress, 
-      success: result.success, 
+
+    logger.info('📊 Refund processing result', {
+      userAddress,
+      success: result.success,
       message: result.message,
       txHash: result.txHash
     });
-    
+
     if (!result.success) {
-      logger.error('❌ Refund processing failed', { 
-        userAddress, 
-        walletAddress, 
-        message: result.message 
+      logger.error('❌ Refund processing failed', {
+        userAddress,
+        walletAddress,
+        message: result.message
       });
       return res.status(400).json(createResponse(false, undefined, undefined, result.message));
     }
-    
+
     const txHash = result.txHash;
     logger.info('✅ Refund processed successfully', { userAddress, txHash });
-    
+
     res.json(createResponse(true, { txHash }, 'Refund processed successfully'));
   } catch (error) {
     logger.error('❌ Unexpected error processing refund:', {
@@ -665,7 +655,7 @@ app.post('/api/refund', [
       userAddress: req.body?.userAddress,
       walletAddress: req.body?.walletAddress
     });
-    res.status(500).json(createResponse(false, undefined, undefined, 
+    res.status(500).json(createResponse(false, undefined, undefined,
       error instanceof Error ? error.message : 'Failed to process refund'
     ));
   }
@@ -691,19 +681,19 @@ app.use((req: Request, res: Response) => {
 async function startServer() {
   try {
     await initializeK33P();
-    
+
     app.listen(PORT, () => {
       logger.info(`K33P Backend Server running on port ${PORT}`);
-      
+
       // Use environment-aware URL for health check
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? process.env.FRONTEND_URL || `https://${process.env.RENDER_EXTERNAL_URL || 'your-app.onrender.com'}` 
+      const baseUrl = process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL || `https://${process.env.RENDER_EXTERNAL_URL || 'your-app.onrender.com'}`
         : `http://localhost:${PORT}`;
-      
+
       logger.info(`Health check: ${baseUrl}/api/health`);
       logger.info(`Wallet folders API: ${baseUrl}/api/wallet-folders`); // ADD THIS LINE
     });
-    
+
     // Graceful shutdown
     process.on('SIGTERM', async () => {
       logger.info('SIGTERM received, shutting down gracefully');
@@ -711,14 +701,14 @@ async function startServer() {
       logger.info('Auto-Refund Monitor stopped');
       process.exit(0);
     });
-    
+
     process.on('SIGINT', async () => {
       logger.info('SIGINT received, shutting down gracefully');
       await autoRefundMonitor.stop();
       logger.info('Auto-Refund Monitor stopped');
       process.exit(0);
     });
-    
+
   } catch (error) {
     logger.error('Failed to start server:', error);
     process.exit(1);

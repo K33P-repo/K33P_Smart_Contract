@@ -13,42 +13,42 @@ export enum SuccessCodes {
   AUTH_LOGOUT_SUCCESS = 'AUTH_LOGOUT_SUCCESS',
   AUTH_TOKEN_VERIFIED = 'AUTH_TOKEN_VERIFIED',
   TOKEN_VERIFIED = 'TOKEN_VERIFIED',
-  
+
   // User Management
   USER_CREATED = 'USER_CREATED',
   USER_RETRIEVED = 'USER_RETRIEVED',
   USER_UPDATED = 'USER_UPDATED',
-  
+
   // Phone & Wallet
   PHONE_VERIFIED = 'PHONE_VERIFIED',
   WALLET_CONNECTED = 'WALLET_CONNECTED',
   WALLET_VERIFIED = 'WALLET_VERIFIED',
   WALLET_RETRIEVED = 'WALLET_RETRIEVED',
-  
+
   // OTP & Verification
   OTP_SENT = 'OTP_SENT',
   OTP_VERIFIED = 'OTP_VERIFIED',
-  
+
   // Biometric & PIN
   PIN_SETUP_SUCCESS = 'PIN_SETUP_SUCCESS',
   PIN_VERIFIED = 'PIN_VERIFIED',
   BIOMETRIC_SETUP_SUCCESS = 'BIOMETRIC_SETUP_SUCCESS',
   BIOMETRIC_VERIFIED = 'BIOMETRIC_VERIFIED',
-  
+
   // Username & Session
   USERNAME_SET = 'USERNAME_SET',
   SESSION_CREATED = 'SESSION_CREATED',
   SESSION_RETRIEVED = 'SESSION_RETRIEVED',
-  
+
   // Zero-Knowledge Proof
   ZK_PROOF_VERIFIED = 'ZK_PROOF_VERIFIED',
   ZK_COMMITMENT_CREATED = 'ZK_COMMITMENT_CREATED',
-  
+
   // Transaction & Refund
   TRANSACTION_SUCCESS = 'TRANSACTION_SUCCESS',
   DEPOSIT_VERIFIED = 'DEPOSIT_VERIFIED',
   REFUND_PROCESSED = 'REFUND_PROCESSED',
-  
+
   // General Operations
   OPERATION_SUCCESS = 'OPERATION_SUCCESS',
   DATA_RETRIEVED = 'DATA_RETRIEVED',
@@ -67,7 +67,7 @@ export enum ErrorCodes {
   TOKEN_INVALID = 'TOKEN_INVALID',
   INVALID_TOKEN = 'INVALID_TOKEN',
   ACCESS_DENIED = 'ACCESS_DENIED',
-  
+
   // User Management
   USER_NOT_FOUND = 'USER_NOT_FOUND',
   USER_ALREADY_EXISTS = 'USER_ALREADY_EXISTS',
@@ -76,7 +76,7 @@ export enum ErrorCodes {
   USER_NO_ADA_SENT = 'USER_NO_ADA_SENT',
   USER_SECOND_TIME_USE = 'USER_SECOND_TIME_USE',
   USER_CREATION_FAILED = 'USER_CREATION_FAILED',
-  
+
   // Phone & Wallet
   PHONE_ALREADY_EXISTS = 'PHONE_ALREADY_EXISTS',
   PHONE_INVALID_FORMAT = 'PHONE_INVALID_FORMAT',
@@ -87,7 +87,7 @@ export enum ErrorCodes {
   WALLET_ADDRESS_REQUIRED = 'WALLET_ADDRESS_REQUIRED',
   WALLET_ADDRESS_NOT_FOUND = 'WALLET_ADDRESS_NOT_FOUND',
   WALLET_IN_USE = 'WALLET_IN_USE',
-  
+
   // OTP & Verification
   OTP_EXPIRED = 'OTP_EXPIRED',
   OTP_INVALID = 'OTP_INVALID',
@@ -97,7 +97,8 @@ export enum ErrorCodes {
   OTP_REQUEST_ID_REQUIRED = 'OTP_REQUEST_ID_REQUIRED',
   OTP_CODE_REQUIRED = 'OTP_CODE_REQUIRED',
   OTP_CODE_INVALID_FORMAT = 'OTP_CODE_INVALID_FORMAT',
-  
+  OTP_ALREADY_SENT = 'OTP_ALREADY_SENT',
+
   // Biometric & PIN
   BIOMETRIC_VERIFICATION_FAILED = 'BIOMETRIC_VERIFICATION_FAILED',
   BIOMETRIC_NOT_ENROLLED = 'BIOMETRIC_NOT_ENROLLED',
@@ -107,7 +108,7 @@ export enum ErrorCodes {
   PIN_REQUIRED = 'PIN_REQUIRED',
   PIN_INVALID_FORMAT = 'PIN_INVALID_FORMAT',
   PIN_NOT_FOUND = 'PIN_NOT_FOUND',
-  
+
   // Username & Session
   USERNAME_REQUIRED = 'USERNAME_REQUIRED',
   USERNAME_ALREADY_EXISTS = 'USERNAME_ALREADY_EXISTS',
@@ -117,14 +118,14 @@ export enum ErrorCodes {
   SESSION_INVALID = 'SESSION_INVALID',
   INVALID_SESSION = 'INVALID_SESSION',
   INVALID_FLOW = 'INVALID_FLOW',
-  
+
   // ZK Proofs
   ZK_PROOF_INVALID = 'ZK_PROOF_INVALID',
   ZK_PROOF_GENERATION_FAILED = 'ZK_PROOF_GENERATION_FAILED',
   ZK_COMMITMENT_INVALID = 'ZK_COMMITMENT_INVALID',
   ZK_PROOF_REQUIRED = 'ZK_PROOF_REQUIRED',
   ZK_COMMITMENT_REQUIRED = 'ZK_COMMITMENT_REQUIRED',
-  
+
   // Transactions & Refunds
   TRANSACTION_FAILED = 'TRANSACTION_FAILED',
   TRANSACTION_NOT_FOUND = 'TRANSACTION_NOT_FOUND',
@@ -134,22 +135,22 @@ export enum ErrorCodes {
   DEPOSIT_VERIFICATION_FAILED = 'DEPOSIT_VERIFICATION_FAILED',
   DEPOSIT_NOT_FOUND = 'DEPOSIT_NOT_FOUND',
   USER_UPDATE_FAILED = 'USER_UPDATE_FAILED',
-  
+
   // Validation
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   INVALID_INPUT = 'INVALID_INPUT',
   MISSING_REQUIRED_FIELDS = 'MISSING_REQUIRED_FIELDS',
   IDENTIFIER_REQUIRED = 'IDENTIFIER_REQUIRED',
   DUPLICATE_ENTRY = 'DUPLICATE_ENTRY',
-  
+
   // Rate Limiting
   RATE_LIMIT_EXCEEDED = 'RATE_LIMIT_EXCEEDED',
-  
+
   // Server Errors
   SERVER_ERROR = 'SERVER_ERROR',
   DATABASE_ERROR = 'DATABASE_ERROR',
   EXTERNAL_SERVICE_ERROR = 'EXTERNAL_SERVICE_ERROR',
-  
+
   // Storage & Seed Phrases
   SEED_PHRASE_NOT_FOUND = 'SEED_PHRASE_NOT_FOUND',
   SEED_PHRASE_ENCRYPTION_FAILED = 'SEED_PHRASE_ENCRYPTION_FAILED',
@@ -167,7 +168,7 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.TOKEN_INVALID]: 'Invalid or expired token',
   [ErrorCodes.INVALID_TOKEN]: 'Invalid authentication token',
   [ErrorCodes.ACCESS_DENIED]: 'Access denied. Insufficient permissions',
-  
+
   // User Management
   [ErrorCodes.USER_NOT_FOUND]: 'User account not found',
   [ErrorCodes.USER_ALREADY_EXISTS]: 'An account with this information already exists',
@@ -176,7 +177,7 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.USER_NO_ADA_SENT]: 'No ADA deposit found for this account. Please send the required deposit first',
   [ErrorCodes.USER_SECOND_TIME_USE]: 'This account has been used before. Each account can only be used once',
   [ErrorCodes.USER_CREATION_FAILED]: 'Failed to create user account. Please try again',
-  
+
   // Phone & Wallet
   [ErrorCodes.PHONE_ALREADY_EXISTS]: 'This phone number is already registered with another account',
   [ErrorCodes.PHONE_INVALID_FORMAT]: 'Please enter a valid phone number',
@@ -187,7 +188,7 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.WALLET_ADDRESS_REQUIRED]: 'Wallet address is required',
   [ErrorCodes.WALLET_ADDRESS_NOT_FOUND]: 'No wallet address found for this account',
   [ErrorCodes.WALLET_IN_USE]: 'This wallet address is already in use',
-  
+
   // OTP & Verification
   [ErrorCodes.OTP_EXPIRED]: 'Verification code has expired. Please request a new one',
   [ErrorCodes.OTP_INVALID]: 'Invalid verification code. Please try again',
@@ -197,7 +198,7 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.OTP_REQUEST_ID_REQUIRED]: 'OTP request ID is required',
   [ErrorCodes.OTP_CODE_REQUIRED]: 'OTP code is required',
   [ErrorCodes.OTP_CODE_INVALID_FORMAT]: 'OTP code must be exactly 5 digits',
-  
+
   // Biometric & PIN
   [ErrorCodes.BIOMETRIC_VERIFICATION_FAILED]: 'Biometric verification failed. Please try again',
   [ErrorCodes.BIOMETRIC_NOT_ENROLLED]: 'Biometric authentication is not set up for your account',
@@ -207,7 +208,7 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.PIN_REQUIRED]: 'PIN is required',
   [ErrorCodes.PIN_INVALID_FORMAT]: 'PIN must be exactly 4 digits',
   [ErrorCodes.PIN_NOT_FOUND]: 'No PIN found for this user. Please contact support',
-  
+
   // Username & Session
   [ErrorCodes.USERNAME_REQUIRED]: 'Username is required',
   [ErrorCodes.USERNAME_ALREADY_EXISTS]: 'This username is already taken. Please choose another',
@@ -217,14 +218,14 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.SESSION_INVALID]: 'Invalid session',
   [ErrorCodes.INVALID_SESSION]: 'Invalid or expired session',
   [ErrorCodes.INVALID_FLOW]: 'Invalid operation flow. Please follow the correct sequence',
-  
+
   // ZK Proofs
   [ErrorCodes.ZK_PROOF_INVALID]: 'Invalid zero-knowledge proof',
   [ErrorCodes.ZK_PROOF_GENERATION_FAILED]: 'Failed to generate zero-knowledge proof',
   [ErrorCodes.ZK_COMMITMENT_INVALID]: 'Invalid zero-knowledge commitment',
   [ErrorCodes.ZK_PROOF_REQUIRED]: 'Zero-knowledge proof is required',
   [ErrorCodes.ZK_COMMITMENT_REQUIRED]: 'Zero-knowledge commitment is required',
-  
+
   // Transactions & Refunds
   [ErrorCodes.TRANSACTION_FAILED]: 'Transaction failed. Please try again',
   [ErrorCodes.TRANSACTION_NOT_FOUND]: 'No valid transaction found',
@@ -234,22 +235,22 @@ const ERROR_MESSAGES: Record<ErrorCodes, string> = {
   [ErrorCodes.DEPOSIT_VERIFICATION_FAILED]: 'Could not verify your ADA deposit. Please ensure the transaction is confirmed',
   [ErrorCodes.DEPOSIT_NOT_FOUND]: 'No valid deposit found',
   [ErrorCodes.USER_UPDATE_FAILED]: 'Failed to update user information',
-  
+
   // Validation
   [ErrorCodes.VALIDATION_ERROR]: 'Please check your input and try again',
   [ErrorCodes.INVALID_INPUT]: 'Invalid input provided',
   [ErrorCodes.MISSING_REQUIRED_FIELDS]: 'Please fill in all required fields',
   [ErrorCodes.IDENTIFIER_REQUIRED]: 'User identifier is required',
   [ErrorCodes.DUPLICATE_ENTRY]: 'This entry already exists',
-  
+
   // Rate Limiting
   [ErrorCodes.RATE_LIMIT_EXCEEDED]: 'Too many requests. Please wait a moment and try again',
-  
+
   // Server Errors
   [ErrorCodes.SERVER_ERROR]: 'Something went wrong on our end. Please try again later',
   [ErrorCodes.DATABASE_ERROR]: 'Database connection error. Please try again later',
   [ErrorCodes.EXTERNAL_SERVICE_ERROR]: 'External service temporarily unavailable. Please try again later',
-  
+
   // Storage & Seed Phrases
   [ErrorCodes.SEED_PHRASE_NOT_FOUND]: 'Seed phrase not found',
   [ErrorCodes.SEED_PHRASE_ENCRYPTION_FAILED]: 'Failed to encrypt seed phrase',
@@ -263,42 +264,42 @@ const SUCCESS_MESSAGES: Record<SuccessCodes, string> = {
   [SuccessCodes.AUTH_LOGOUT_SUCCESS]: 'Logout successful',
   [SuccessCodes.AUTH_TOKEN_VERIFIED]: 'Token verified successfully',
   [SuccessCodes.TOKEN_VERIFIED]: 'Token verified successfully',
-  
+
   // User Management
   [SuccessCodes.USER_CREATED]: 'User account created successfully',
   [SuccessCodes.USER_RETRIEVED]: 'User information retrieved successfully',
   [SuccessCodes.USER_UPDATED]: 'User information updated successfully',
-  
+
   // Phone & Wallet
   [SuccessCodes.PHONE_VERIFIED]: 'Phone number verified successfully',
   [SuccessCodes.WALLET_CONNECTED]: 'Wallet connected successfully',
   [SuccessCodes.WALLET_VERIFIED]: 'Wallet verified successfully',
   [SuccessCodes.WALLET_RETRIEVED]: 'Wallet information retrieved successfully',
-  
+
   // OTP & Verification
   [SuccessCodes.OTP_SENT]: 'Verification code sent successfully',
   [SuccessCodes.OTP_VERIFIED]: 'Verification code verified successfully',
-  
+
   // Biometric & PIN
   [SuccessCodes.PIN_SETUP_SUCCESS]: 'PIN setup completed successfully',
   [SuccessCodes.PIN_VERIFIED]: 'PIN verified successfully',
   [SuccessCodes.BIOMETRIC_SETUP_SUCCESS]: 'Biometric authentication setup completed successfully',
   [SuccessCodes.BIOMETRIC_VERIFIED]: 'Biometric verification successful',
-  
+
   // Username & Session
   [SuccessCodes.USERNAME_SET]: 'Username set successfully',
   [SuccessCodes.SESSION_CREATED]: 'Session created successfully',
   [SuccessCodes.SESSION_RETRIEVED]: 'Session information retrieved successfully',
-  
+
   // Zero-Knowledge Proof
   [SuccessCodes.ZK_PROOF_VERIFIED]: 'Zero-knowledge proof verified successfully',
   [SuccessCodes.ZK_COMMITMENT_CREATED]: 'Zero-knowledge commitment created successfully',
-  
+
   // Transaction & Refund
   [SuccessCodes.TRANSACTION_SUCCESS]: 'Transaction completed successfully',
   [SuccessCodes.DEPOSIT_VERIFIED]: 'Deposit verified successfully',
   [SuccessCodes.REFUND_PROCESSED]: 'Refund processed successfully',
-  
+
   // General Operations
   [SuccessCodes.OPERATION_SUCCESS]: 'Operation completed successfully',
   [SuccessCodes.DATA_RETRIEVED]: 'Data retrieved successfully',
@@ -317,7 +318,7 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.TOKEN_INVALID]: 401,
   [ErrorCodes.INVALID_TOKEN]: 401,
   [ErrorCodes.ACCESS_DENIED]: 403,
-  
+
   // User Management (404, 409, 400)
   [ErrorCodes.USER_NOT_FOUND]: 404,
   [ErrorCodes.USER_ALREADY_EXISTS]: 409,
@@ -326,7 +327,7 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.USER_NO_ADA_SENT]: 400,
   [ErrorCodes.USER_SECOND_TIME_USE]: 409,
   [ErrorCodes.USER_CREATION_FAILED]: 500,
-  
+
   // Phone & Wallet (409, 400)
   [ErrorCodes.PHONE_ALREADY_EXISTS]: 409,
   [ErrorCodes.PHONE_INVALID_FORMAT]: 400,
@@ -337,7 +338,7 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.WALLET_ADDRESS_REQUIRED]: 400,
   [ErrorCodes.WALLET_ADDRESS_NOT_FOUND]: 404,
   [ErrorCodes.WALLET_IN_USE]: 409,
-  
+
   // OTP & Verification (400, 410)
   [ErrorCodes.OTP_EXPIRED]: 410,
   [ErrorCodes.OTP_INVALID]: 400,
@@ -347,7 +348,7 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.OTP_REQUEST_ID_REQUIRED]: 400,
   [ErrorCodes.OTP_CODE_REQUIRED]: 400,
   [ErrorCodes.OTP_CODE_INVALID_FORMAT]: 400,
-  
+
   // Biometric & PIN (400, 401)
   [ErrorCodes.BIOMETRIC_VERIFICATION_FAILED]: 401,
   [ErrorCodes.BIOMETRIC_NOT_ENROLLED]: 400,
@@ -357,7 +358,7 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.PIN_REQUIRED]: 400,
   [ErrorCodes.PIN_INVALID_FORMAT]: 400,
   [ErrorCodes.PIN_NOT_FOUND]: 404,
-  
+
   // Username & Session
   [ErrorCodes.USERNAME_REQUIRED]: 400,
   [ErrorCodes.USERNAME_ALREADY_EXISTS]: 409,
@@ -367,14 +368,14 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.SESSION_INVALID]: 401,
   [ErrorCodes.INVALID_SESSION]: 401,
   [ErrorCodes.INVALID_FLOW]: 400,
-  
+
   // ZK Proofs (400)
   [ErrorCodes.ZK_PROOF_INVALID]: 400,
   [ErrorCodes.ZK_PROOF_GENERATION_FAILED]: 500,
   [ErrorCodes.ZK_COMMITMENT_INVALID]: 400,
   [ErrorCodes.ZK_PROOF_REQUIRED]: 400,
   [ErrorCodes.ZK_COMMITMENT_REQUIRED]: 400,
-  
+
   // Transactions & Refunds (400, 409, 500)
   [ErrorCodes.TRANSACTION_FAILED]: 500,
   [ErrorCodes.TRANSACTION_NOT_FOUND]: 404,
@@ -384,22 +385,22 @@ const ERROR_STATUS_CODES: Record<ErrorCodes, number> = {
   [ErrorCodes.DEPOSIT_VERIFICATION_FAILED]: 400,
   [ErrorCodes.DEPOSIT_NOT_FOUND]: 404,
   [ErrorCodes.USER_UPDATE_FAILED]: 500,
-  
+
   // Validation (400)
   [ErrorCodes.VALIDATION_ERROR]: 400,
   [ErrorCodes.INVALID_INPUT]: 400,
   [ErrorCodes.MISSING_REQUIRED_FIELDS]: 400,
   [ErrorCodes.IDENTIFIER_REQUIRED]: 400,
   [ErrorCodes.DUPLICATE_ENTRY]: 409,
-  
+
   // Rate Limiting (429)
   [ErrorCodes.RATE_LIMIT_EXCEEDED]: 429,
-  
+
   // Server Errors (500)
   [ErrorCodes.SERVER_ERROR]: 500,
   [ErrorCodes.DATABASE_ERROR]: 500,
   [ErrorCodes.EXTERNAL_SERVICE_ERROR]: 503,
-  
+
   // Storage & Seed Phrases (404, 500)
   [ErrorCodes.SEED_PHRASE_NOT_FOUND]: 404,
   [ErrorCodes.SEED_PHRASE_ENCRYPTION_FAILED]: 500,
@@ -421,7 +422,7 @@ export class K33PError extends Error {
   ) {
     const userMessage = customMessage || ERROR_MESSAGES[code];
     super(userMessage);
-    
+
     this.name = 'K33PError';
     this.code = code;
     this.statusCode = ERROR_STATUS_CODES[code];
@@ -443,9 +444,9 @@ export class ResponseUtils {
     customMessage?: string,
     statusCode: number = 200
   ) {
-    const message = customMessage || 
-                   (successCode ? SUCCESS_MESSAGES[successCode] : 'Operation completed successfully');
-    
+    const message = customMessage ||
+      (successCode ? SUCCESS_MESSAGES[successCode] : 'Operation completed successfully');
+
     const response = {
       success: true,
       code: successCode || SuccessCodes.OPERATION_SUCCESS,

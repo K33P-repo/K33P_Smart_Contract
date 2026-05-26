@@ -1,180 +1,161 @@
-// otp.ts - OTP Authentication Routes
 import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { sendOtp, verifyOtp, cancelVerification } from '../utils/twilio.js';
-import { createRateLimiter } from '../middleware/rate-limiter.js';
-import { 
-  SendOtpRequest, 
-  SendOtpResponse, 
-  VerifyOtpRequest, 
-  VerifyOtpResponse,
-  CancelVerificationRequest,
-  CancelVerificationResponse 
-} from '../interfaces/otp.js';
 import { ResponseUtils, ErrorCodes } from '../middleware/error-handler.js';
-import pool from '../database/config.js';
-import { hashPhone } from '../utils/hash.js';
+import { redisClient } from '../utils/redis.js';
+import { logger } from '../utils/logger.js';
+import { infobipService } from '@/services/infobip-service.js';
 
 const router = express.Router();
 
-// Helper function to create standardized API responses
-const createResponse = <T>(success: boolean, data?: T, message?: string, error?: string) => {
-  return {
-    success,
-    data,
-    message,
-    error,
-    timestamp: new Date().toISOString()
-  };
-};
-
-// Middleware to handle validation errors
-const handleValidationErrors = (req: Request, res: Response, next: Function) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 
-      `Validation errors: ${errors.array().map((e: any) => e.msg).join(', ')}`
-    );
-  }
-  next();
-};
+// Generate 5-digit OTP
+const generateOTP = (): string => Math.floor(10000 + Math.random() * 90000).toString();
 
 /**
- * Send OTP to a phone number
+ * Send OTP
  * POST /api/otp/send
  */
-router.post('/send', 
-  createRateLimiter({ windowMs: 5 * 60 * 1000, max: 3 }), // 3 requests per 5 minutes
+router.post('/send',
   [
-    body('phoneNumber')
-      .isLength({ min: 10 })
-      .withMessage('Phone number must be at least 10 characters')
-      .trim()
-  ], 
-  handleValidationErrors, 
+    body('phone')
+      .isString()
+      .matches(/^234[0-9]{9,10}$/)
+      .withMessage('Phone must be in format: 234XXXXXXXXXX')
+      .trim(),
+  ],
   async (req: Request, res: Response) => {
-  try {
-    const { phoneNumber }: SendOtpRequest = req.body;
-    
-    console.log(`Sending OTP to ${phoneNumber}`);
-    const result: SendOtpResponse = await sendOtp(phoneNumber);
-    
-    if (result.success) {
-      res.json(createResponse(true, { requestId: result.requestId }, 'Verification code sent'));
-    } else {
-      return ResponseUtils.error(res, ErrorCodes.OTP_SEND_FAILED, null, result.error);
+    const { phone } = req.body;
+
+    logger.info(`📨 OTP Send Request received for phone: ${phone}`);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      logger.warn(`❌ Validation failed for ${phone}`, errors.array());
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null,
+        errors.array().map(e => e.msg).join(', '));
     }
-  } catch (error) {
-    console.error('Error sending OTP:', error);
-    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to send verification code');
+
+    try {
+      logger.info(`🔍 Starting OTP process for ${phone}`);
+
+      // ==================== RATE LIMITING ====================
+      logger.info(`⏱️ Checking rate limit for ${phone}`);
+      const rateKey = `rate:otp:${phone}`;
+      const rateLimit = await redisClient.get(rateKey);
+      const currentCount = rateLimit ? parseInt(rateLimit) : 0;
+
+      if (currentCount >= 3) {
+        logger.warn(`🚫 Rate limit exceeded for ${phone} (${currentCount} requests)`);
+        return ResponseUtils.error(
+          res,
+          ErrorCodes.RATE_LIMIT_EXCEEDED,
+          null,
+          'Too many OTP requests. Please try again in 10 minutes.'
+        );
+      }
+
+      await redisClient.incr(rateKey);
+      if (currentCount === 0) {
+        await redisClient.expire(rateKey, 10 * 60);
+      }
+      logger.info(`✅ Rate limit updated for ${phone}`);
+
+      // ==================== COOLDOWN CHECK ====================
+      logger.info(`🔍 Checking if OTP already exists for ${phone}`);
+      const existingOTP = await redisClient.get(`otp:${phone}`);
+
+      if (existingOTP) {
+        const ttl = await redisClient.ttl(`otp:${phone}`);
+        const minutesLeft = Math.ceil(ttl / 60);
+        logger.warn(`⏳ Active OTP found for ${phone}, expires in ${minutesLeft} minutes`);
+
+        return ResponseUtils.error(
+          res,
+          ErrorCodes.OTP_ALREADY_SENT,
+          null,
+          `An OTP has already been sent. Please wait ${minutesLeft} minutes before requesting a new one.`
+        );
+      }
+
+      // ==================== GENERATE & SEND OTP ====================
+      const otp = generateOTP();
+      const expiresIn = 30 * 60;
+
+      logger.info(`🔑 Generated OTP for ${phone}: ${otp}`);
+
+      // Store OTP
+      await redisClient.set(`otp:${phone}`, otp, { EX: expiresIn });
+      logger.info(`💾 OTP saved to Redis for ${phone}`);
+
+      // Send via Infobip
+      logger.info(`📤 Sending OTP to Infobip for ${phone}`);
+      const result = await infobipService.sendOTP(phone, otp);
+
+      if (result.success) {
+        logger.info(`🎉 OTP successfully sent to ${phone}`);
+        return res.json({
+          success: true,
+          message: 'OTP sent successfully',
+          expiresIn: '30 minutes'
+        });
+      } else {
+        logger.error(`❌ Infobip failed to send OTP to ${phone}`, result.error);
+        await redisClient.del(`otp:${phone}`);
+        return ResponseUtils.error(res, ErrorCodes.OTP_SEND_FAILED, null, result.error || 'Failed to send OTP');
+      }
+
+    } catch (error: any) {
+      logger.error(`💥 Unexpected error in OTP send for ${phone}`, {
+        error: error.message,
+        stack: error.stack
+      });
+      return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to send OTP');
+    }
   }
-});
+);
 
 /**
- * Verify OTP code
+ * Verify OTP
  * POST /api/otp/verify
  */
-router.post('/verify', 
-  createRateLimiter({ windowMs: 5 * 60 * 1000, max: 10 }), // 10 requests per 5 minutes
+router.post('/verify',
   [
-    body('requestId')
-      .isString()
-      .withMessage('Request ID is required')
-      .trim(),
-    body('code')
-      .isLength({ min: 4, max: 6 })
-      .withMessage('Verification code must be 4-6 digits')
-      .trim(),
-    body('phoneNumber')
-      .optional()
-      .isString()
-      .withMessage('Phone number must be a string')
-      .trim()
-  ], 
-  handleValidationErrors, 
+    body('phone').isString().trim(),
+    body('otp').isString().isLength({ min: 5, max: 5 }).trim(),
+  ],
   async (req: Request, res: Response) => {
-  try {
-    const { requestId, code, phoneNumber }: VerifyOtpRequest & { phoneNumber?: string } = req.body;
-    
-    console.log(`Verifying OTP for request ${requestId}`);
-    const result: VerifyOtpResponse = await verifyOtp(requestId, code);
-    
-    if (result.success) {
-      let authMethod = null;
-      
-      // If phone number is provided, try to get user's authentication method
-      if (phoneNumber) {
-        const client = await pool.connect();
-        try {
-          const phoneHash = hashPhone(phoneNumber);
-          const userQuery = await client.query(
-            `SELECT ud.verification_method as "verificationMethod", 
-                    ud.biometric_type as "biometricType",
-                    u.pin
-             FROM users u 
-             LEFT JOIN user_deposits ud ON u.user_id = ud.user_id 
-             WHERE u.phone_hash = $1`,
-            [phoneHash]
-          );
-          
-          if (userQuery.rows.length > 0) {
-            const user = userQuery.rows[0];
-            authMethod = {
-              verificationMethod: user.verificationMethod,
-              biometricType: user.biometricType,
-              hasPIN: !!user.pin
-            };
-          }
-        } catch (dbError) {
-          console.error('Error querying user auth method:', dbError);
-          // Don't fail the OTP verification if we can't get auth method
-        } finally {
-          client.release();
-        }
-      }
-      
-      const responseData: { verified: boolean; authMethod?: any } = { verified: true };
-      if (authMethod) {
-        responseData.authMethod = authMethod;
-      }
-      
-      res.json(createResponse(true, responseData, 'Phone number verified successfully'));
-    } else {
-      return ResponseUtils.error(res, ErrorCodes.OTP_VERIFICATION_FAILED, null, result.error);
+    const { phone, otp } = req.body;
+    logger.info(`🔐 OTP Verification attempt for ${phone}`);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid input');
     }
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify code');
-  }
-});
 
-/**
- * Cancel an ongoing verification
- * POST /api/otp/cancel
- */
-router.post('/cancel', [
-  body('requestId')
-    .isString()
-    .withMessage('Request ID is required')
-    .trim()
-], handleValidationErrors, async (req: Request, res: Response) => {
-  try {
-    const { requestId }: CancelVerificationRequest = req.body;
-    
-    console.log(`Cancelling OTP request ${requestId}`);
-    const result: CancelVerificationResponse = await cancelVerification(requestId);
-    
-    if (result.success) {
-      res.json(createResponse(true, undefined, 'Verification cancelled successfully'));
-    } else {
-      return ResponseUtils.error(res, ErrorCodes.OTP_CANCELLATION_FAILED, null, result.error);
+    try {
+      const storedOtp = await redisClient.get(`otp:${phone}`);
+
+      if (!storedOtp) {
+        logger.warn(`⏰ OTP expired or not found for ${phone}`);
+        return ResponseUtils.error(res, ErrorCodes.OTP_EXPIRED, null, 'OTP has expired or does not exist');
+      }
+
+      if (storedOtp !== otp) {
+        logger.warn(`❌ Invalid OTP entered for ${phone}`);
+        return ResponseUtils.error(res, ErrorCodes.OTP_INVALID, null, 'Invalid OTP code');
+      }
+
+      await redisClient.del(`otp:${phone}`);
+      logger.info(`✅ OTP verified successfully for ${phone}`);
+
+      return res.json({
+        success: true,
+        message: 'OTP verified successfully'
+      });
+    } catch (error) {
+      logger.error(`💥 OTP Verify Error for ${phone}`, error);
+      return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Verification failed');
     }
-  } catch (error) {
-    console.error('Error cancelling verification:', error);
-    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to cancel verification');
   }
-});
-
-
+);
 
 export default router;

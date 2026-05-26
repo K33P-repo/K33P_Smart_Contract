@@ -11820,3 +11820,794 @@
 {"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-01-24T19:36:24.223Z"}
 {"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-01-24T19:39:48.846Z"}
 {"error":"connection failure during authentication","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-01-24T20:01:30.932Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-04-10T15:45:39.750Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-04-10T15:45:39.751Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-04-10T15:45:40.124Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-04-10T15:45:40.187Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:45:47.084Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-04-10T15:45:47.084Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-04-10T15:45:48.076Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-04-10T15:45:48.076Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-04-10T15:45:52.219Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2026-04-10T15:45:52.224Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2026-04-10T15:45:52.224Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3000/api/wallet-folders","service":"k33p-backend","timestamp":"2026-04-10T15:45:52.225Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:46:48.804Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:47:48.148Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:48:49.403Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:49:48.651Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:50:48.682Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:51:48.758Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:52:49.840Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:53:49.118Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:54:49.268Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:55:49.201Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T15:56:48.488Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:43:13.110Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:44:00.537Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:44:54.772Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:45:55.316Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:47:00.487Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:47:54.765Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:49:05.176Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:49:54.734Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:50:55.655Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:51:54.636Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:52:56.585Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:53:55.674Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:54:58.035Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:55:54.765Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:56:55.384Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:57:56.435Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:58:59.801Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T16:59:55.401Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:01:02.799Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:01:54.083Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:02:55.524Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:03:55.224Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:05:01.069Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:05:54.826Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:07:00.540Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:07:56.580Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:09:00.379Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:09:55.587Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:11:00.084Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:11:59.783Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:12:55.080Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:14:00.403Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:14:55.128Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:15:56.361Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:16:54.697Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:17:54.917Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:18:55.435Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:19:55.955Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:20:55.860Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:21:55.559Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:22:56.693Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:24:01.228Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:24:55.181Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:25:56.179Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:26:56.536Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:27:55.806Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:28:54.036Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:29:57.577Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:31:20.634Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:32:17.939Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:33:16.752Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:34:15.563Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:35:16.619Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:36:15.233Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:37:21.442Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:38:15.305Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:39:22.539Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:40:16.857Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:41:15.940Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:42:14.921Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:43:17.435Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:44:16.171Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:45:15.772Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:46:15.881Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:47:21.316Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:48:15.256Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:49:21.339Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:50:15.305Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:51:17.564Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:52:14.475Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:53:15.914Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:54:15.127Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:55:20.461Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:56:15.351Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:57:16.939Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:58:14.924Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T17:59:17.002Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:00:14.993Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:01:16.636Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:02:15.387Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:03:15.903Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:04:15.874Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:05:16.223Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:06:15.512Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:07:19.614Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:08:16.129Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:09:16.492Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:10:17.108Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:11:17.668Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:12:15.136Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:13:20.979Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:31:07.892Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:32:07.691Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:33:10.672Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:34:07.070Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:35:09.002Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:36:07.371Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:37:10.933Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:38:07.975Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:39:14.319Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:40:07.347Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:41:09.369Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:42:08.247Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:43:12.335Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:44:07.649Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:45:10.984Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:46:08.392Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:47:09.791Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:48:11.014Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:49:08.826Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:50:07.704Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:51:13.346Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:52:07.240Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:53:08.305Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:54:07.294Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:55:08.963Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:56:07.490Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:57:13.800Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:58:07.862Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T18:59:13.500Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:00:07.345Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:01:08.498Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:02:07.786Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:03:07.611Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:04:07.308Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:05:15.791Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:06:08.542Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:07:09.299Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:08:06.947Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:09:08.342Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:10:07.789Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:11:08.560Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:12:07.611Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:13:09.290Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:14:07.443Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:15:07.830Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:16:07.714Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:17:08.270Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:18:09.419Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:19:08.357Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:20:08.099Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:21:12.816Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:22:07.999Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:23:08.630Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:24:07.716Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:25:13.132Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:26:07.830Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:27:12.650Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:28:07.844Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:29:08.301Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:30:07.547Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:31:08.990Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:32:07.562Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:33:07.669Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:34:12.387Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:35:08.296Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:36:07.715Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:37:12.406Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:38:07.190Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:39:08.222Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:40:07.854Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:41:13.267Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:42:09.685Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:43:12.737Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:44:07.397Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:45:08.215Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:46:06.833Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:47:07.722Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:48:07.548Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:49:08.587Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:50:12.572Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:51:08.459Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:52:13.844Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:53:08.004Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:54:08.437Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:55:12.625Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:56:07.615Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:57:08.825Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:58:08.344Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T19:59:13.173Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:00:07.750Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:01:12.561Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:02:07.576Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:03:08.429Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:04:07.665Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:05:13.098Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:06:07.473Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:07:07.889Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:08:07.590Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:09:12.206Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:10:07.441Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:11:12.525Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:12:07.820Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:13:09.036Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:14:07.515Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:15:07.741Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:16:07.491Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:17:07.507Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:18:07.550Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-10T20:19:09.502Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T07:53:22.960Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T07:54:23.206Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T07:55:35.695Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T07:56:13.526Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T07:57:04.457Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T07:58:04.949Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T07:59:04.698Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:00:14.526Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:01:04.216Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:02:09.854Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:03:04.844Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:04:05.566Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:05:04.547Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:06:04.654Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:07:05.375Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:08:09.647Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:09:04.674Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:10:09.588Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:11:07.438Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:12:05.522Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:13:05.027Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:14:07.288Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:15:07.115Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:16:50.980Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:17:04.923Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:18:10.970Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:19:05.058Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:20:05.782Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:21:05.616Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:22:10.283Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:23:04.727Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:24:05.608Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:25:06.007Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:26:09.417Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:27:04.773Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:28:05.849Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:29:05.436Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:30:06.038Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:31:05.012Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:32:05.826Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:33:10.683Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:34:10.990Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:35:05.574Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:36:06.170Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:37:09.944Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:38:06.309Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:39:10.814Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:40:06.628Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:41:10.792Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:42:05.368Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:43:05.115Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:44:07.845Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:45:05.178Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:46:10.133Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:47:05.068Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:48:10.981Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:49:07.608Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:50:06.693Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:51:05.632Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:52:05.989Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:53:08.453Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:54:05.963Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:55:07.240Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:56:07.479Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:57:05.443Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:58:06.647Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T08:59:05.468Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:00:05.721Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:01:10.056Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:02:05.800Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:03:10.259Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:04:05.046Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:05:05.715Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:06:06.183Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:07:09.878Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:08:05.889Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:09:05.438Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:10:06.830Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:11:05.516Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:12:07.148Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:13:06.140Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:14:13.362Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:15:05.151Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:16:09.933Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:17:08.501Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:18:06.003Z"}
+{"error":"Tenant or user not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-04-11T09:19:52.710Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T09:18:05.521Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T09:18:05.524Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T09:18:06.266Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T09:18:06.503Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T09:18:07.656Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T09:18:07.657Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T09:18:09.868Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T09:18:09.869Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T09:18:13.127Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T09:32:40.832Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T09:32:40.834Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T09:32:41.553Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T09:32:41.661Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T09:32:43.431Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T09:32:43.453Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T09:32:44.824Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T09:32:44.825Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T09:32:47.798Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T09:33:26.698Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T09:33:26.753Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T09:33:30.290Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T09:33:30.590Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T09:33:32.329Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T09:33:32.331Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T09:33:34.711Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T09:33:34.712Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T09:33:37.522Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T13:59:30.998Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T13:59:31.000Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T13:59:31.971Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T13:59:32.095Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T13:59:33.965Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T13:59:33.966Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T13:59:40.375Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T13:59:40.379Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T13:59:44.219Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:02:53.856Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:02:53.857Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:02:54.165Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T14:02:54.216Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:02:56.118Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T14:02:56.119Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T14:02:57.025Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:02:57.026Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T14:03:01.670Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:03:19.731Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:03:19.732Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:03:20.071Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T14:03:20.116Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:03:21.731Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T14:03:21.731Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T14:03:22.754Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:03:22.754Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T14:03:26.666Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:03:44.607Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:03:44.608Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:03:44.874Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T14:03:44.913Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:03:47.403Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T14:03:47.405Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T14:03:49.053Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:03:49.053Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T14:03:54.591Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:04:12.162Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-13T14:04:12.163Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:04:12.571Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-13T14:04:12.629Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:04:14.617Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-13T14:04:14.618Z"}
+{"level":"info","message":"✅ Cardano features initialized","service":"k33p-backend","timestamp":"2026-05-13T14:04:16.119Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-13T14:04:16.119Z"}
+{"level":"info","message":"🚀 Auto-Refund Monitor started","service":"k33p-backend","timestamp":"2026-05-13T14:04:20.053Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-13T14:04:20.054Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-13T14:04:20.054Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-13T14:04:20.054Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/sms/send","service":"k33p-backend","timestamp":"2026-05-13T14:05:17.244Z","userAgent":"curl/7.81.0"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:05:17.552Z"}
+{"level":"info","message":"SMS sent successfully to 2349161018275","service":"k33p-backend","timestamp":"2026-05-13T14:05:18.835Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:06:17.212Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:07:16.902Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:08:17.126Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:09:17.903Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/sms/send","service":"k33p-backend","timestamp":"2026-05-13T14:09:34.346Z","userAgent":"curl/7.81.0"}
+{"code":"VALIDATION_ERROR","details":null,"level":"error","message":"API Error: Validation errors: Sender ID must not exceed 11 characters","service":"k33p-backend","stack":"K33PError: Validation errors: Sender ID must not exceed 11 characters\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:520:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/sms-routes.ts:33:34)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":400,"timestamp":"2026-05-13T14:09:34.360Z","userMessage":"Validation errors: Sender ID must not exceed 11 characters"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/sms/send","service":"k33p-backend","timestamp":"2026-05-13T14:09:43.501Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"SMS sent successfully to 2349161018275","service":"k33p-backend","timestamp":"2026-05-13T14:09:44.349Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:10:17.756Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:11:17.172Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:12:21.663Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:13:16.351Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:14:21.907Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:15:16.444Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:16:16.575Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:17:16.550Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:18:16.656Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:19:16.642Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:20:17.012Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:21:16.924Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:22:17.350Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:23:16.418Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/sms/send","service":"k33p-backend","timestamp":"2026-05-13T14:23:28.845Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"SMS sent successfully to 2349161018275","service":"k33p-backend","timestamp":"2026-05-13T14:23:30.038Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:24:21.851Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:25:16.539Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:26:16.973Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:27:16.872Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:28:16.884Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:29:16.704Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:30:16.775Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:31:16.476Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:32:26.620Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:33:16.515Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:34:16.635Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:35:16.943Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:36:17.347Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:37:16.843Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:38:17.355Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:39:16.759Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:40:16.856Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:41:18.031Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:42:16.753Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:43:16.553Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:44:16.534Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:45:21.586Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:46:16.505Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:47:16.629Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:48:17.715Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:49:16.841Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:50:16.806Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:51:16.858Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:52:16.731Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:53:17.031Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:54:16.488Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:55:17.317Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:56:16.863Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:57:16.965Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:58:16.580Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T14:59:22.745Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:00:16.450Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:01:17.321Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:02:16.402Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:03:17.008Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:04:16.534Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:05:17.236Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:06:21.316Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:07:16.681Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:08:16.648Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:09:17.251Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:10:16.445Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:11:17.275Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:12:16.555Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:13:17.071Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:14:16.209Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:15:16.862Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:16:16.468Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:17:16.773Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:18:16.689Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:19:16.889Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:20:16.588Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:21:16.768Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:22:16.814Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:23:17.071Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:24:16.419Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:25:21.849Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:26:16.524Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:27:16.642Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:28:16.977Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:29:16.559Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:30:16.868Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:31:17.183Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:32:16.379Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:33:17.093Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:34:16.407Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:35:21.676Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:36:16.567Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:38:04.672Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:38:16.600Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:39:17.133Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:40:16.414Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:41:17.045Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:42:16.830Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:43:26.540Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:44:17.277Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:45:16.840Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:46:16.675Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:47:17.177Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:48:16.582Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:49:23.224Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:50:16.818Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:51:17.128Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:52:16.506Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-13T15:53:17.120Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:26:27.340Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:26:27.341Z"}
+{"level":"warn","message":"⚠️ Upstash Redis URL or Token is missing in .env","service":"k33p-backend","timestamp":"2026-05-25T19:26:27.393Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:26:27.621Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-25T19:26:27.694Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:26:28.604Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-25T19:26:28.605Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-25T19:26:30.187Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:26:30.187Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-25T19:26:31.518Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-25T19:26:31.525Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-25T19:26:31.525Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-25T19:26:31.525Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:26:52.407Z","userAgent":"curl/7.81.0"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"Upstash Redis Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:26:52.415Z"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"OTP Send Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:26:52.415Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:94:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:26:52.416Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:27:29.982Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:28:11.088Z","userAgent":"curl/7.81.0"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"Upstash Redis Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:28:11.113Z"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"OTP Send Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:28:11.114Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:94:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:28:11.114Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:28:29.880Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:29:30.572Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:29:43.489Z","userAgent":"curl/7.81.0"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"Upstash Redis Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:29:43.516Z"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"OTP Send Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:29:43.517Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:94:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:29:43.518Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:30:29.789Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:31:29.776Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:31:47.326Z","userAgent":"curl/7.81.0"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"Upstash Redis Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:31:47.366Z"}
+{"cause":{"code":"ERR_INVALID_URL","input":"/GET"},"level":"error","message":"OTP Send Error: Failed to parse URL from /GET","service":"k33p-backend","stack":"TypeError: Failed to parse URL from /GET\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:30)","timestamp":"2026-05-25T19:31:47.370Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:94:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:31:47.373Z","userMessage":"Failed to send OTP"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-25T19:31:59.660Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:32:03.096Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:32:03.097Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_URL is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:32:03.149Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_TOKEN is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:32:03.150Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:32:03.377Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-25T19:32:03.446Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:32:04.522Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-25T19:32:04.522Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-25T19:32:10.980Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:32:10.980Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-25T19:32:12.296Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-25T19:32:12.300Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-25T19:32:12.300Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-25T19:32:12.300Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:32:26.664Z","userAgent":"curl/7.81.0"}
+{"level":"error","message":"OTP Send Error: Upstash Redis is not configured. Check your .env file.","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:24:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:60:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:37:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-25T19:32:26.673Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:94:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:32:26.674Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:33:11.200Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:34:06.127Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:35:05.758Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-25T19:35:51.199Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:35:53.646Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:35:53.648Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_URL is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:35:53.721Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_TOKEN is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:35:53.721Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:35:54.052Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-25T19:35:54.117Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:35:55.117Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-25T19:35:55.118Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-25T19:36:03.214Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:36:03.215Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-25T19:36:07.614Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-25T19:36:07.621Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-25T19:36:07.621Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-25T19:36:07.621Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:36:18.184Z","userAgent":"curl/7.81.0"}
+{"level":"error","message":"OTP Send Error: Upstash Redis is not configured. Check your .env file.","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:24:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:60:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:37:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-25T19:36:18.194Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:94:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:36:18.195Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:36:57.310Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:37:42.348Z","userAgent":"curl/7.81.0"}
+{"level":"error","message":"OTP Send Error: Upstash Redis is not configured. Check your .env file.","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:24:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:60:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:37:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-25T19:37:42.365Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:94:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:37:42.366Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:38:00.661Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:38:57.425Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:40:05.535Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:40:59.702Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:41:57.025Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-25T19:42:18.583Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:42:38.624Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:42:38.626Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_URL is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:42:38.706Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_TOKEN is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:42:38.706Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:42:39.063Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-25T19:42:39.148Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:42:42.024Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-25T19:42:42.025Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-25T19:42:42.969Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:42:42.970Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-25T19:42:44.733Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-25T19:42:44.743Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-25T19:42:44.743Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-25T19:42:44.744Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:42:59.879Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:42:59.892Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:42:59.893Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:42:59.893Z"}
+{"error":"Upstash Redis is not configured. Check your .env file.","level":"error","message":"💥 Unexpected error in OTP send for 2349161018275","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:24:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:60:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:43:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-25T19:42:59.905Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:111:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:42:59.906Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:43:43.190Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:44:43.200Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:45:50.169Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-25T19:45:51.954Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:46:01.188Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:46:01.192Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_URL is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:46:01.285Z"}
+{"level":"error","message":"❌ UPSTASH_REDIS_TOKEN is missing in .env file","service":"k33p-backend","timestamp":"2026-05-25T19:46:01.285Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:46:01.741Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-25T19:46:01.939Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:46:04.017Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-25T19:46:04.023Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-25T19:46:05.090Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:46:05.092Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-25T19:46:06.815Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-25T19:46:06.828Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-25T19:46:06.829Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-25T19:46:06.829Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:46:10.845Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:46:10.861Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:46:10.861Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:46:10.862Z"}
+{"error":"Upstash Redis is not configured. Check your .env file.","level":"error","message":"💥 Unexpected error in OTP send for 2349161018275","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:24:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:60:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:43:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-25T19:46:10.871Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:111:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:46:10.872Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:47:06.041Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:48:00.044Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:48:00.054Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:48:00.054Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:48:00.055Z"}
+{"error":"Upstash Redis is not configured. Check your .env file.","level":"error","message":"💥 Unexpected error in OTP send for 2349161018275","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:24:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:60:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:43:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-25T19:48:00.059Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:111:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:48:00.060Z","userMessage":"Failed to send OTP"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-25T19:48:06.420Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:48:55.860Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-25T19:48:55.862Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:48:56.241Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-25T19:48:56.402Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:48:58.384Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-25T19:48:58.390Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-25T19:49:02.018Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-25T19:49:02.020Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-25T19:49:07.208Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-25T19:49:07.221Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-25T19:49:07.221Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-25T19:49:07.222Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-25T19:49:15.085Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:49:15.095Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:49:15.096Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-05-25T19:49:15.096Z"}
+{"level":"error","message":"Upstash Redis Error (EXPIRE):","service":"k33p-backend","timestamp":"2026-05-25T19:49:17.099Z"}
+{"error":"Redis HTTP 400: {\"error\":\"ERR wrong number of arguments for 'expire' command\"}","level":"error","message":"💥 Unexpected error in OTP send for 2349161018275","service":"k33p-backend","stack":"Error: Redis HTTP 400: {\"error\":\"ERR wrong number of arguments for 'expire' command\"}\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:41:23)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:58:9)","timestamp":"2026-05-25T19:49:17.107Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:111:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-25T19:49:17.108Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-25T19:50:06.073Z"}
+                                                                                                                                                                                                                     {"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:07:35.785Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:07:35.787Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:07:36.100Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-26T15:07:36.162Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:07:37.108Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-26T15:07:37.110Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-26T15:07:38.572Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:07:38.572Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-26T15:07:40.374Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-26T15:07:40.376Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-26T15:07:40.376Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-26T15:07:40.376Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:08:38.393Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-26T15:08:58.834Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:09:02.698Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:09:02.699Z"}
+{"level":"error","message":"❌ Upstash Redis URL or Token is missing in .env","service":"k33p-backend","timestamp":"2026-05-26T15:09:02.738Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:09:02.892Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-26T15:09:02.927Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:09:04.459Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-26T15:09:04.460Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-26T15:09:04.911Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:09:04.912Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-26T15:09:07.027Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-26T15:09:07.030Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-26T15:09:07.031Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-26T15:09:07.031Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-26T15:09:12.098Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:09:12.104Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:09:12.106Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:09:12.106Z"}
+{"error":"Upstash Redis is not configured. Check your .env file.","level":"error","message":"💥 Unexpected error in OTP send for 2349161018275","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:57:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:43:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-26T15:09:12.107Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:111:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-26T15:09:12.108Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:10:06.241Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-26T15:10:37.683Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:10:37.685Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:10:37.685Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:10:37.685Z"}
+{"error":"Upstash Redis is not configured. Check your .env file.","level":"error","message":"💥 Unexpected error in OTP send for 2349161018275","service":"k33p-backend","stack":"Error: Upstash Redis is not configured. Check your .env file.\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:21:19)\n    at UpstashRedis.get (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:57:21)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:43:43)\n    at Layer.handle [as handle_request] (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/layer.js:95:5)\n    at next (/home/dee/K33P_Smart_Contract/backend/node_modules/express/lib/router/route.js:149:13)\n    at middleware (/home/dee/K33P_Smart_Contract/backend/node_modules/express-validator/lib/middlewares/check.js:16:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2026-05-26T15:10:37.685Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:111:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-26T15:10:37.686Z","userMessage":"Failed to send OTP"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-26T15:10:55.248Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:11:23.614Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:11:23.617Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:11:24.012Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-26T15:11:24.083Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:11:25.698Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-26T15:11:25.699Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-26T15:11:26.122Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:11:26.123Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-26T15:11:27.329Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-26T15:11:27.332Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-26T15:11:27.332Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-26T15:11:27.332Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-26T15:11:31.208Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request for: 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:11:31.217Z"}
+{"level":"info","message":"🔑 Generated OTP for 2349161018275: 16964","service":"k33p-backend","timestamp":"2026-05-26T15:11:31.218Z"}
+{"level":"info","message":"📤 Sending to Infobip...","service":"k33p-backend","timestamp":"2026-05-26T15:11:31.218Z"}
+{"level":"info","message":"✅ OTP sent successfully to 2349161018275 | MessageId: 4798082919567951498181","service":"k33p-backend","timestamp":"2026-05-26T15:11:32.043Z"}
+{"level":"info","message":"✅ OTP successfully sent to 2349161018275","service":"k33p-backend","timestamp":"2026-05-26T15:11:32.043Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:12:27.623Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:13:26.807Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:14:27.122Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:15:26.658Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:16:26.968Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-26T15:17:17.672Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:17:24.857Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:17:24.859Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:17:25.089Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-26T15:17:25.131Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:17:26.062Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-26T15:17:26.062Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-26T15:17:27.327Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:17:27.327Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-26T15:17:28.584Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-26T15:17:28.587Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-26T15:17:28.587Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-26T15:17:28.587Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:18:26.939Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-26T15:18:50.201Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:18:50.205Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:18:50.206Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:18:50.206Z"}
+{"error":"Redis Error 400: {\"error\":\"ERR wrong number of arguments for 'expire' command\"}","level":"error","message":"💥 Unexpected error in OTP send for 2348158502016","service":"k33p-backend","stack":"Error: Redis Error 400: {\"error\":\"ERR wrong number of arguments for 'expire' command\"}\n    at UpstashRedis.request (/home/dee/K33P_Smart_Contract/backend/src/utils/redis.ts:36:19)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:58:9)","timestamp":"2026-05-26T15:18:51.949Z"}
+{"code":"SERVER_ERROR","details":{},"level":"error","message":"API Error: Failed to send OTP","service":"k33p-backend","stack":"K33PError: Failed to send OTP\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:111:28)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":500,"timestamp":"2026-05-26T15:18:51.950Z","userMessage":"Failed to send OTP"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:19:27.822Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:20:27.025Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:21:27.424Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:22:26.980Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:23:27.369Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-26T15:23:51.419Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:23:56.969Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T15:23:56.971Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:23:57.232Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-26T15:23:57.277Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:23:58.227Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-26T15:23:58.229Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-26T15:23:59.189Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T15:23:59.189Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-26T15:24:00.265Z"}
+{"level":"info","message":"K33P Backend Server running on port 3501","service":"k33p-backend","timestamp":"2026-05-26T15:24:00.267Z"}
+{"level":"info","message":"Health check: http://localhost:3501/api/health","service":"k33p-backend","timestamp":"2026-05-26T15:24:00.267Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3501/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-26T15:24:00.267Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:24:59.369Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-05-26T15:25:42.040Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:42.044Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:42.044Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:42.045Z"}
+{"level":"info","message":"✅ Rate limit updated for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:43.420Z"}
+{"level":"info","message":"🔍 Checking if OTP already exists for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:43.421Z"}
+{"level":"info","message":"🔑 Generated OTP for 2348158502016: 69205","service":"k33p-backend","timestamp":"2026-05-26T15:25:43.661Z"}
+{"level":"info","message":"💾 OTP saved to Redis for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:43.876Z"}
+{"level":"info","message":"📤 Sending OTP to Infobip for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:43.877Z"}
+{"level":"info","message":"✅ OTP sent successfully to 2348158502016 | MessageId: 4798091445467950996607","service":"k33p-backend","timestamp":"2026-05-26T15:25:44.642Z"}
+{"level":"info","message":"🎉 OTP successfully sent to 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:25:44.643Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:25:59.124Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:26:59.599Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:27:59.102Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/verify","service":"k33p-backend","timestamp":"2026-05-26T15:28:38.337Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"🔐 OTP Verification attempt for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:28:38.339Z"}
+{"level":"info","message":"✅ OTP verified successfully for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:28:41.303Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/verify","service":"k33p-backend","timestamp":"2026-05-26T15:28:48.361Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"🔐 OTP Verification attempt for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:28:48.363Z"}
+{"level":"warn","message":"⏰ OTP expired or not found for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:28:48.904Z"}
+{"code":"OTP_EXPIRED","details":null,"level":"error","message":"API Error: OTP has expired or does not exist","service":"k33p-backend","stack":"K33PError: OTP has expired or does not exist\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:139:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":410,"timestamp":"2026-05-26T15:28:48.906Z","userMessage":"OTP has expired or does not exist"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/verify","service":"k33p-backend","timestamp":"2026-05-26T15:28:55.468Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"🔐 OTP Verification attempt for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:28:55.469Z"}
+{"level":"warn","message":"⏰ OTP expired or not found for 2348158502016","service":"k33p-backend","timestamp":"2026-05-26T15:28:56.246Z"}
+{"code":"OTP_EXPIRED","details":null,"level":"error","message":"API Error: OTP has expired or does not exist","service":"k33p-backend","stack":"K33PError: OTP has expired or does not exist\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:139:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":410,"timestamp":"2026-05-26T15:28:56.247Z","userMessage":"OTP has expired or does not exist"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:28:59.691Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:29:59.117Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:30:59.422Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:31:59.126Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:32:59.269Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:33:59.183Z"}

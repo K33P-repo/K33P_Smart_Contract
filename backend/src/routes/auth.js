@@ -14,7 +14,6 @@ import { dbService } from '../database/service.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { sendOtp, verifyOtp } from '../utils/termii.js';
 import { UserModel } from '../database/models.js';
 
 const router = express.Router();
@@ -112,8 +111,8 @@ router.delete('/user', verifyToken, createRateLimiter({
   message: 'Too many delete account attempts, please try again later'
 }), asyncHandler(async (req, res) => {
   try {
-    const userId = req.user.userId;  
-    
+    const userId = req.user.userId;
+
     console.log('=== DELETE USER DEBUG START ===');
     console.log('Authenticated user ID from token:', userId);
 
@@ -125,24 +124,24 @@ router.delete('/user', verifyToken, createRateLimiter({
     // Check if user exists
     console.log('Finding user by ID:', userId);
     const user = await UserModel.findByUserId(userId);
-    
+
     if (!user) {
       console.log('User not found with ID:', userId);
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
     }
 
     console.log('User found, proceeding with deletion...');
-    
+
     // Start the deletion process
     const deletionResult = await UserModel.deleteUser(userId);
-    
+
     if (!deletionResult) {
       console.log('User deletion failed');
       return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to delete user account');
     }
 
     console.log('User deletion completed successfully');
-    
+
     // Also clear any active sessions for this user
     try {
       await iagon.deleteSessions({ userId: user.id });
@@ -153,7 +152,7 @@ router.delete('/user', verifyToken, createRateLimiter({
     }
 
     console.log('=== DELETE USER DEBUG END ===');
-    
+
     return ResponseUtils.success(res, SuccessCodes.USER_DELETED, {
       message: 'User account and all associated data have been successfully deleted',
       userId: userId,
@@ -163,48 +162,20 @@ router.delete('/user', verifyToken, createRateLimiter({
   } catch (error) {
     console.error('=== DELETE USER ERROR ===');
     console.error('Error:', error);
-    
+
     // Handle specific error cases
     if (error.message.includes('foreign key constraint')) {
       return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Failed to delete account due to database constraints. Please contact support.');
     }
-    
+
     if (error.message.includes('transaction')) {
       return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Database transaction failed. Please try again.');
     }
-    
+
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to delete user account: ' + error.message);
   }
 }));
 
-/**
- * @route POST /api/auth/send-otp
- * @desc Send OTP to phone number during signup
- * @access Public
- */
-router.post('/send-otp', createRateLimiter({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // 3 OTP requests per 5 minutes
-  message: 'Too many OTP requests, please try again later'
-}), asyncHandler(async (req, res) => {
-  const { phoneNumber } = req.body;
-  
-  if (!phoneNumber) {
-    throw new K33PError(ErrorCodes.VALIDATION_ERROR, 'Phone number is required');
-  }
-  
-  console.log(`Sending OTP to ${phoneNumber}`);
-  const result = await sendOtp(phoneNumber);
-  
-  if (result.success) {
-    ResponseUtils.success(res, SuccessCodes.OTP_SENT, {
-      requestId: result.requestId,
-      expiresIn: 300 // 5 minutes
-    });
-  } else {
-    throw new K33PError(ErrorCodes.OTP_SEND_FAILED, result.error || 'Failed to send OTP');
-  }
-}));
 
 // Session storage for signup flow (in production, use Redis)
 const signupSessions = new NodeCache({ stdTTL: 1800 }); // 30 minutes
@@ -221,37 +192,37 @@ router.post('/setup-pin', createRateLimiter({
 }), async (req, res) => {
   try {
     const { phoneNumber, pin, sessionId } = req.body;
-    
+
     // Validate required fields
     if (!phoneNumber || !pin) {
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Phone number and PIN are required');
     }
-    
+
     // Validate PIN format
     if (!/^\d{4}$/.test(pin)) {
       return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'PIN must be exactly 4 digits');
     }
-    
+
     // Create or update session
     const sessionKey = sessionId || `signup_${crypto.randomUUID()}`;
     const sessionData = signupSessions.get(sessionKey) || {};
-    
+
     // Store PIN setup data
     sessionData.phoneNumber = phoneNumber;
     sessionData.pin = pin;
     sessionData.step = 'pin_setup';
     sessionData.timestamp = new Date();
-    
+
     signupSessions.set(sessionKey, sessionData);
-    
+
     console.log(`PIN setup completed for session: ${sessionKey}`);
-    
+
     return ResponseUtils.success(res, SuccessCodes.PIN_SETUP_SUCCESS, {
       sessionId: sessionKey,
       step: 'pin_setup',
       nextStep: 'pin_confirmation'
     });
-    
+
   } catch (error) {
     console.error('Error setting up PIN:', error);
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to setup PIN');
@@ -270,38 +241,38 @@ router.post('/confirm-pin', createRateLimiter({
 }), async (req, res) => {
   try {
     const { sessionId, pin } = req.body;
-    
+
     // Validate required fields
     if (!sessionId || !pin) {
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID and PIN are required');
     }
-    
+
     // Get session data
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
       return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
     }
-    
+
     // Verify PIN matches
     if (sessionData.pin !== pin) {
       return ResponseUtils.error(res, ErrorCodes.INVALID_PIN, null, 'PIN confirmation does not match. Please try again.');
     }
-    
+
     // Update session
     sessionData.pinConfirmed = true;
     sessionData.step = 'pin_confirmed';
     sessionData.timestamp = new Date();
-    
+
     signupSessions.set(sessionId, sessionData);
-    
+
     console.log(`PIN confirmed for session: ${sessionId}`);
-    
+
     return ResponseUtils.success(res, SuccessCodes.PIN_VERIFIED, {
       sessionId,
       step: 'pin_confirmed',
       nextStep: 'biometric_setup'
     });
-    
+
   } catch (error) {
     console.error('Error confirming PIN:', error);
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to confirm PIN');
@@ -320,50 +291,50 @@ router.post('/setup-biometric', createRateLimiter({
 }), async (req, res) => {
   try {
     const { sessionId, biometricType, biometricData } = req.body;
-    
+
     // Validate required fields
     if (!sessionId) {
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID is required');
     }
-    
+
     // Get session data
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
       return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
     }
-    
+
     // Verify PIN was confirmed
     if (!sessionData.pinConfirmed) {
       return ResponseUtils.error(res, ErrorCodes.INVALID_FLOW, null, 'PIN must be confirmed before setting up biometric authentication');
     }
-    
+
     // Validate biometric data if provided
     if (biometricType && biometricData) {
       if (!['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           success: false,
-          error: 'Biometric type must be one of: fingerprint, faceid, voice, iris' 
+          error: 'Biometric type must be one of: fingerprint, faceid, voice, iris'
         });
       }
     }
-    
+
     // Update session with biometric data
     sessionData.biometricType = biometricType || null;
     sessionData.biometricData = biometricData || null;
     sessionData.step = 'biometric_setup';
     sessionData.timestamp = new Date();
-    
+
     signupSessions.set(sessionId, sessionData);
-    
+
     console.log(`Biometric setup completed for session: ${sessionId}`);
-    
+
     return ResponseUtils.success(res, SuccessCodes.BIOMETRIC_SETUP_SUCCESS, {
       sessionId,
       step: 'biometric_setup',
       biometricType: biometricType || null,
       nextStep: 'did_creation'
     }, biometricType ? `${biometricType} setup completed successfully` : 'Biometric setup skipped');
-    
+
   } catch (error) {
     console.error('Error setting up biometric:', error);
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to setup biometric authentication');
@@ -382,23 +353,23 @@ router.post('/complete-signup', createRateLimiter({
 }), async (req, res) => {
   try {
     const { sessionId } = req.body;
-    
+
     // Validate required fields
     if (!sessionId) {
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID is required');
     }
-    
+
     // Get session data
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
       return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
     }
-    
+
     // Verify biometric setup was completed
     if (sessionData.step !== 'biometric_setup') {
       return ResponseUtils.error(res, ErrorCodes.INVALID_FLOW, null, 'Biometric setup must be completed before finalizing signup');
     }
-    
+
     // Prepare user data for signup
     const userData = {
       phoneNumber: sessionData.phoneNumber,
@@ -408,14 +379,14 @@ router.post('/complete-signup', createRateLimiter({
       verificationMethod: 'pin', // Default verification method
       userId: crypto.randomUUID() // Generate a unique user ID
     };
-    
+
     // Use existing handleSignup function to complete the process
     const mockReq = {
       body: userData,
       ip: req.ip,
       headers: req.headers
     };
-    
+
     const mockRes = {
       status: (code) => ({
         json: (data) => {
@@ -426,7 +397,7 @@ router.post('/complete-signup', createRateLimiter({
             sessionData.walletAddress = data.data?.walletAddress;
             sessionData.timestamp = new Date();
             signupSessions.set(sessionId, sessionData);
-            
+
             res.status(code).json({
               ...data,
               sessionId,
@@ -445,7 +416,7 @@ router.post('/complete-signup', createRateLimiter({
         sessionData.walletAddress = data.data?.walletAddress;
         sessionData.timestamp = new Date();
         signupSessions.set(sessionId, sessionData);
-        
+
         return ResponseUtils.success(res, SuccessCodes.USER_CREATED, {
           ...data,
           sessionId,
@@ -453,10 +424,10 @@ router.post('/complete-signup', createRateLimiter({
         });
       }
     };
-    
+
     // Call the existing handleSignup function
     await handleSignup(mockReq, mockRes, 'pin', sessionData.biometricType);
-    
+
   } catch (error) {
     console.error('Error completing signup:', error);
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to complete signup');
@@ -476,7 +447,7 @@ router.post('/setup-username', verifyToken, createRateLimiter({
   try {
     const { username } = req.body;
     const userId = req.user.userId; // From JWT token
-    
+
     console.log('=== SETUP USERNAME DEBUG START ===');
     console.log('Authenticated user ID from token:', userId);
     console.log('Requested username:', username);
@@ -486,21 +457,21 @@ router.post('/setup-username', verifyToken, createRateLimiter({
       console.log('Validation failed: Username is required');
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Username is required');
     }
-    
+
     // Validate username format
     if (username.length < 3 || username.length > 30) {
       console.log('Validation failed: Username must be between 3 and 30 characters');
       return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username must be between 3 and 30 characters');
     }
-    
+
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       console.log('Validation failed: Username contains invalid characters');
       return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username can only contain letters, numbers, and underscores');
     }
-    
+
     console.log('Finding user by ID:', userId);
     const user = await dbService.getUserById(userId);
-    
+
     if (!user) {
       console.log('User not found with ID:', userId);
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
@@ -511,7 +482,7 @@ router.post('/setup-username', verifyToken, createRateLimiter({
       console.log('User already has username:', user.username);
       return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_SET, null, 'Username is already set for this account');
     }
-    
+
     // Check if username is already taken
     console.log('Checking if username is available...');
     const existingUser = await dbService.getUserByUsername(username);
@@ -522,17 +493,17 @@ router.post('/setup-username', verifyToken, createRateLimiter({
 
     console.log('Updating user with username...');
     const updatedUser = await dbService.updateUser(userId, { username });
-    
+
     if (!updatedUser) {
       console.log('Failed to update user with username');
       return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to save username');
     }
 
     console.log('Username setup completed for user:', userId);
-    
+
     // Generate new JWT token with username included
     const token = jwt.sign(
-      { 
+      {
         id: updatedUser.id,
         userId: updatedUser.user_id,
         phoneNumber: updatedUser.phone_number,
@@ -545,7 +516,7 @@ router.post('/setup-username', verifyToken, createRateLimiter({
       process.env.JWT_SECRET || 'default-secret',
       { expiresIn: process.env.JWT_EXPIRATION || '24h' }
     );
-    
+
     const responseData = {
       username: updatedUser.username,
       userId: updatedUser.user_id,
@@ -556,9 +527,9 @@ router.post('/setup-username', verifyToken, createRateLimiter({
 
     console.log('Username setup completed successfully');
     console.log('=== SETUP USERNAME DEBUG END ===');
-    
+
     return ResponseUtils.success(res, SuccessCodes.USERNAME_SET, responseData, 'Username setup completed successfully. Welcome to K33P!');
-    
+
   } catch (error) {
     console.error('=== SETUP USERNAME ERROR ===');
     console.error('Error:', error);
@@ -574,7 +545,7 @@ router.post('/setup-username', verifyToken, createRateLimiter({
 router.get('/username', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId; // From JWT token
-    
+
     console.log('=== GET USERNAME DEBUG START ===');
     console.log('Authenticated user ID from token:', userId);
 
@@ -585,7 +556,7 @@ router.get('/username', verifyToken, async (req, res) => {
 
     console.log('Finding user by ID:', userId);
     const user = await dbService.getUserById(userId);
-    
+
     if (!user) {
       console.log('User not found with ID:', userId);
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
@@ -606,7 +577,7 @@ router.get('/username', verifyToken, async (req, res) => {
     };
 
     console.log('=== GET USERNAME DEBUG END ===');
-    return ResponseUtils.success(res, SuccessCodes.USER_RETRIEVED, responseData, 
+    return ResponseUtils.success(res, SuccessCodes.USER_RETRIEVED, responseData,
       user.username ? 'Username retrieved successfully' : 'User found but no username set');
 
   } catch (error) {
@@ -627,7 +598,7 @@ router.put('/username', verifyToken, async (req, res) => {
   try {
     const userId = req.user.userId; // From JWT token
     const { username } = req.body;
-    
+
     console.log('=== UPDATE USERNAME DEBUG START ===');
     console.log('Authenticated user ID from token:', userId);
     console.log('New username:', username);
@@ -650,7 +621,7 @@ router.put('/username', verifyToken, async (req, res) => {
 
     console.log('Checking if user exists...');
     const user = await dbService.getUserById(userId);
-    
+
     if (!user) {
       console.log('User not found with ID:', userId);
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
@@ -665,14 +636,14 @@ router.put('/username', verifyToken, async (req, res) => {
 
     console.log('Updating username...');
     const updatedUser = await dbService.updateUser(userId, { username });
-    
+
     if (!updatedUser) {
       console.log('Failed to update username');
       return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to update username');
     }
 
     console.log('Username updated successfully');
-    
+
     const responseData = {
       userId: updatedUser.user_id,
       username: updatedUser.username,
@@ -701,7 +672,7 @@ router.get('/username/check/:username', async (req, res) => {
   try {
     const { username } = req.params;
     const token = req.headers.authorization?.replace('Bearer ', '');
-    
+
     console.log('=== CHECK USERNAME DEBUG START ===');
     console.log('Checking username:', username);
     console.log('Has token:', !!token);
@@ -724,11 +695,11 @@ router.get('/username/check/:username', async (req, res) => {
 
     console.log('Checking if username exists...');
     const existingUser = await dbService.getUserByUsername(username);
-    
+
     const isAvailable = !existingUser;
-    
+
     console.log('Username availability:', isAvailable ? 'Available' : 'Taken');
-    
+
     const responseData = {
       username,
       available: isAvailable,
@@ -752,7 +723,7 @@ router.get('/username/check/:username', async (req, res) => {
     }
 
     console.log('=== CHECK USERNAME DEBUG END ===');
-    return ResponseUtils.success(res, SuccessCodes.USERNAME_CHECKED, responseData, 
+    return ResponseUtils.success(res, SuccessCodes.USERNAME_CHECKED, responseData,
       isAvailable ? 'Username is available' : 'Username is already taken');
 
   } catch (error) {
@@ -775,16 +746,16 @@ router.get('/session-status/:sessionId', createRateLimiter({
 }), async (req, res) => {
   try {
     const { sessionId } = req.params;
-    
+
     if (!sessionId) {
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID is required');
     }
-    
+
     const sessionData = signupSessions.get(sessionId);
     if (!sessionData) {
       return ResponseUtils.error(res, ErrorCodes.SESSION_NOT_FOUND, null, 'Session not found or expired');
     }
-    
+
     // Return session status without sensitive data
     return ResponseUtils.success(res, SuccessCodes.SESSION_RETRIEVED, {
       sessionId,
@@ -796,81 +767,21 @@ router.get('/session-status/:sessionId', createRateLimiter({
       completed: sessionData.completed || false,
       timestamp: sessionData.timestamp
     });
-    
+
   } catch (error) {
     console.error('Error getting session status:', error);
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get session status');
   }
 });
 
-/**
- * @route POST /api/auth/verify-otp
- * @desc Verify OTP code during signup
- * @access Public
- */
-router.post('/verify-otp', createRateLimiter({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 10, // 10 verification attempts per 5 minutes
-  message: 'Too many verification attempts, please try again later'
-}), async (req, res) => {
-  try {
-    const { requestId, code } = req.body;
-    
-    if (!requestId || !code) {
-      return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Request ID and verification code are required');
-    }
-    
-    console.log(`Verifying OTP for request ${requestId}`);
-    const result = await verifyOtp(requestId, code);
-    
-    if (result.success) {
-      res.json({
-        success: true,
-        message: 'Phone number verified successfully',
-        data: { verified: true }
-      });
-    } else {
-      return ResponseUtils.error(res, ErrorCodes.OTP_VERIFICATION_FAILED, result.error, result.error || 'Invalid or expired OTP');
-    }
-  } catch (error) {
-    console.error('Error verifying OTP:', error);
-    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify OTP');
-  }
-});
-/**
- * @route POST /api/auth/resend-otp
- * @desc Resend OTP to phone number during signup (generates a new OTP, invalidating the old one)
- * @access Public
- */
-router.post('/resend-otp', createRateLimiter({
-  windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // 3 resend requests per 5 minutes
-  message: 'Too many resend requests, please try again later'
-}), asyncHandler(async (req, res) => {
-  const { phoneNumber } = req.body;
- 
-  if (!phoneNumber) {
-    throw new K33PError(ErrorCodes.VALIDATION_ERROR, 'Phone number is required');
-  }
- 
-  console.log(`Resending OTP to ${phoneNumber}`);
-  const result = await sendOtp(phoneNumber);
- 
-  if (result.success) {
-    ResponseUtils.success(res, SuccessCodes.OTP_SENT, {
-      requestId: result.requestId,
-      expiresIn: 300 // 5 minutes
-    });
-  } else {
-    throw new K33PError(ErrorCodes.OTP_SEND_FAILED, result.error || 'Failed to resend OTP');
-  }
-}));
+
+
 // Add a test endpoint to generate token
 router.post('/test-token', asyncHandler(async (req, res) => {
   const { userId } = req.body;
-  
+
   const token = jwt.sign(
-    { 
+    {
       id: 'test-id-123',
       userId: userId || 'testuser123',
       walletAddress: 'test_wallet_address',
@@ -881,7 +792,7 @@ router.post('/test-token', asyncHandler(async (req, res) => {
     process.env.JWT_SECRET || 'default-secret',
     { expiresIn: '1h' }
   );
-  
+
   return ResponseUtils.success(res, SuccessCodes.TOKEN_GENERATED, {
     token,
     decoded: jwt.decode(token)
@@ -901,7 +812,7 @@ router.put('/update-pin', verifyToken, createRateLimiter({
   try {
     const { pinHash } = req.body;
     const userId = req.user.userId;
-    
+
     console.log('=== UPDATE PIN DEBUG START ===');
     console.log('Authenticated user ID from token:', userId);
     console.log('New PIN hash provided:', pinHash ? `${pinHash.substring(0, 20)}...` : 'No');
@@ -919,7 +830,7 @@ router.put('/update-pin', verifyToken, createRateLimiter({
 
     console.log('Finding user by ID:', userId);
     const user = await dbService.getUserById(userId);
-    
+
     if (!user) {
       console.log('User not found with ID:', userId);
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
@@ -939,18 +850,18 @@ router.put('/update-pin', verifyToken, createRateLimiter({
     }
 
     console.log('Updating PIN using dbService.updatePin...');
-    
+
     try {
       // Use the new updatePin method
       const updatedUser = await dbService.updatePin(userId, pinHash);
-      
+
       if (!updatedUser) {
         console.log('Failed to update PIN - no user returned');
         return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to update PIN');
       }
 
       console.log('PIN updated successfully');
-      
+
       // Verify the update was successful
       const updatedPinMethod = updatedUser.auth_methods?.find(m => m.type === 'pin');
       console.log('Verification - Updated PIN method:', {
@@ -970,19 +881,19 @@ router.put('/update-pin', verifyToken, createRateLimiter({
 
       console.log('=== UPDATE PIN DEBUG END ===');
       return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, responseData, 'PIN updated successfully');
-      
+
     } catch (updateError) {
       console.error('Error in dbService.updatePin:', updateError);
-      
+
       // Handle specific error cases
       if (updateError.message?.includes('At least 3 authentication methods')) {
         return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, updateError.message);
       }
-      
+
       if (updateError.message?.includes('User not found')) {
         return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, updateError.message);
       }
-      
+
       throw updateError;
     }
 
@@ -992,22 +903,22 @@ router.put('/update-pin', verifyToken, createRateLimiter({
     console.error('Error code:', error.code);
     console.error('Error message:', error.message);
     console.error('Full error:', error);
-    
+
     // Handle specific error cases
     if (error.code === '42703') {
       return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, {
         hint: 'Database column might not exist. Check database schema.'
       }, 'Database configuration error');
     }
-    
+
     if (error.message?.includes('foreign key constraint')) {
       return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Database constraint violation');
     }
-    
+
     if (error.message?.includes('connection')) {
       return ResponseUtils.error(res, ErrorCodes.SERVICE_UNAVAILABLE, error, 'Database connection error');
     }
-    
+
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to update PIN');
   }
 }));
@@ -1016,34 +927,34 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
   try {
     console.log('=== SIGNUP DEBUG START ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
-    
-    const { 
-      userAddress, 
-      userId, 
+
+    const {
+      userAddress,
+      userId,
       phoneHash,
-      pinHash,  
-      authMethods, 
-      zkCommitment, 
-      zkProof,      
+      pinHash,
+      authMethods,
+      zkCommitment,
+      zkProof,
       username,
-      senderWalletAddress, 
-      biometricData, 
-      verificationMethod = defaultVerificationMethod || 'phone', 
+      senderWalletAddress,
+      biometricData,
+      verificationMethod = defaultVerificationMethod || 'phone',
       biometricType = defaultBiometricType,
-      walletAddress, 
-      biometric, 
-      passkey 
+      walletAddress,
+      biometric,
+      passkey
     } = req.body;
 
-    console.log('Extracted fields:', { 
-      userAddress, 
-      userId, 
+    console.log('Extracted fields:', {
+      userAddress,
+      userId,
       hasPhoneHash: !!phoneHash,
       hasPinHash: !!pinHash,
       authMethodsCount: authMethods?.length || 0,
       hasZkCommitment: !!zkCommitment,
       hasZkProof: !!zkProof,
-      senderWalletAddress, 
+      senderWalletAddress,
       verificationMethod,
       biometricType
     });
@@ -1149,20 +1060,20 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       console.log('Phone hash to check:', finalPhoneHash);
       console.log('Phone hash length:', finalPhoneHash.length);
       console.log('Phone hash first 50 chars:', finalPhoneHash.substring(0, 50));
-      
+
       try {
         console.log('📊 Querying database for phone hash...');
-        
+
         // Direct lookup - no format validation
         const userByPhone = await dbService.getUserByPhoneHash(finalPhoneHash);
-        
+
         console.log('Database query result:', userByPhone ? 'FOUND USER' : 'NO USER FOUND');
-        
+
         if (userByPhone) {
           console.log('📞 Found existing user with this phone:');
           console.log('   User ID:', userByPhone.user_id);
           console.log('   Wallet:', userByPhone.wallet_address);
-          
+
           duplicateDetails = {
             type: 'PHONE_EXISTS',
             field: 'phoneHash',
@@ -1185,13 +1096,13 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
     if (duplicateDetails) {
       console.log('🚫 Registration rejected - duplicate detected:', duplicateDetails);
-      
+
       const errorMessages = {
         'USER_ID_EXISTS': `User ID "${userId}" is already registered. Please use a different ID.`,
         'PHONE_EXISTS': 'This phone number is already registered. Please use a different number.'
       };
 
-      return ResponseUtils.error(res, ErrorCodes.USER_ALREADY_EXISTS, duplicateDetails, 
+      return ResponseUtils.error(res, ErrorCodes.USER_ALREADY_EXISTS, duplicateDetails,
         errorMessages[duplicateDetails.type] || 'User already exists with provided credentials');
     }
 
@@ -1215,8 +1126,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         walletAddress: finalUserAddress,
         phoneHash: finalPhoneHash,
         pinHash: finalPinHash,
-        zkCommitment: zkCommitment, 
-        authMethods: authMethods, 
+        zkCommitment: zkCommitment,
+        authMethods: authMethods,
         folders: [],
         verificationMethod: verificationMethod,
         biometricType: biometricType,
@@ -1243,7 +1154,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
           },
           is_valid: true
         });
-        
+
         console.log('ZK proof stored for new user successfully');
       } catch (zkError) {
         console.error('Failed to store ZK proof for new user:', zkError);
@@ -1252,8 +1163,8 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
       console.log('Generating JWT token for new user...');
       const token = jwt.sign(
-        { 
-          id: newUser.id, 
+        {
+          id: newUser.id,
           userId: newUser.user_id,
           walletAddress: newUser.wallet_address,
           authMethods: authMethods.map(m => m.type),
@@ -1272,11 +1183,11 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
       console.log('JWT token generated successfully');
 
       const responseData = {
-        verified: verificationMethod === 'phone' ? false : true, 
+        verified: verificationMethod === 'phone' ? false : true,
         userId: newUser.user_id,
         walletAddress: newUser.wallet_address,
         verificationMethod,
-        authMethods: authMethods, 
+        authMethods: authMethods,
         zkCommitment: zkCommitment,
         requiresDeposit: verificationMethod === 'phone',
         depositAddress: finalUserAddress,
@@ -1291,7 +1202,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
 
       console.log('Response built successfully');
       console.log('=== SIGNUP DEBUG END (New User) ===');
-      
+
       return ResponseUtils.success(res, SuccessCodes.USER_CREATED, responseData, 'DID created successfully. Welcome to K33P!');
 
     } catch (dbError) {
@@ -1302,7 +1213,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
         code: dbError.code,
         constraint: dbError.constraint
       });
-      
+
       if (dbError.code === '23505') {
         const constraint = dbError.constraint;
         if (constraint && constraint.includes('user_id')) {
@@ -1313,7 +1224,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
           return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Wallet address already registered');
         }
       }
-      
+
       return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Database error during user creation');
     }
 
@@ -1322,7 +1233,7 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     console.error('Error name:', error.name);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
-    
+
     if (error.code) {
       console.error('Database error code:', error.code);
     }
@@ -1332,9 +1243,9 @@ async function handleSignup(req, res, defaultVerificationMethod = null, defaultB
     if (error.detail) {
       console.error('Database error detail:', error.detail);
     }
-    
+
     console.error('=== END SIGNUP ERROR ===');
-    
+
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
       message: error.message,
       debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -1347,35 +1258,35 @@ function isValidAESFormat(encryptedData) {
   if (!encryptedData || typeof encryptedData !== 'string') {
     return false;
   }
-  
+
   const parts = encryptedData.split(':');
   if (parts.length !== 3) {
     return false;
   }
-  
+
   const [iv, authTag, encrypted] = parts;
-  
+
   // Check if all parts are valid hex strings
   const hexRegex = /^[0-9a-f]+$/;
   if (!hexRegex.test(iv) || !hexRegex.test(authTag) || !hexRegex.test(encrypted)) {
     return false;
   }
-  
+
   // IV should be 16 bytes (32 hex chars)
   if (iv.length !== 32) {
     return false;
   }
-  
+
   // Auth tag should be 16 bytes (32 hex chars)  
   if (authTag.length !== 32) {
     return false;
   }
-  
+
   // Encrypted data should not be empty
   if (encrypted.length === 0) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -1389,38 +1300,38 @@ export { handleSignup };
 router.post('/login', verifyZkProof, async (req, res) => {
   try {
     const { walletAddress, phone, username, proof, commitment } = req.body;
-    
+
     // At least one identifier is required
     if (!phone && !username && !walletAddress) {
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'At least one identifier is required: phone, username, or walletAddress');
     }
-    
+
     if (!proof || !commitment) {
       return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Missing required fields: proof and commitment are required');
     }
-    
+
     // Find user by multiple identifiers (priority: phone > username > wallet address)
     let userResult = null;
     let user = null;
-    
+
     // Try phone first (if provided)
     if (phone) {
       userResult = await storageService.findUser({ phoneHash: hashPhone(phone) });
       user = userResult.success ? userResult.data : null;
     }
-    
+
     // Try username if phone lookup failed or wasn't provided
     if (!user && username) {
       userResult = await storageService.findUser({ username });
       user = userResult.success ? userResult.data : null;
     }
-    
+
     // Try wallet address if both phone and username lookup failed
     if (!user && walletAddress) {
       userResult = await storageService.findUser({ walletAddress });
       user = userResult.success ? userResult.data : null;
     }
-    
+
     if (!user) {
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
     }
@@ -1453,108 +1364,96 @@ router.post('/login', verifyZkProof, async (req, res) => {
 router.post('/signin', async (req, res) => {
   try {
     const { phoneNumber, otpRequestId, otpCode, pin } = req.body;
-    
+
     console.log('=== SIGNIN DEBUG START ===');
     console.log('Request body:', JSON.stringify(req.body, null, 2));
-    
+
     // Validate required fields
     if (!phoneNumber) {
       console.log('Validation failed: Phone number is required');
       return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
     }
-    
+
     if (!otpRequestId) {
       console.log('Validation failed: OTP request ID is required');
       return ResponseUtils.error(res, ErrorCodes.OTP_REQUEST_ID_REQUIRED);
     }
-    
+
     if (!otpCode) {
       console.log('Validation failed: OTP code is required');
       return ResponseUtils.error(res, ErrorCodes.OTP_CODE_REQUIRED);
     }
-    
+
     if (!pin) {
       console.log('Validation failed: PIN is required');
       return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
     }
-    
+
     // Validate PIN format (4 digits)
     if (!/^\d{4}$/.test(pin)) {
       console.log('Validation failed: PIN must be 4 digits');
       return ResponseUtils.error(res, ErrorCodes.PIN_INVALID_FORMAT);
     }
-    
+
     // Validate OTP code format (5 digits)
     if (!/^\d{5}$/.test(otpCode)) {
       console.log('Validation failed: OTP code must be 5 digits');
       return ResponseUtils.error(res, ErrorCodes.OTP_CODE_INVALID_FORMAT);
     }
-    
-    console.log('Step 1: Verifying OTP...');
-    const otpVerification = await verifyOtp(otpRequestId, otpCode);
-    
-    if (!otpVerification.success) {
-      console.log('OTP verification failed:', otpVerification.error);
-      return ResponseUtils.error(res, ErrorCodes.OTP_INVALID, {
-        message: otpVerification.error || 'Invalid or expired OTP'
-      });
-    }
-    
-    console.log('OTP verified successfully');
-    
+
     console.log('Step 2: Hashing phone number...');
     const phoneHash = hashPhone(phoneNumber);
     console.log('Phone hash created successfully');
-    
+
     console.log('Step 3: Finding user by phone hash...');
     const userResult = await storageService.findUser({ phoneHash });
-    
+
     if (!userResult.success || !userResult.data) {
       console.log('User not found with this phone number');
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
     }
-    
+
     const user = userResult.data;
     console.log('User found:', user.id);
-    
+
     // Check if user has a PIN stored
     if (!user.pin) {
       console.log('User does not have a PIN set');
       return ResponseUtils.error(res, ErrorCodes.PIN_NOT_FOUND);
     }
-    
+
     console.log('Step 4: Verifying PIN...');
     // Verify PIN (direct comparison since it's stored as plain text during signup)
     if (user.pin !== pin) {
       console.log('PIN verification failed');
       return ResponseUtils.error(res, ErrorCodes.PIN_INVALID);
     }
-    
+
     console.log('PIN verified successfully');
-    
+
     console.log('Step 5: Generating JWT token...');
     const token = jwt.sign(
-      { 
-        id: user.id, 
+      {
+        id: user.id,
         walletAddress: user.walletAddress,
         phoneNumber: user.phoneNumber,
-        userId: user.userId 
+        userId: user.userId
       },
       process.env.JWT_SECRET || 'default-secret',
       { expiresIn: process.env.JWT_EXPIRATION || '24h' }
     );
     console.log('JWT token generated successfully');
-    
+
     console.log('Step 6: Creating session...');
-    await iagon.createSession({ 
-      userId: user.id, 
-      token, 
-      expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) 
+    await iagon.createSession({
+      userId: user.id,
+      token,
+      expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000)
     });
     console.log('Session created successfully');
-    
+
     console.log('=== SIGNIN DEBUG END ===');
-    
+
     return ResponseUtils.success(res, SuccessCodes.AUTH_LOGIN_SUCCESS, {
       userId: user.userId || user.id,
       phoneNumber: user.phoneNumber,
@@ -1563,14 +1462,14 @@ router.post('/signin', async (req, res) => {
       verificationMethod: user.verificationMethod,
       token
     });
-    
+
   } catch (error) {
     console.error('=== SIGNIN ERROR ===');
     console.error('Error name:', error.name);
     console.error('Error message:', error.message);
     console.error('Error stack:', error.stack);
     console.error('=== END SIGNIN ERROR ===');
-    
+
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
       message: error.message,
       debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -1608,14 +1507,14 @@ router.get('/me', verifyToken, async (req, res) => {
     if (!userResult.success || !userResult.data) {
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
     }
-    
+
     const user = userResult.data;
     return ResponseUtils.success(res, SuccessCodes.USER_RETRIEVED, {
-      id: user.id, 
-      walletAddress: user.walletAddress, 
-      createdAt: user.createdAt, 
+      id: user.id,
+      walletAddress: user.walletAddress,
+      createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      storageUsed: userResult.storageUsed 
+      storageUsed: userResult.storageUsed
     });
   } catch (error) {
     console.error('Get user error:', error);
@@ -1713,16 +1612,16 @@ router.get('/wallet-connect', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const userResult = await storageService.findUser({ userId });
-    
+
     if (!userResult.success || !userResult.data) {
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
     }
-    
+
     const user = userResult.data;
     if (!user.walletAddress) {
       return ResponseUtils.error(res, ErrorCodes.WALLET_ADDRESS_NOT_FOUND);
     }
-    
+
     return ResponseUtils.success(res, SuccessCodes.WALLET_RETRIEVED, {
       walletAddress: user.walletAddress,
       storageUsed: userResult.storageUsed
@@ -1752,17 +1651,17 @@ async function verify2AdaTransaction(walletAddress) {
     // Check each transaction for 2 ADA pattern
     for (const tx of transactions) {
       const txDetails = await blockfrost.txs(tx.tx_hash);
-      
+
       // Verify inputs contain at least 2 ADA from this wallet
       const hasSufficientInput = txDetails.inputs.some(
-        input => input.address === walletAddress && 
-                BigInt(input.amount[0].quantity) >= 2000000n // 2 ADA in lovelace
+        input => input.address === walletAddress &&
+          BigInt(input.amount[0].quantity) >= 2000000n // 2 ADA in lovelace
       );
-      
+
       // Verify outputs contain exactly 2 ADA back to this wallet
       const hasExactOutput = txDetails.outputs.some(
-        output => output.address === walletAddress && 
-                 BigInt(output.amount[0].quantity) === 2000000n
+        output => output.address === walletAddress &&
+          BigInt(output.amount[0].quantity) === 2000000n
       );
 
       if (hasSufficientInput && hasExactOutput) {
@@ -1771,7 +1670,7 @@ async function verify2AdaTransaction(walletAddress) {
         return true;
       }
     }
-    
+
     // Cache negative result
     walletCache.set(walletAddress, false);
     return false;
@@ -1810,19 +1709,19 @@ async function verify2AdaDeposit(senderWalletAddress) {
     // Check each transaction for 2 ADA deposit to script address
     for (const tx of transactions) {
       const txDetails = await blockfrost.txs(tx.tx_hash);
-      
+
       // Check if this transaction has an input from sender wallet
       const hasInputFromSender = txDetails.inputs.some(
         input => input.address === senderWalletAddress
       );
-      
+
       // Check if this transaction has exactly 2 ADA output to script address
       const hasOutputToScript = txDetails.outputs.some(
-        output => output.address === scriptAddress && 
-                 output.amount.some(asset => 
-                   asset.unit === 'lovelace' && 
-                   BigInt(asset.quantity) === 2000000n // 2 ADA in lovelace
-                 )
+        output => output.address === scriptAddress &&
+          output.amount.some(asset =>
+            asset.unit === 'lovelace' &&
+            BigInt(asset.quantity) === 2000000n // 2 ADA in lovelace
+          )
       );
 
       if (hasInputFromSender && hasOutputToScript) {
@@ -1832,7 +1731,7 @@ async function verify2AdaDeposit(senderWalletAddress) {
         return true;
       }
     }
-    
+
     console.log('No valid 2 ADA deposit found');
     // Cache negative result for 2 minutes (shorter cache for negative results)
     walletCache.set(cacheKey, false, 120);
@@ -1866,13 +1765,13 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
     if (!userResult.success || !userResult.data) {
       return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
     }
-    
+
     const user = userResult.data;
 
     console.log('Step 1: Verifying 2 ADA transaction from sender wallet...');
     // Verify 2 ADA transaction from the sender wallet to the script address
     const hasValidDeposit = await verify2AdaDeposit(senderWalletAddress);
-    
+
     if (!hasValidDeposit) {
       console.log('No valid 2 ADA deposit found');
       return ResponseUtils.error(res, ErrorCodes.DEPOSIT_NOT_FOUND, {
@@ -1887,25 +1786,25 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
       biometricHash: user.biometricHash || null,
       passkeyHash: user.passkeyHash || null
     };
-    
+
     const txHash = await signupTxBuilder(senderWalletAddress, commitmentData);
     console.log('Signup transaction created, txHash:', txHash);
 
     console.log('Step 3: Updating user with transaction details...');
     // Update user with sender wallet and transaction hash
-    const updateResult = await storageService.updateUser(userId, { 
+    const updateResult = await storageService.updateUser(userId, {
       senderWalletAddress,
       txHash,
       verified: true
     });
-    
+
     if (!updateResult.success) {
       console.log('Failed to update user:', updateResult.error);
       return ResponseUtils.error(res, ErrorCodes.USER_UPDATE_FAILED, {
         message: updateResult.error
       });
     }
-    
+
     console.log('User updated successfully, storage used:', updateResult.storageUsed);
 
     console.log('Step 4: Initiating refund process...');
@@ -1922,7 +1821,7 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
     console.error('=== DEPOSIT VERIFICATION ERROR ===');
     console.error('Error:', error);
     console.error('=== END DEPOSIT VERIFICATION ERROR ===');
-    
+
     return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
       message: error.message
     });
@@ -1937,7 +1836,7 @@ router.post('/verify-deposit', verifyToken, async (req, res) => {
 router.post('/verify', async (req, res) => {
   try {
     const { token } = req.body;
-    
+
     if (!token) {
       return ResponseUtils.error(res, ErrorCodes.TOKEN_REQUIRED);
     }
@@ -1945,13 +1844,13 @@ router.post('/verify', async (req, res) => {
     // Verify JWT token
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
+
       // Check if user exists
       const userResult = await storageService.findUser({ userId: decoded.id });
       if (!userResult.success || !userResult.data) {
         return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND);
       }
-      
+
       const user = userResult.data;
 
       // Check if session exists in Iagon
