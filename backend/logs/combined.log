@@ -12639,3 +12639,56 @@
 {"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T15:59:59.180Z"}
 {"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:00:59.449Z"}
 {"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:01:59.189Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:02:59.291Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:03:59.229Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:04:59.266Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:05:59.210Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:07:01.282Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:07:59.180Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:08:59.901Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:09:59.187Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:10:59.315Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:11:59.202Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:12:59.834Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:13:59.131Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:15:21.929Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:16:04.238Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:17:00.631Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:17:59.357Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:18:59.188Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:19:59.352Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:20:59.284Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:21:59.562Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:22:59.182Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:23:59.434Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:24:59.268Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:25:59.358Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:26:59.358Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:27:59.385Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:28:59.208Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:29:59.506Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:30:59.192Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:31:59.448Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:32:59.181Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:33:59.401Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:34:59.205Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:35:59.313Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:36:59.389Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:38:00.306Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:38:59.571Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:40:02.589Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:40:59.766Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-05-26T16:41:50.912Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T16:41:53.977Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-05-26T16:41:53.978Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T16:41:54.249Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-05-26T16:41:54.292Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:41:56.499Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-05-26T16:41:56.501Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-05-26T16:42:08.146Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-05-26T16:42:08.146Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-05-26T16:42:11.500Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2026-05-26T16:42:11.503Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2026-05-26T16:42:11.504Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3000/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-26T16:42:11.504Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:42:57.373Z"}

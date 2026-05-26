@@ -53,7 +53,8 @@ import { paystackService } from './services/paystack-service.js';
 dotenv.config();
 
 // Constants
-const PORT = 3501;
+// ✅ Respects Render's PORT env var
+const PORT = parseInt(process.env.PORT || '3501', 10);
 
 // Initialize logger
 const logger = winston.createLogger({

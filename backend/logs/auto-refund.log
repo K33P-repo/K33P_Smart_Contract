@@ -2817,3 +2817,6 @@
 {"level":"warn","message":"⚠️  Auto-Refund Monitor is not running","service":"auto-refund-monitor","timestamp":"2026-05-26T15:23:51.419Z"}
 {"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2026-05-26T15:23:59.189Z"}
 {"level":"error","message":"❌ Failed to initialize Auto-Refund Monitor:","service":"auto-refund-monitor","timestamp":"2026-05-26T15:24:00.264Z"}
+{"level":"warn","message":"⚠️  Auto-Refund Monitor is not running","service":"auto-refund-monitor","timestamp":"2026-05-26T16:41:50.913Z"}
+{"level":"info","message":"🚀 Initializing Auto-Refund Monitor...","service":"auto-refund-monitor","timestamp":"2026-05-26T16:42:08.147Z"}
+{"level":"error","message":"❌ Failed to initialize Auto-Refund Monitor:","service":"auto-refund-monitor","timestamp":"2026-05-26T16:42:11.499Z"}
