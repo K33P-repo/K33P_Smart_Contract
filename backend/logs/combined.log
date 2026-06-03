@@ -12692,3 +12692,111 @@
 {"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2026-05-26T16:42:11.504Z"}
 {"level":"info","message":"Wallet folders API: http://localhost:3000/api/wallet-folders","service":"k33p-backend","timestamp":"2026-05-26T16:42:11.504Z"}
 {"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:42:57.373Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:43:57.594Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:44:57.353Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:45:57.587Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:46:57.372Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:47:57.439Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:48:57.554Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:49:57.408Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:50:57.564Z"}
+{"error":"(ENOTFOUND) tenant/user postgres.wilmcqdezxwyeqzepiwl not found","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-05-26T16:51:57.445Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-02T09:06:51.605Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-02T09:06:51.606Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-06-02T09:06:51.859Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-06-02T09:06:51.909Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-06-02T09:06:53.750Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-06-02T09:06:54.933Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-06-02T09:06:54.934Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-06-02T09:06:55.380Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2026-06-02T09:06:55.386Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2026-06-02T09:06:55.387Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3000/api/wallet-folders","service":"k33p-backend","timestamp":"2026-06-02T09:06:55.387Z"}
+{"level":"info","message":"SIGINT received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-06-02T09:10:28.587Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T19:13:47.102Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T19:13:47.113Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T19:13:47.868Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-06-03T19:13:48.014Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-06-03T19:13:55.065Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-06-03T19:13:57.575Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T19:13:57.578Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-06-03T19:13:58.618Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T19:14:35.279Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T19:14:35.281Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T19:14:35.550Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-06-03T19:14:35.615Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-06-03T19:14:39.533Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-06-03T19:14:42.421Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T19:14:42.422Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-06-03T19:14:43.635Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T19:14:56.336Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T19:14:56.337Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T19:14:56.669Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-06-03T19:14:56.751Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-06-03T19:15:03.799Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-06-03T19:15:04.562Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T19:15:04.563Z"}
+{"cause":{"code":"ETIMEDOUT"},"level":"warn","message":"Auto-Refund Monitor failed to start: fetch failed","service":"k33p-backend","stack":"TypeError: fetch failed\n    at node:internal/deps/undici/undici:13502:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async Blockfrost.getProtocolParameters (file:///home/dee/K33P_Smart_Contract/backend/node_modules/lucid-cardano/esm/src/provider/blockfrost.js:22:24)\n    at async Lucid.new (file:///home/dee/K33P_Smart_Contract/backend/node_modules/lucid-cardano/esm/src/lucid/lucid.js:50:40)\n    at async EnhancedK33PManagerDB.initialize (/home/dee/K33P_Smart_Contract/backend/src/enhanced-k33p-manager-db.ts:231:20)\n    at async AutoRefundMonitor.initialize (/home/dee/K33P_Smart_Contract/backend/src/services/auto-refund-monitor.ts:105:7)\n    at async initializeK33P (/home/dee/K33P_Smart_Contract/backend/src/k33p-backend-server.ts:128:11)\n    at async startServer (/home/dee/K33P_Smart_Contract/backend/src/k33p-backend-server.ts:684:5)","timestamp":"2026-06-03T19:15:06.491Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T20:33:54.665Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-06-03T20:33:54.667Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T20:33:54.913Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-06-03T20:33:54.966Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-06-03T20:34:03.873Z"}
+{"level":"warn","message":"❌ Cardano initialization failed, continuing without Cardano features:","service":"k33p-backend","timestamp":"2026-06-03T20:34:04.936Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-06-03T20:34:04.936Z"}
+{"level":"warn","message":"Auto-Refund Monitor failed to start:","service":"k33p-backend","timestamp":"2026-06-03T20:34:05.422Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2026-06-03T20:34:05.428Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2026-06-03T20:34:05.429Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3000/api/wallet-folders","service":"k33p-backend","timestamp":"2026-06-03T20:34:05.429Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-06-03T20:36:07.474Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:36:07.479Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:36:07.479Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:36:07.479Z"}
+{"level":"info","message":"✅ Rate limit updated for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:36:09.018Z"}
+{"level":"info","message":"🔍 Checking if OTP already exists for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:36:09.019Z"}
+{"level":"warn","message":"⏳ Active OTP found for 2349161018275, expires in 20 minutes","service":"k33p-backend","timestamp":"2026-06-03T20:36:09.480Z"}
+{"code":"OTP_ALREADY_SENT","details":null,"level":"error","message":"API Error: An OTP has already been sent. Please wait 20 minutes before requesting a new one.","service":"k33p-backend","stack":"K33PError: An OTP has already been sent. Please wait 20 minutes before requesting a new one.\n    at Function.error (/home/dee/K33P_Smart_Contract/backend/src/middleware/error-handler.ts:521:19)\n    at <anonymous> (/home/dee/K33P_Smart_Contract/backend/src/routes/otp.ts:71:30)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","statusCode":429,"timestamp":"2026-06-03T20:36:09.481Z","userMessage":"An OTP has already been sent. Please wait 20 minutes before requesting a new one."}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-06-03T20:38:35.985Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:35.986Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:35.986Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:35.987Z"}
+{"level":"info","message":"✅ Rate limit updated for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:37.389Z"}
+{"level":"info","message":"🔍 Checking if OTP already exists for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:37.389Z"}
+{"level":"info","message":"🔑 Generated OTP for 2349161018275: 30121","service":"k33p-backend","timestamp":"2026-06-03T20:38:37.628Z"}
+{"level":"info","message":"💾 OTP saved to Redis for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:37.860Z"}
+{"level":"info","message":"📤 Sending OTP to Infobip for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:37.860Z"}
+{"level":"info","message":"✅ OTP sent successfully to 2349161018275 | MessageId: 4805191185807951092497","service":"k33p-backend","timestamp":"2026-06-03T20:38:38.684Z"}
+{"level":"info","message":"🎉 OTP successfully sent to 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:38:38.685Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-06-03T20:41:00.516Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:00.516Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:00.517Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:00.517Z"}
+{"level":"info","message":"✅ Rate limit updated for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:02.167Z"}
+{"level":"info","message":"🔍 Checking if OTP already exists for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:02.167Z"}
+{"level":"info","message":"🔑 Generated OTP for 2349161018275: 35030","service":"k33p-backend","timestamp":"2026-06-03T20:41:02.401Z"}
+{"level":"info","message":"💾 OTP saved to Redis for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:02.650Z"}
+{"level":"info","message":"📤 Sending OTP to Infobip for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:02.650Z"}
+{"level":"info","message":"✅ OTP sent successfully to 2349161018275 | MessageId: 4805192635807952383533","service":"k33p-backend","timestamp":"2026-06-03T20:41:03.684Z"}
+{"level":"info","message":"🎉 OTP successfully sent to 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:41:03.684Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-06-03T20:45:37.585Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:37.586Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:37.586Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:37.586Z"}
+{"level":"info","message":"✅ Rate limit updated for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:39.664Z"}
+{"level":"info","message":"🔍 Checking if OTP already exists for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:39.664Z"}
+{"level":"info","message":"🔑 Generated OTP for 2349161018275: 62720","service":"k33p-backend","timestamp":"2026-06-03T20:45:39.909Z"}
+{"level":"info","message":"💾 OTP saved to Redis for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:40.152Z"}
+{"level":"info","message":"📤 Sending OTP to Infobip for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:40.153Z"}
+{"level":"info","message":"✅ OTP sent successfully to 2349161018275 | MessageId: 4805195458937951024844","service":"k33p-backend","timestamp":"2026-06-03T20:45:46.036Z"}
+{"level":"info","message":"🎉 OTP successfully sent to 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:45:46.036Z"}
+{"ip":"::ffff:127.0.0.1","level":"info","message":"POST /api/otp/send","service":"k33p-backend","timestamp":"2026-06-03T20:48:12.681Z","userAgent":"curl/7.81.0"}
+{"level":"info","message":"📨 OTP Send Request received for phone: 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:12.684Z"}
+{"level":"info","message":"🔍 Starting OTP process for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:12.684Z"}
+{"level":"info","message":"⏱️ Checking rate limit for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:12.685Z"}
+{"level":"info","message":"✅ Rate limit updated for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:15.970Z"}
+{"level":"info","message":"🔍 Checking if OTP already exists for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:15.970Z"}
+{"level":"info","message":"🔑 Generated OTP for 2349161018275: 65339","service":"k33p-backend","timestamp":"2026-06-03T20:48:16.188Z"}
+{"level":"info","message":"💾 OTP saved to Redis for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:16.417Z"}
+{"level":"info","message":"📤 Sending OTP to Infobip for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:16.417Z"}
+{"level":"info","message":"✅ OTP sent successfully to 2349161018275 | MessageId: 4805196978957951038519","service":"k33p-backend","timestamp":"2026-06-03T20:48:17.999Z"}
+{"level":"info","message":"🎉 OTP successfully sent to 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:17.999Z"}

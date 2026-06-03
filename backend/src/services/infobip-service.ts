@@ -1,53 +1,64 @@
-import { Infobip, AuthType } from '@infobip-api/sdk';
 import { logger } from '../utils/logger.js';
 
 export class InfobipService {
-    private client: Infobip;
+    private baseUrl: string;
+    private apiKey: string;
 
     constructor() {
-        const baseUrl = process.env.INFOBIP_BASE_URL || 'https://6znzgr.api.infobip.com';
-        const apiKey = process.env.INFOBIP_API_KEY || '';
+        this.baseUrl = process.env.INFOBIP_BASE_URL || 'https://6znzgr.api.infobip.com';
+        this.apiKey = process.env.INFOBIP_API_KEY || '';
 
-        if (!apiKey) {
+        if (!this.apiKey) {
             logger.error('❌ INFOBIP_API_KEY is missing in .env');
         }
-
-        this.client = new Infobip({
-            baseUrl,
-            apiKey,
-            authType: AuthType.ApiKey,
-        });
     }
 
     async sendOTP(to: string, otpCode: string): Promise<{ success: boolean; data?: any; error?: string }> {
-        const message = `Your K33P verification code is ${otpCode}. It expires in 30 minutes. Do not share with anyone.`;
+        const message = `Hello from K33P! Your code is ${otpCode}`;
 
         try {
-            const response = await this.client.channels.sms.send({
-                type: 'text',
+            const url = `${this.baseUrl}/sms/2/text/advanced`;
+            
+            // Exactly matching the working curl payload
+            const payload = {
                 messages: [
                     {
                         destinations: [{ to: to.trim() }],
-                        from: 'K33P',                    // ← Empty = Let Infobip use default sender
+                        from: 'K33P',
                         text: message,
-                    },
-                ],
+                    }
+                ]
+            };
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `App ${this.apiKey}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(payload)
             });
 
-            logger.info(`✅ OTP sent successfully to ${to} | MessageId: ${response.data?.messages?.[0]?.messageId}`);
-            return { success: true, data: response.data };
+            const data = await response.json();
+
+            if (!response.ok) {
+                logger.error(`❌ INFOBIP ERROR - Status: ${response.status}`, {
+                    phone: to,
+                    error: data
+                });
+                return { success: false, error: JSON.stringify(data) };
+            }
+
+            logger.info(`✅ OTP sent successfully to ${to} | MessageId: ${data?.messages?.[0]?.messageId}`);
+            return { success: true, data };
 
         } catch (error: any) {
-            const errorDetails = error.response?.data || error.message;
-            const statusCode = error.response?.status || 'Unknown';
-
-            logger.error(`❌ INFObIP ERROR - Status: ${statusCode}`, {
+            logger.error(`❌ INFOBIP ERROR - Exception:`, {
                 phone: to,
-                error: errorDetails,
-                fullResponse: error.response?.data
+                error: error.message
             });
-
-            return { success: false, error: JSON.stringify(errorDetails) };
+            return { success: false, error: error.message };
         }
     }
 }
