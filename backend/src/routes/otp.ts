@@ -8,7 +8,7 @@ import { infobipService } from '../services/infobip-service.js';
 const router = express.Router();
 
 // ==================== TEST ACCOUNT CONFIG ====================
-const TEST_PHONE = '2340000000234';
+const TEST_PHONE = '2348000000000';
 const TEST_OTP = '00000';
 // =============================================================
 
