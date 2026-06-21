@@ -12800,3 +12800,8 @@
 {"level":"info","message":"📤 Sending OTP to Infobip for 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:16.417Z"}
 {"level":"info","message":"✅ OTP sent successfully to 2349161018275 | MessageId: 4805196978957951038519","service":"k33p-backend","timestamp":"2026-06-03T20:48:17.999Z"}
 {"level":"info","message":"🎉 OTP successfully sent to 2349161018275","service":"k33p-backend","timestamp":"2026-06-03T20:48:17.999Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T07:01:38.877Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:45:14.308Z"}
+{"error":"read ECONNRESET","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:46:52.177Z"}
+{"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:48:44.400Z"}
+{"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:58:14.305Z"}

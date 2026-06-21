@@ -7,6 +7,11 @@ import { infobipService } from '../services/infobip-service.js';
 
 const router = express.Router();
 
+// ==================== TEST ACCOUNT CONFIG ====================
+const TEST_PHONE = '2340000000234';
+const TEST_OTP = '00000';
+// =============================================================
+
 // Generate 5-digit OTP
 const generateOTP = (): string => Math.floor(10000 + Math.random() * 90000).toString();
 
@@ -16,11 +21,7 @@ const generateOTP = (): string => Math.floor(10000 + Math.random() * 90000).toSt
  */
 router.post('/send',
   [
-    body('phone')
-      .isString()
-      .matches(/^234[0-9]{9,10}$/)
-      .withMessage('Phone must be in format: 234XXXXXXXXXX')
-      .trim(),
+    body('phone').isString().trim(),
   ],
   async (req: Request, res: Response) => {
     const { phone } = req.body;
@@ -33,6 +34,17 @@ router.post('/send',
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null,
         errors.array().map(e => e.msg).join(', '));
     }
+
+    // ==================== TEST ACCOUNT BYPASS ====================
+    if (phone === TEST_PHONE) {
+      logger.info(`🧪 Test account detected for ${phone} — skipping real OTP send`);
+      return res.json({
+        success: true,
+        message: 'OTP sent successfully',
+        expiresIn: '30 minutes'
+      });
+    }
+    // =============================================================
 
     try {
       logger.info(`🔍 Starting OTP process for ${phone}`);
@@ -120,7 +132,7 @@ router.post('/send',
 router.post('/verify',
   [
     body('phone').isString().trim(),
-    body('otp').isString().isLength({ min: 5, max: 5 }).trim(),
+    body('otp').isString().isLength({ min: 4, max: 5 }).trim(),
   ],
   async (req: Request, res: Response) => {
     const { phone, otp } = req.body;
@@ -130,6 +142,16 @@ router.post('/verify',
     if (!errors.isEmpty()) {
       return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid input');
     }
+
+    // ==================== TEST ACCOUNT BYPASS ====================
+    if (phone === TEST_PHONE && otp === TEST_OTP) {
+      logger.info(`🧪 Test account OTP verified for ${phone}`);
+      return res.json({
+        success: true,
+        message: 'OTP verified successfully'
+      });
+    }
+    // =============================================================
 
     try {
       const storedOtp = await redisClient.get(`otp:${phone}`);
