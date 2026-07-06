@@ -1,28 +1,16 @@
-interface PaymentInitializationData {
-    email: string;
-    amount: number;
-    currency?: string;
-    plan?: string;
-    callback_url?: string;
-    metadata?: {
-        userId: string;
-        subscriptionType: 'premium';
-        [key: string]: any;
-    };
-}
-interface SubscriptionData {
-    userId: string;
-    email: string;
-    planCode?: string;
-}
 declare class PaystackService {
     private paystack;
-    private config;
+    private secretKey;
     constructor();
     /**
-     * Initialize a payment transaction
+     * Initialize one-time payment
      */
-    initializePayment(data: PaymentInitializationData): Promise<{
+    initializePayment(data: {
+        amount: number;
+        currency?: string;
+        callback_url?: string;
+        metadata?: any;
+    }): Promise<{
         success: boolean;
         data: {
             reference: any;
@@ -36,36 +24,45 @@ declare class PaystackService {
         data?: undefined;
     }>;
     /**
-     * Verify a payment transaction
+     * Verify payment transaction
      */
+    /**
+   * Verify payment transaction
+   */
     verifyPayment(reference: string): Promise<{
         success: boolean;
         data: {
             reference: any;
             amount: number;
-            currency: any;
             status: any;
-            paid_at: any;
+            authorization: any;
             customer: any;
             metadata: any;
         };
         error?: undefined;
     } | {
         success: boolean;
+        error: string;
+        data: any;
+    } | {
+        success: boolean;
         error: any;
         data?: undefined;
     }>;
     /**
-     * Create a subscription plan
+     * Charge authorization for recurring payments
      */
-    createSubscriptionPlan(): Promise<{
+    chargeAuthorization(data: {
+        authorization_code: string;
+        email: string;
+        amount: number;
+        currency?: string;
+        metadata?: any;
+    }): Promise<{
         success: boolean;
         data: {
-            plan_code: any;
-            name: any;
-            amount: number;
-            interval: any;
-            currency: any;
+            reference: any;
+            status: any;
         };
         error?: undefined;
     } | {
@@ -74,13 +71,38 @@ declare class PaystackService {
         data?: undefined;
     }>;
     /**
-     * Create a subscription for a customer
+     * Create subscription plan
      */
-    createSubscription(data: SubscriptionData): Promise<{
+    createSubscriptionPlan(data: {
+        name: string;
+        amount: number;
+        interval: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'annually';
+        currency?: string;
+    }): Promise<{
+        success: boolean;
+        data: {
+            plan_code: any;
+            name: any;
+            amount: number;
+            interval: any;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+    }>;
+    /**
+     * Create subscription
+     */
+    createSubscription(data: {
+        customer: string;
+        plan: string;
+        authorization: string;
+    }): Promise<{
         success: boolean;
         data: {
             subscription_code: any;
-            email_token: any;
             status: any;
             next_payment_date: any;
         };
@@ -91,48 +113,6 @@ declare class PaystackService {
         data?: undefined;
     }>;
     /**
-     * Cancel a subscription
-     */
-    cancelSubscription(subscriptionCode: string): Promise<{
-        success: boolean;
-        message: string;
-        error?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-        message?: undefined;
-    }>;
-    /**
-     * Verify webhook signature
-     */
-    verifyWebhookSignature(payload: string, signature: string): boolean;
-    /**
-     * Process webhook events
-     */
-    processWebhookEvent(event: any): Promise<{
-        success: boolean;
-        error?: undefined;
-    } | {
-        success: boolean;
-        error: any;
-    }>;
-    /**
-     * Handle successful payment
-     */
-    private handleSuccessfulPayment;
-    /**
-     * Handle subscription created
-     */
-    private handleSubscriptionCreated;
-    /**
-     * Handle subscription cancelled
-     */
-    private handleSubscriptionCancelled;
-    /**
-     * Handle invoice events
-     */
-    private handleInvoiceEvent;
-    /**
      * Store payment record in database
      */
     private storePaymentRecord;
@@ -140,6 +120,105 @@ declare class PaystackService {
      * Update payment record in database
      */
     private updatePaymentRecord;
+    createAutoRenewSubscription(userId: string, email: string, amount?: number): Promise<{
+        success: boolean;
+        data: {
+            plan_code: any;
+            name: any;
+            amount: number;
+            interval: any;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+    } | {
+        success: boolean;
+        data: {
+            subscription_code: any;
+            status: any;
+            next_payment_date: any;
+        };
+    }>;
+    /**
+     * Verify Paystack webhook signature
+     */
+    verifyWebhookSignature(payload: string, signature: string): Promise<boolean>;
+    /**
+     * Process webhook event
+     */
+    /**
+     * Process webhook event
+     */
+    processWebhookEvent(event: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    /**
+     * Get subscription details
+     */
+    getSubscription(subscriptionCode: string): Promise<{
+        success: boolean;
+        data: any;
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+    }>;
+    /**
+     * Create monthly subscription plan (alias for createSubscriptionPlan)
+     */
+    createMonthlySubscriptionPlan(amount: number, name?: string): Promise<{
+        success: boolean;
+        data: {
+            plan_code: any;
+            name: any;
+            amount: number;
+            interval: any;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+    }>;
+    /**
+     * Initialize recurring subscription
+     */
+    initializeRecurringSubscription(phone: string, planCode: string, metadata?: any): Promise<{
+        success: boolean;
+        data: {
+            subscription_code: any;
+            status: any;
+            next_payment_date: any;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+    }>;
+    /**
+     * Cancel subscription
+     */
+    cancelSubscription(subscriptionCode: string): Promise<{
+        success: boolean;
+        data: {
+            subscription_code: any;
+            status: any;
+        };
+        error?: undefined;
+    } | {
+        success: boolean;
+        error: any;
+        data?: undefined;
+    }>;
+    private handleChargeSuccess;
+    private handleSubscriptionCreate;
+    private handleSubscriptionDisable;
+    private handleInvoiceCreate;
     /**
      * Get configuration for frontend
      */

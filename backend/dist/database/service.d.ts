@@ -1,4 +1,4 @@
-import { User, UserDeposit, Transaction } from './models.js';
+import { User, UserDeposit, Transaction, AuthMethod } from './models.js';
 export declare class DatabaseService {
     createUser(userData: {
         userId: string;
@@ -8,6 +8,10 @@ export declare class DatabaseService {
         phoneNumber?: string;
         phoneHash?: string;
         zkCommitment?: string;
+        pinHash?: string;
+        authMethods: AuthMethod[];
+        folders?: any[];
+        imageNumber?: number;
     }): Promise<User>;
     getUserById(userId: string): Promise<User | null>;
     getUserByWalletAddress(walletAddress: string): Promise<User | null>;
@@ -74,6 +78,11 @@ export declare class DatabaseService {
         totalRefundAmount: string;
     }>;
     cleanupOldRecords(daysOld?: number): Promise<number>;
+    getUserByPhoneHash(phoneHash: string): Promise<any | null>;
+    getUserByUsername(username: string): Promise<any>;
+    updateUserName(userId: string, updates: string): Promise<any>;
+    createZKProof(proofData: any): Promise<any>;
+    updatePin(userId: string, pinHash: string, authMethods?: AuthMethod[]): Promise<User | null>;
 }
 export declare const dbService: DatabaseService;
 //# sourceMappingURL=service.d.ts.map

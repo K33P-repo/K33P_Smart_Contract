@@ -14,6 +14,8 @@ interface RefundResult {
     txHash?: string;
 }
 export declare class EnhancedK33PManagerDB {
+    cardanoEnabled: boolean;
+    private initPromise?;
     private lucid?;
     private validator?;
     private depositAddress;

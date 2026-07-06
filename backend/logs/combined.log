@@ -12805,3 +12805,5 @@
 {"error":"read ECONNRESET","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:46:52.177Z"}
 {"error":"getaddrinfo ENOTFOUND aws-1-us-east-1.pooler.supabase.com","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:48:44.400Z"}
 {"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:58:14.305Z"}
+{"dataType":"refund_operation","level":"info","message":"Generating ZK proof for data entry","service":"k33p-backend","timestamp":"2026-07-06T08:23:43.875Z","userId":"refund_1783326223874"}
+{"dataType":"refund_operation","error":"Do not know how to serialize a BigInt","level":"error","message":"Failed to generate and store data ZK proof","service":"k33p-backend","timestamp":"2026-07-06T08:23:43.880Z","userId":"refund_1783326223874"}

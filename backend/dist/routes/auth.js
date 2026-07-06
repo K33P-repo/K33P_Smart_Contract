@@ -14,7 +14,7 @@ import { dbService } from '../database/service.js';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
 import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
-import { sendOtp, verifyOtp } from '../utils/twilio.js';
+import { UserModel } from '../database/models.js';
 const router = express.Router();
 // Rate limiters for auth routes
 const signupLimiter = createRateLimiter({
@@ -91,30 +91,61 @@ router.post('/signup/passkey', async (req, res) => {
 router.post('/signup', async (req, res) => {
     return handleSignup(req, res);
 });
-/**
- * @route POST /api/auth/send-otp
- * @desc Send OTP to phone number during signup
- * @access Public
- */
-router.post('/send-otp', createRateLimiter({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 3, // 3 OTP requests per 5 minutes
-    message: 'Too many OTP requests, please try again later'
+router.delete('/user', verifyToken, createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 delete attempts per 15 minutes
+    message: 'Too many delete account attempts, please try again later'
 }), asyncHandler(async (req, res) => {
-    const { phoneNumber } = req.body;
-    if (!phoneNumber) {
-        throw new K33PError(ErrorCodes.VALIDATION_ERROR, 'Phone number is required');
+    try {
+        const userId = req.user.userId;
+        console.log('=== DELETE USER DEBUG START ===');
+        console.log('Authenticated user ID from token:', userId);
+        if (!userId) {
+            console.log('Validation failed: User ID not found in token');
+            return ResponseUtils.error(res, ErrorCodes.UNAUTHORIZED, null, 'Invalid token');
+        }
+        // Check if user exists
+        console.log('Finding user by ID:', userId);
+        const user = await UserModel.findByUserId(userId);
+        if (!user) {
+            console.log('User not found with ID:', userId);
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+        }
+        console.log('User found, proceeding with deletion...');
+        // Start the deletion process
+        const deletionResult = await UserModel.deleteUser(userId);
+        if (!deletionResult) {
+            console.log('User deletion failed');
+            return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to delete user account');
+        }
+        console.log('User deletion completed successfully');
+        // Also clear any active sessions for this user
+        try {
+            await iagon.deleteSessions({ userId: user.id });
+            console.log('User sessions cleared from Iagon');
+        }
+        catch (sessionError) {
+            console.warn('Could not clear user sessions:', sessionError.message);
+            // Don't fail the deletion if session cleanup fails
+        }
+        console.log('=== DELETE USER DEBUG END ===');
+        return ResponseUtils.success(res, SuccessCodes.USER_DELETED, {
+            message: 'User account and all associated data have been successfully deleted',
+            userId: userId,
+            timestamp: new Date().toISOString()
+        }, 'Your account has been permanently deleted. All your data has been removed from our systems.');
     }
-    console.log(`Sending OTP to ${phoneNumber}`);
-    const result = await sendOtp(phoneNumber);
-    if (result.success) {
-        ResponseUtils.success(res, SuccessCodes.OTP_SENT, {
-            requestId: result.requestId,
-            expiresIn: 300 // 5 minutes
-        });
-    }
-    else {
-        throw new K33PError(ErrorCodes.OTP_SEND_FAILED, result.error || 'Failed to send OTP');
+    catch (error) {
+        console.error('=== DELETE USER ERROR ===');
+        console.error('Error:', error);
+        // Handle specific error cases
+        if (error.message.includes('foreign key constraint')) {
+            return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Failed to delete account due to database constraints. Please contact support.');
+        }
+        if (error.message.includes('transaction')) {
+            return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Database transaction failed. Please try again.');
+        }
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to delete user account: ' + error.message);
     }
 }));
 // Session storage for signup flow (in production, use Redis)
@@ -341,92 +372,250 @@ router.post('/complete-signup', createRateLimiter({
 });
 /**
  * @route POST /api/auth/setup-username
- * @desc Step 8: Setup username after DID creation
- * @access Public
+ * @desc Setup username for authenticated user using JWT token
+ * @access Private (requires JWT)
  */
-router.post('/setup-username', createRateLimiter({
+router.post('/setup-username', verifyToken, createRateLimiter({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 10, // 10 attempts per 15 minutes
     message: 'Too many username setup attempts, please try again later'
 }), async (req, res) => {
     try {
-        const { sessionId, username, userId } = req.body;
-        // Validate required fields
-        if (!sessionId || !username) {
-            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Session ID and username are required');
+        const { username } = req.body;
+        const userId = req.user.userId; // From JWT token
+        console.log('=== SETUP USERNAME DEBUG START ===');
+        console.log('Authenticated user ID from token:', userId);
+        console.log('Requested username:', username);
+        // Validate required fields - ONLY username is required now
+        if (!username) {
+            console.log('Validation failed: Username is required');
+            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Username is required');
         }
         // Validate username format
         if (username.length < 3 || username.length > 30) {
+            console.log('Validation failed: Username must be between 3 and 30 characters');
             return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username must be between 3 and 30 characters');
         }
         if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            console.log('Validation failed: Username contains invalid characters');
             return ResponseUtils.error(res, ErrorCodes.INVALID_INPUT, null, 'Username can only contain letters, numbers, and underscores');
         }
-        // Get session data
-        const sessionData = signupSessions.get(sessionId);
-        if (!sessionData) {
-            return ResponseUtils.error(res, ErrorCodes.INVALID_SESSION, null, 'Invalid or expired session');
+        console.log('Finding user by ID:', userId);
+        const user = await dbService.getUserById(userId);
+        if (!user) {
+            console.log('User not found with ID:', userId);
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
         }
-        // Verify signup was completed
-        if (sessionData.step !== 'signup_completed') {
-            return ResponseUtils.error(res, ErrorCodes.INVALID_FLOW, null, 'Signup must be completed before setting up username');
+        // Check if user already has a username
+        if (user.username) {
+            console.log('User already has username:', user.username);
+            return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_SET, null, 'Username is already set for this account');
         }
         // Check if username is already taken
-        try {
-            const existingUserResult = await storageService.findUser({ username });
-            if (existingUserResult.success && existingUserResult.data) {
-                return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_EXISTS, null, 'Username is already taken. Please choose a different username.');
-            }
+        console.log('Checking if username is available...');
+        const existingUser = await dbService.getUserByUsername(username);
+        if (existingUser) {
+            console.log('Username already taken by user:', existingUser.user_id);
+            return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_EXISTS, null, 'Username is already taken. Please choose a different username.');
         }
-        catch (error) {
-            console.log('Error checking username availability:', error);
+        console.log('Updating user with username...');
+        const updatedUser = await dbService.updateUser(userId, { username });
+        if (!updatedUser) {
+            console.log('Failed to update user with username');
+            return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to save username');
         }
-        // Update user with username
-        const userIdToUpdate = userId || sessionData.userId;
-        if (userIdToUpdate) {
-            try {
-                const updateResult = await storageService.updateUser(userIdToUpdate, { username });
-                if (!updateResult.success) {
-                    console.log('Failed to update user with username:', updateResult.error);
-                    return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, updateResult.error, 'Failed to save username');
-                }
-            }
-            catch (error) {
-                console.log('Error updating user with username:', error);
-                return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to save username');
-            }
-        }
-        // Update session
-        sessionData.username = username;
-        sessionData.step = 'username_setup';
-        sessionData.completed = true;
-        sessionData.timestamp = new Date();
-        signupSessions.set(sessionId, sessionData);
-        console.log(`Username setup completed for session: ${sessionId}`);
-        // Generate JWT token for completed signup
+        console.log('Username setup completed for user:', userId);
+        // Generate new JWT token with username included
         const token = jwt.sign({
-            id: userIdToUpdate || crypto.randomUUID(),
-            phoneNumber: sessionData.phoneNumber,
-            username,
-            walletAddress: sessionData.walletAddress
+            id: updatedUser.id,
+            userId: updatedUser.user_id,
+            phoneNumber: updatedUser.phone_number,
+            username: updatedUser.username,
+            walletAddress: updatedUser.wallet_address,
+            authMethods: updatedUser.auth_methods?.map(m => m.type) || [],
+            verificationMethod: updatedUser.verification_method,
+            zkCommitment: updatedUser.zk_commitment
         }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
-        return ResponseUtils.success(res, SuccessCodes.USERNAME_SET, {
-            sessionId,
-            step: 'username_setup',
-            username,
-            userId: userIdToUpdate,
-            walletAddress: sessionData.walletAddress,
+        const responseData = {
+            username: updatedUser.username,
+            userId: updatedUser.user_id,
+            walletAddress: updatedUser.wallet_address,
             completed: true,
             token
-        }, 'Username setup completed successfully. Welcome to K33P!');
-        // Clean up session after successful completion
-        setTimeout(() => {
-            signupSessions.del(sessionId);
-        }, 5000);
+        };
+        console.log('Username setup completed successfully');
+        console.log('=== SETUP USERNAME DEBUG END ===');
+        return ResponseUtils.success(res, SuccessCodes.USERNAME_SET, responseData, 'Username setup completed successfully. Welcome to K33P!');
     }
     catch (error) {
-        console.error('Error setting up username:', error);
+        console.error('=== SETUP USERNAME ERROR ===');
+        console.error('Error:', error);
         return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to setup username');
+    }
+});
+/**
+ * @route GET /api/auth/username
+ * @desc Get username for authenticated user
+ * @access Private (requires JWT)
+ */
+router.get('/username', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user.userId; // From JWT token
+        console.log('=== GET USERNAME DEBUG START ===');
+        console.log('Authenticated user ID from token:', userId);
+        if (!userId) {
+            console.log('Validation failed: User ID not found in token');
+            return ResponseUtils.error(res, ErrorCodes.UNAUTHORIZED, null, 'Invalid token');
+        }
+        console.log('Finding user by ID:', userId);
+        const user = await dbService.getUserById(userId);
+        if (!user) {
+            console.log('User not found with ID:', userId);
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+        }
+        console.log('User found:', {
+            userId: user.user_id,
+            hasUsername: !!user.username,
+            username: user.username || 'Not set'
+        });
+        const responseData = {
+            userId: user.user_id,
+            username: user.username || null,
+            walletAddress: user.wallet_address,
+            exists: true,
+            hasUsername: !!user.username
+        };
+        console.log('=== GET USERNAME DEBUG END ===');
+        return ResponseUtils.success(res, SuccessCodes.USER_RETRIEVED, responseData, user.username ? 'Username retrieved successfully' : 'User found but no username set');
+    }
+    catch (error) {
+        console.error('=== GET USERNAME ERROR ===');
+        console.error('Error:', error);
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
+    }
+});
+/**
+ * @route PUT /api/auth/username
+ * @desc Update username for authenticated user
+ * @access Private (requires JWT)
+ */
+router.put('/username', verifyToken, async (req, res) => {
+    try {
+        const userId = req.user.userId; // From JWT token
+        const { username } = req.body;
+        console.log('=== UPDATE USERNAME DEBUG START ===');
+        console.log('Authenticated user ID from token:', userId);
+        console.log('New username:', username);
+        if (!username) {
+            console.log('Validation failed: Username is required');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username is required');
+        }
+        // Validate username format
+        if (username.length < 3 || username.length > 30) {
+            console.log('Validation failed: Username must be 3-30 characters');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username must be between 3 and 30 characters');
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            console.log('Validation failed: Username contains invalid characters');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username can only contain letters, numbers, and underscores');
+        }
+        console.log('Checking if user exists...');
+        const user = await dbService.getUserById(userId);
+        if (!user) {
+            console.log('User not found with ID:', userId);
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+        }
+        console.log('Checking if username is already taken...');
+        const existingUser = await dbService.getUserByUsername(username);
+        if (existingUser && existingUser.user_id !== userId) {
+            console.log('Username already taken by user:', existingUser.user_id);
+            return ResponseUtils.error(res, ErrorCodes.USERNAME_ALREADY_EXISTS, null, 'Username is already taken');
+        }
+        console.log('Updating username...');
+        const updatedUser = await dbService.updateUser(userId, { username });
+        if (!updatedUser) {
+            console.log('Failed to update username');
+            return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to update username');
+        }
+        console.log('Username updated successfully');
+        const responseData = {
+            userId: updatedUser.user_id,
+            username: updatedUser.username,
+            walletAddress: updatedUser.wallet_address,
+            updatedAt: updatedUser.updated_at
+        };
+        console.log('=== UPDATE USERNAME DEBUG END ===');
+        return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, responseData, 'Username updated successfully');
+    }
+    catch (error) {
+        console.error('=== UPDATE USERNAME ERROR ===');
+        console.error('Error:', error);
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
+    }
+});
+/**
+ * @route GET /api/auth/username/check/:username
+ * @desc Check if username is available
+ * @access Public (can be protected if you want)
+ */
+router.get('/username/check/:username', async (req, res) => {
+    try {
+        const { username } = req.params;
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        console.log('=== CHECK USERNAME DEBUG START ===');
+        console.log('Checking username:', username);
+        console.log('Has token:', !!token);
+        if (!username) {
+            console.log('Validation failed: Username is required');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username is required');
+        }
+        // Validate username format
+        if (username.length < 3 || username.length > 30) {
+            console.log('Validation failed: Username must be 3-30 characters');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username must be between 3 and 30 characters');
+        }
+        if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+            console.log('Validation failed: Username contains invalid characters');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Username can only contain letters, numbers, and underscores');
+        }
+        console.log('Checking if username exists...');
+        const existingUser = await dbService.getUserByUsername(username);
+        const isAvailable = !existingUser;
+        console.log('Username availability:', isAvailable ? 'Available' : 'Taken');
+        const responseData = {
+            username,
+            available: isAvailable,
+            exists: !!existingUser,
+            message: isAvailable ? 'Username is available' : 'Username is already taken'
+        };
+        // If token is provided, verify it and include user info
+        if (token) {
+            try {
+                const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default-secret');
+                responseData.currentUser = {
+                    userId: decoded.userId,
+                    canClaim: isAvailable
+                };
+                console.log('Token verified for user:', decoded.userId);
+            }
+            catch (tokenError) {
+                console.log('Token invalid or expired:', tokenError.message);
+                responseData.tokenValid = false;
+            }
+        }
+        console.log('=== CHECK USERNAME DEBUG END ===');
+        return ResponseUtils.success(res, SuccessCodes.USERNAME_CHECKED, responseData, isAvailable ? 'Username is available' : 'Username is already taken');
+    }
+    catch (error) {
+        console.error('=== CHECK USERNAME ERROR ===');
+        console.error('Error:', error);
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
+            message: error.message
+        });
     }
 });
 /**
@@ -465,580 +654,426 @@ router.get('/session-status/:sessionId', createRateLimiter({
         return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to get session status');
     }
 });
+// Add a test endpoint to generate token
+router.post('/test-token', asyncHandler(async (req, res) => {
+    const { userId } = req.body;
+    const token = jwt.sign({
+        id: 'test-id-123',
+        userId: userId || 'testuser123',
+        walletAddress: 'test_wallet_address',
+        authMethods: ['phone', 'pin', 'fingerprint'],
+        verificationMethod: 'phone',
+        zkCommitment: 'test_zk_commitment'
+    }, process.env.JWT_SECRET || 'default-secret', { expiresIn: '1h' });
+    return ResponseUtils.success(res, SuccessCodes.TOKEN_GENERATED, {
+        token,
+        decoded: jwt.decode(token)
+    });
+}));
 /**
- * @route POST /api/auth/verify-otp
- * @desc Verify OTP code during signup
- * @access Public
+ * @route PUT /api/auth/update-pin
+ * @desc Update user's PIN
+ * @access Private (requires JWT)
  */
-router.post('/verify-otp', createRateLimiter({
-    windowMs: 5 * 60 * 1000, // 5 minutes
-    max: 10, // 10 verification attempts per 5 minutes
-    message: 'Too many verification attempts, please try again later'
-}), async (req, res) => {
+router.put('/update-pin', verifyToken, createRateLimiter({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // 5 PIN update attempts per 15 minutes
+    message: 'Too many PIN update attempts, please try again later'
+}), asyncHandler(async (req, res) => {
     try {
-        const { requestId, code } = req.body;
-        if (!requestId || !code) {
-            return ResponseUtils.error(res, ErrorCodes.MISSING_REQUIRED_FIELDS, null, 'Request ID and verification code are required');
+        const { pinHash } = req.body;
+        const userId = req.user.userId;
+        console.log('=== UPDATE PIN DEBUG START ===');
+        console.log('Authenticated user ID from token:', userId);
+        console.log('New PIN hash provided:', pinHash ? `${pinHash.substring(0, 20)}...` : 'No');
+        if (!pinHash) {
+            console.log('Validation failed: PIN hash is required');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN hash is required');
         }
-        console.log(`Verifying OTP for request ${requestId}`);
-        const result = await verifyOtp(requestId, code);
-        if (result.success) {
-            res.json({
-                success: true,
-                message: 'Phone number verified successfully',
-                data: { verified: true }
+        // Validate PIN hash format (basic validation)
+        if (typeof pinHash !== 'string' || pinHash.length < 10) {
+            console.log('Validation failed: Invalid PIN hash format');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Invalid PIN hash format');
+        }
+        console.log('Finding user by ID:', userId);
+        const user = await dbService.getUserById(userId);
+        if (!user) {
+            console.log('User not found with ID:', userId);
+            return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, 'User not found');
+        }
+        console.log('User found, current auth methods:', user.auth_methods?.map(m => ({
+            type: m.type,
+            hasData: !!m.data,
+            dataLength: m.data?.length
+        })));
+        // Check if PIN method exists
+        const hasPinMethod = user.auth_methods?.some(m => m.type === 'pin');
+        if (!hasPinMethod) {
+            console.log('User does not have PIN authentication method');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'PIN authentication not setup for this user');
+        }
+        console.log('Updating PIN using dbService.updatePin...');
+        try {
+            // Use the new updatePin method
+            const updatedUser = await dbService.updatePin(userId, pinHash);
+            if (!updatedUser) {
+                console.log('Failed to update PIN - no user returned');
+                return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Failed to update PIN');
+            }
+            console.log('PIN updated successfully');
+            // Verify the update was successful
+            const updatedPinMethod = updatedUser.auth_methods?.find(m => m.type === 'pin');
+            console.log('Verification - Updated PIN method:', {
+                type: updatedPinMethod?.type,
+                hasData: !!updatedPinMethod?.data,
+                dataLength: updatedPinMethod?.data?.length,
+                lastUsed: updatedPinMethod?.lastUsed
             });
+            const responseData = {
+                userId: updatedUser.user_id,
+                updatedAt: updatedUser.updated_at,
+                pinUpdated: true,
+                authMethodsUpdated: true,
+                message: 'PIN updated successfully'
+            };
+            console.log('=== UPDATE PIN DEBUG END ===');
+            return ResponseUtils.success(res, SuccessCodes.USER_UPDATED, responseData, 'PIN updated successfully');
         }
-        else {
-            return ResponseUtils.error(res, ErrorCodes.OTP_VERIFICATION_FAILED, result.error, result.error || 'Invalid or expired OTP');
+        catch (updateError) {
+            console.error('Error in dbService.updatePin:', updateError);
+            // Handle specific error cases
+            if (updateError.message?.includes('At least 3 authentication methods')) {
+                return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, updateError.message);
+            }
+            if (updateError.message?.includes('User not found')) {
+                return ResponseUtils.error(res, ErrorCodes.USER_NOT_FOUND, null, updateError.message);
+            }
+            throw updateError;
         }
     }
     catch (error) {
-        console.error('Error verifying OTP:', error);
-        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to verify OTP');
+        console.error('=== UPDATE PIN ERROR ===');
+        console.error('Error name:', error.name);
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
+        console.error('Full error:', error);
+        // Handle specific error cases
+        if (error.code === '42703') {
+            return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, {
+                hint: 'Database column might not exist. Check database schema.'
+            }, 'Database configuration error');
+        }
+        if (error.message?.includes('foreign key constraint')) {
+            return ResponseUtils.error(res, ErrorCodes.DATABASE_ERROR, error, 'Database constraint violation');
+        }
+        if (error.message?.includes('connection')) {
+            return ResponseUtils.error(res, ErrorCodes.SERVICE_UNAVAILABLE, error, 'Database connection error');
+        }
+        return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, error, 'Failed to update PIN');
     }
-});
-/**
- * Handle signup logic for all authentication methods
- */
+}));
 async function handleSignup(req, res, defaultVerificationMethod = null, defaultBiometricType = null) {
     try {
-        console.log('🔵 === SIGNUP DEBUG START ===');
-        console.log('🔵 [1/11] REQUEST RECEIVED');
-        console.log('🔵 Request body:', JSON.stringify(req.body, null, 2));
-        console.log('🔵 Headers - Content-Type:', req.headers['content-type']);
-        console.log('🔵 Environment check - JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
-        console.log('🔵 Environment check - BLOCKFROST_API_KEY:', process.env.BLOCKFROST_API_KEY ? 'SET' : 'NOT SET');
-        
-        const { 
-            userAddress, 
-            userId, 
-            phoneNumber, 
-            username, 
-            senderWalletAddress, 
-            pin, 
-            biometricData, 
-            verificationMethod = defaultVerificationMethod || 'phone', 
-            biometricType = defaultBiometricType,
-            walletAddress, 
-            phone, 
-            biometric, 
-            passkey 
-        } = req.body;
-
-        console.log('🔵 [2/11] EXTRACTED FIELDS:');
-        console.log('🔵   userAddress:', userAddress);
-        console.log('🔵   userId:', userId);
-        console.log('🔵   phoneNumber:', phoneNumber);
-        console.log('🔵   username:', username);
-        console.log('🔵   senderWalletAddress:', senderWalletAddress);
-        console.log('🔵   pin:', pin ? '***' + pin.slice(-1) : 'NOT PROVIDED');
-        console.log('🔵   biometricData:', biometricData ? 'PROVIDED' : 'NOT PROVIDED');
-        console.log('🔵   verificationMethod:', verificationMethod);
-        console.log('🔵   biometricType:', biometricType);
-        console.log('🔵   walletAddress (legacy):', walletAddress);
-        console.log('🔵   phone (legacy):', phone);
-        console.log('🔵   biometric (legacy):', biometric ? 'PROVIDED' : 'NOT PROVIDED');
-        console.log('🔵   passkey:', passkey ? 'PROVIDED' : 'NOT PROVIDED');
-
-        // Support both new and legacy request formats
+        console.log('=== SIGNUP DEBUG START ===');
+        console.log('Request body:', JSON.stringify(req.body, null, 2));
+        const { userAddress, userId, phoneHash, pinHash, authMethods, zkCommitment, zkProof, username, senderWalletAddress, biometricData, verificationMethod = defaultVerificationMethod || 'phone', biometricType = defaultBiometricType, walletAddress, biometric, passkey } = req.body;
+        console.log('Extracted fields:', {
+            userAddress,
+            userId,
+            hasPhoneHash: !!phoneHash,
+            hasPinHash: !!pinHash,
+            authMethodsCount: authMethods?.length || 0,
+            hasZkCommitment: !!zkCommitment,
+            hasZkProof: !!zkProof,
+            senderWalletAddress,
+            verificationMethod,
+            biometricType
+        });
         const finalUserAddress = userAddress || walletAddress;
-        const finalPhoneNumber = phoneNumber || phone;
+        const finalPhoneHash = phoneHash;
+        const finalPinHash = pinHash;
         const finalBiometricData = biometricData || biometric;
-
-        console.log('🔵 [3/11] FINAL PROCESSED FIELDS:');
-        console.log('🔵   finalUserAddress:', finalUserAddress);
-        console.log('🔵   finalPhoneNumber:', finalPhoneNumber);
-        console.log('🔵   finalBiometricData:', finalBiometricData ? 'PROVIDED' : 'NOT PROVIDED');
-
-        console.log('🔵 [4/11] VALIDATING REQUIRED FIELDS...');
-        // Validate required fields
-        if (!finalPhoneNumber) {
-            console.log('❌ VALIDATION FAILED: Phone number is required');
-            return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED);
+        console.log('Final processed fields:', {
+            finalUserAddress,
+            hasFinalPhoneHash: !!finalPhoneHash,
+            hasFinalPinHash: !!finalPinHash,
+            authMethods: authMethods?.map(m => m.type) || []
+        });
+        // Validation
+        if (!finalPhoneHash) {
+            console.log('Validation failed: Phone encrypted data is required');
+            return ResponseUtils.error(res, ErrorCodes.PHONE_REQUIRED, null, 'Phone encrypted data is required');
         }
-        if (!userId && !passkey) {
-            console.log('❌ VALIDATION FAILED: User ID or passkey is required');
+        if (!userId) {
+            console.log('Validation failed: User ID is required');
             return ResponseUtils.error(res, ErrorCodes.IDENTIFIER_REQUIRED);
         }
-        
-        // Validate username format if provided
-        if (username && (username.length < 3 || username.length > 30)) {
-            console.log('❌ VALIDATION FAILED: Username must be 3-30 characters');
-            return ResponseUtils.error(res, ErrorCodes.USERNAME_INVALID_FORMAT, null, 'Username must be between 3 and 30 characters');
+        if (!zkCommitment) {
+            console.log('Validation failed: ZK commitment is required');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'ZK commitment is required');
         }
-        if (username && !/^[a-zA-Z0-9_]+$/.test(username)) {
-            console.log('❌ VALIDATION FAILED: Username contains invalid characters');
-            return ResponseUtils.error(res, ErrorCodes.USERNAME_INVALID_FORMAT, null, 'Username can only contain letters, numbers, and underscores');
+        if (!zkProof) {
+            console.log('Validation failed: ZK proof is required');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'ZK proof is required');
         }
-        
-        // Validate verification method specific requirements
-        if (verificationMethod === 'pin' && !pin) {
-            console.log('❌ VALIDATION FAILED: PIN is required for PIN verification');
-            return ResponseUtils.error(res, ErrorCodes.PIN_REQUIRED);
+        if (!authMethods || !Array.isArray(authMethods) || authMethods.length < 3) {
+            console.log('Validation failed: At least 3 authentication methods are required');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'At least 3 authentication methods are required');
         }
-        if (verificationMethod === 'pin' && !/^\d{4}$/.test(pin)) {
-            console.log('❌ VALIDATION FAILED: PIN must be 4 digits');
-            return ResponseUtils.error(res, ErrorCodes.PIN_INVALID_FORMAT);
+        // Validate auth methods
+        for (const method of authMethods) {
+            if (!method.type) {
+                console.log('Validation failed: Auth method missing type');
+                return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a type');
+            }
+            if (!method.createdAt) {
+                console.log('Validation failed: Auth method missing createdAt for type:', method.type);
+                return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'All authentication methods must have a createdAt timestamp');
+            }
+            const allowedTypes = ['phone', 'pin', 'fingerprint', 'face', 'voice', 'iris'];
+            if (!allowedTypes.includes(method.type)) {
+                console.log('Validation failed: Invalid auth method type:', method.type);
+                return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, `Invalid authentication method type: ${method.type}. Allowed types: ${allowedTypes.join(', ')}`);
+            }
         }
-        if (verificationMethod === 'biometric' && !finalBiometricData) {
-            console.log('❌ VALIDATION FAILED: Biometric data is required for biometric verification');
-            return ResponseUtils.error(res, ErrorCodes.BIOMETRIC_DATA_REQUIRED);
+        if (userId.length < 3 || userId.length > 50) {
+            console.log('Validation failed: User ID must be 3-50 characters');
+            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'User ID must be between 3 and 50 characters');
         }
-        if (verificationMethod === 'biometric' && !biometricType) {
-            console.log('❌ VALIDATION FAILED: Biometric type is required for biometric verification');
-            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Biometric type is required for biometric verification method');
-        }
-        if (verificationMethod === 'biometric' && !['fingerprint', 'faceid', 'voice', 'iris'].includes(biometricType)) {
-            console.log('❌ VALIDATION FAILED: Invalid biometric type');
-            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Biometric type must be one of: fingerprint, faceid, voice, iris');
-        }
-        if (verificationMethod === 'passkey' && !passkey) {
-            console.log('❌ VALIDATION FAILED: Passkey is required for passkey verification');
-            return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Passkey is required for passkey verification method');
-        }
-        
-        console.log('✅ All validations passed');
-
-        console.log('🔵 [5/11] HASHING SENSITIVE DATA...');
-        const phoneHash = hashPhone(finalPhoneNumber);
-        console.log('✅ Phone hash created');
-        
-        const biometricHash = finalBiometricData ? hashBiometric(finalBiometricData) : null;
-        console.log('✅ Biometric hash:', biometricHash ? 'CREATED' : 'NOT PROVIDED');
-        
-        const passkeyHash = passkey ? hashPasskey(passkey) : null;
-        console.log('✅ Passkey hash:', passkeyHash ? 'CREATED' : 'NOT PROVIDED');
-
-        console.log('🔵 [6/11] CHECKING EXISTING USER BY PHONE HASH...');
-        const existingUserResult = await storageService.findUser({ phoneHash });
-        console.log('🔵 Existing user check result - success:', existingUserResult.success);
-        console.log('🔵 Existing user check result - data exists:', !!existingUserResult.data);
-        console.log('🔵 Existing user check result - full response:', JSON.stringify(existingUserResult, null, 2));
-        
-        if (existingUserResult.success && existingUserResult.data) {
-            console.log('🟡 EXISTING USER FOUND - UPDATING INSTEAD OF CREATING');
-            const existingUser = existingUserResult.data;
-            console.log('🔵 Existing user ID:', existingUser.id);
-            console.log('🔵 Existing user wallet:', existingUser.walletAddress);
-            console.log('🔵 Existing user phoneHash:', existingUser.phoneHash);
-            
-            // Generate new ZK commitment and proof for existing user
-            console.log('🔵 [6.1/11] GENERATING NEW ZK COMMITMENT FOR EXISTING USER...');
-            const newCommitmentData = { phoneHash };
-            if (biometricHash) {
-                newCommitmentData.biometricHash = biometricHash;
-                console.log('🔵 Added biometricHash to commitment data');
-            }
-            if (passkeyHash) {
-                newCommitmentData.passkeyHash = passkeyHash;
-                console.log('🔵 Added passkeyHash to commitment data');
-            }
-            
-            const newZkCommitment = generateZkCommitment(newCommitmentData);
-            console.log('✅ New ZK commitment generated successfully:', newZkCommitment);
-
-            console.log('🔵 [6.2/11] GENERATING NEW ZK PROOF FOR EXISTING USER...');
-            const newProofData = { phone: finalPhoneNumber };
-            if (finalBiometricData) {
-                newProofData.biometric = finalBiometricData;
-                console.log('🔵 Added biometric to proof data');
-            }
-            if (passkey) {
-                newProofData.passkey = passkey;
-                console.log('🔵 Added passkey to proof data');
-            }
-            
-            const newZkProof = generateZkProof(newProofData, newZkCommitment);
-            console.log('✅ New ZK proof generated, valid:', newZkProof.isValid);
-            
-            if (!newZkProof.isValid) {
-                console.log('❌ NEW ZK PROOF VALIDATION FAILED');
-                return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid ZK proof for existing user update');
-            }
-
-            // Update existing user with new data
-            console.log('🔵 [6.3/11] UPDATING EXISTING USER WITH NEW ZK COMMITMENT...');
-            const updateData = {
-                zkCommitment: newZkCommitment,
-                verificationMethod,
-                biometricType: biometricType || null,
-                senderWalletAddress: senderWalletAddress || null,
-                phoneNumber: finalPhoneNumber,
-                updatedAt: new Date()
-            };
-            
-            console.log('🔵 Update data base fields:', Object.keys(updateData));
-            
-            if (biometricHash) {
-                updateData.biometricHash = biometricHash;
-                console.log('🔵 Added biometricHash to update data');
-            }
-            if (passkeyHash) {
-                updateData.passkeyHash = passkeyHash;
-                console.log('🔵 Added passkeyHash to update data');
-            }
-            if (pin) {
-                console.log('🔵 ATTEMPTING TO ADD PIN TO UPDATE DATA (THIS MAY CAUSE ERROR)');
-                updateData.pin = pin;
-                console.log('🔵 PIN value:', pin ? '***' + pin.slice(-1) : 'NULL');
-            }
-            if (finalUserAddress) {
-                updateData.walletAddress = finalUserAddress;
-                console.log('🔵 Added walletAddress to update data:', finalUserAddress);
-            }
-            if (username) {
-                updateData.username = username;
-                console.log('🔵 Added username to update data:', username);
-            }
-
-            console.log('🔵 Final update data structure:', Object.keys(updateData));
-            console.log('🔵 Calling storageService.updateUser...');
-            
-            const updateResult = await storageService.updateUser(existingUser.id, updateData);
-            console.log('🔵 storageService.updateUser RESULT:', updateResult);
-            
-            if (!updateResult.success) {
-                console.log('❌ FAILED TO UPDATE EXISTING USER:', updateResult.error);
-                return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing user: ' + updateResult.error);
-            }
-            
-            console.log('✅ Existing user updated successfully');
-
-            // Process 2 ADA refund for existing user
-            console.log('🔵 [6.4/11] PROCESSING 2 ADA REFUND FOR EXISTING USER...');
+        console.log('✅ All validation passed');
+        console.log('🔍 Starting duplicate detection...');
+        let duplicateDetails = null;
+        // Check for duplicate user ID
+        if (userId) {
+            console.log('Checking for existing user by ID:', userId);
             try {
-                // Import the enhanced K33P manager for refund processing
-                const { EnhancedK33PManagerDB } = await import('../enhanced-k33p-manager-db.js');
-                const k33pManager = new EnhancedK33PManagerDB();
-                
-                // Determine refund address (priority: senderWalletAddress > finalUserAddress > existing walletAddress)
-                const refundAddress = senderWalletAddress || finalUserAddress || existingUser.walletAddress;
-                console.log('🔵 Refund address determined:', refundAddress);
-                
-                if (refundAddress) {
-                    const refundResult = await k33pManager.processRefund(refundAddress, {
-                        userId: existingUser.userId || existingUser.id,
-                        reason: 'Existing user signup update',
-                        zkCommitment: newZkCommitment,
-                        zkProof: newZkProof
-                    });
-                    
-                    if (refundResult.success) {
-                        console.log('✅ 2 ADA refund processed successfully for existing user:', refundResult.txHash);
-                    } else {
-                        console.log('🟡 Refund processing failed but continuing:', refundResult.error);
-                    }
-                } else {
-                    console.log('🟡 No refund address available for existing user');
-                }
-            } catch (refundError) {
-                console.error('🔴 Error processing refund for existing user:', refundError);
-                // Continue with signup even if refund fails
-            }
-
-            // Store new ZK proof using ZK Proof Service
-            console.log('🔵 [6.5/11] STORING NEW ZK PROOF FOR EXISTING USER...');
-            try {
-                const { ZKProofService } = await import('../services/zk-proof-service.js');
-                
-                await ZKProofService.generateAndStoreUserZKProof({
-                    userId: existingUser.userId || existingUser.id,
-                    phoneNumber: finalPhoneNumber,
-                    biometricData: finalBiometricData,
-                    passkeyData: passkey,
-                    userAddress: finalUserAddress,
-                    additionalData: {
-                        verificationMethod,
-                        biometricType,
-                        senderWalletAddress,
-                        isUpdate: true
-                    }
-                });
-                
-                console.log('✅ New ZK proof stored for existing user successfully');
-            } catch (zkError) {
-                console.error('🔴 Failed to store new ZK proof for existing user:', zkError);
-            }
-            
-            // Generate JWT token for updated existing user
-            console.log('🔵 [6.6/11] GENERATING JWT TOKEN FOR UPDATED USER...');
-            const token = jwt.sign(
-                { id: existingUser.id, user_id: existingUser.userId, walletAddress: finalUserAddress || existingUser.walletAddress },
-                process.env.JWT_SECRET || 'default-secret',
-                { expiresIn: process.env.JWT_EXPIRATION || '24h' }
-            );
-            console.log('✅ JWT token generated for existing user');
-
-            console.log('✅ === EXISTING USER UPDATE COMPLETED SUCCESSFULLY ===');
-            return res.status(200).json({
-                success: true,
-                data: {
-                    verified: existingUser.verified || false,
-                    userId: existingUser.userId || existingUser.id,
-                    verificationMethod,
-                    message: 'User account updated successfully. Your refund has been processed.',
-                    depositAddress: finalUserAddress || existingUser.walletAddress,
-                    isUpdate: true
-                },
-                message: 'User account updated successfully. Your refund has been processed.',
-                token
-            });
-        }
-
-        console.log('✅ No existing user found - proceeding with new user creation');
-
-        // If user address is provided, check if it's already in use
-        if (finalUserAddress) {
-            console.log('🔵 [6.5/11] CHECKING EXISTING USER BY WALLET ADDRESS...');
-            const existingWalletUserResult = await storageService.findUser({ walletAddress: finalUserAddress });
-            console.log('🔵 Existing wallet user check - success:', existingWalletUserResult.success);
-            console.log('🔵 Existing wallet user check - data exists:', !!existingWalletUserResult.data);
-            
-            if (existingWalletUserResult.success && existingWalletUserResult.data) {
-                console.log('🟡 USER ALREADY EXISTS WITH THIS WALLET ADDRESS');
-                const existingWalletUser = existingWalletUserResult.data;
-                console.log('🔵 Existing wallet user ID:', existingWalletUser.id);
-                console.log('🔵 Existing wallet user phoneHash:', existingWalletUser.phoneHash);
-
-                // Check if the existing user has the same phone number
-                if (existingWalletUser.phoneHash === phoneHash) {
-                    console.log('🟡 SAME PHONE NUMBER DETECTED, TREATING AS EXISTING USER UPDATE');
-                    
-                    // Generate new ZK commitment and proof for existing user
-                    console.log('🔵 GENERATING NEW ZK COMMITMENT FOR EXISTING WALLET USER...');
-                    const newCommitmentData = { phoneHash };
-                    if (biometricHash) newCommitmentData.biometricHash = biometricHash;
-                    if (passkeyHash) newCommitmentData.passkeyHash = passkeyHash;
-                    
-                    const newZkCommitment = generateZkCommitment(newCommitmentData);
-                    console.log('✅ New ZK commitment generated successfully');
-
-                    const newProofData = { phone: finalPhoneNumber };
-                    if (finalBiometricData) newProofData.biometric = finalBiometricData;
-                    if (passkey) newProofData.passkey = passkey;
-                    
-                    const newZkProof = generateZkProof(newProofData, newZkCommitment);
-                    console.log('✅ New ZK proof generated, valid:', newZkProof.isValid);
-                    
-                    if (!newZkProof.isValid) {
-                        console.log('❌ NEW ZK PROOF VALIDATION FAILED');
-                        return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid ZK proof for existing wallet user update');
-                    }
-
-                    // Update existing user with new data
-                    const updateData = {
-                        zkCommitment: newZkCommitment,
-                        verificationMethod,
-                        biometricType: biometricType || null,
-                        senderWalletAddress: senderWalletAddress || null,
-                        phoneNumber: finalPhoneNumber,
-                        updatedAt: new Date()
+                const userById = await dbService.getUserById(userId);
+                if (userById) {
+                    duplicateDetails = {
+                        type: 'USER_ID_EXISTS',
+                        field: 'userId',
+                        value: userId,
+                        existingUser: {
+                            userId: userById.user_id,
+                            walletAddress: userById.wallet_address,
+                            createdAt: userById.created_at
+                        }
                     };
-                    
-                    if (biometricHash) updateData.biometricHash = biometricHash;
-                    if (passkeyHash) updateData.passkeyHash = passkeyHash;
-                    if (pin) {
-                        console.log('🔵 ATTEMPTING TO ADD PIN TO UPDATE DATA FOR WALLET USER');
-                        updateData.pin = pin;
-                    }
-                    if (username) updateData.username = username;
-
-                    console.log('🔵 Calling storageService.updateUser for wallet user...');
-                    const updateResult = await storageService.updateUser(existingWalletUser.id, updateData);
-                    console.log('🔵 storageService.updateUser RESULT for wallet user:', updateResult);
-                    
-                    if (!updateResult.success) {
-                        console.log('❌ FAILED TO UPDATE EXISTING WALLET USER:', updateResult.error);
-                        return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to update existing wallet user: ' + updateResult.error);
-                    }
-                    
-                    console.log('✅ Existing wallet user updated successfully');
-
-                    // Generate JWT token for updated existing user
-                    const token = jwt.sign(
-                        { id: existingWalletUser.id, user_id: existingUser.userId,  walletAddress: finalUserAddress },
-                        process.env.JWT_SECRET || 'default-secret',
-                        { expiresIn: process.env.JWT_EXPIRATION || '24h' }
-                    );
-                    
-                    console.log('✅ === EXISTING WALLET USER UPDATE COMPLETED ===');
-                    return res.status(200).json({
-                        success: true,
-                        data: {
-                            verified: existingWalletUser.verified || false,
-                            userId: existingWalletUser.userId || existingWalletUser.id,
-                            verificationMethod,
-                            message: 'User account updated successfully with same wallet and phone.',
-                            depositAddress: finalUserAddress,
-                            isUpdate: true
-                        },
-                        message: 'User account updated successfully with same wallet and phone.',
-                        token
-                    });
-                } else {
-                    console.log('🟡 DIFFERENT PHONE NUMBER DETECTED, ALLOWING WALLET REUSE FOR NEW ACCOUNT');
-                    // Different phone number - allow wallet reuse
-                    // Check deposit status to ensure we handle any pending transactions properly
-                    const depositRecord = await dbService.getDepositByUserAddress(finalUserAddress);
-                    console.log('🔵 Deposit record found for wallet reuse:', !!depositRecord);
-                    
-                    if (depositRecord && !depositRecord.refunded && !depositRecord.signup_completed) {
-                        console.log('🟡 PENDING DEPOSIT EXISTS FOR THIS WALLET WITH DIFFERENT PHONE');
-                        console.log('🟡 Allowing wallet reuse but noting the existing deposit');
-                    }
-                    console.log('✅ Allowing wallet reuse for different phone number');
+                    console.log('❌ User ID already exists:', userId);
                 }
-            } else {
-                console.log('✅ No existing user found with this wallet address');
+                else {
+                    console.log('✅ User ID is available');
+                }
+            }
+            catch (userIdError) {
+                console.error('Error checking user ID:', userIdError);
+                // Continue with signup even if user ID check fails
+                console.log('⚠️ Continuing signup despite user ID check error');
             }
         }
-
-        console.log('🔵 [7/11] GENERATING ZK COMMITMENT...');
-        const commitmentData = { phoneHash };
-        if (biometricHash) {
-            commitmentData.biometricHash = biometricHash;
-            console.log('🔵 Added biometricHash to commitment data');
+        // Check for duplicate phone - SIMPLIFIED VERSION
+        if (!duplicateDetails && finalPhoneHash) {
+            console.log('🔍 Checking for existing user by phone hash...');
+            console.log('Phone hash to check:', finalPhoneHash);
+            console.log('Phone hash length:', finalPhoneHash.length);
+            console.log('Phone hash first 50 chars:', finalPhoneHash.substring(0, 50));
+            try {
+                console.log('📊 Querying database for phone hash...');
+                // Direct lookup - no format validation
+                const userByPhone = await dbService.getUserByPhoneHash(finalPhoneHash);
+                console.log('Database query result:', userByPhone ? 'FOUND USER' : 'NO USER FOUND');
+                if (userByPhone) {
+                    console.log('📞 Found existing user with this phone:');
+                    console.log('   User ID:', userByPhone.user_id);
+                    console.log('   Wallet:', userByPhone.wallet_address);
+                    duplicateDetails = {
+                        type: 'PHONE_EXISTS',
+                        field: 'phoneHash',
+                        existingUser: {
+                            userId: userByPhone.user_id,
+                            walletAddress: userByPhone.wallet_address,
+                            createdAt: userByPhone.created_at
+                        }
+                    };
+                    console.log('❌ Phone number already registered to user:', userByPhone.user_id);
+                }
+                else {
+                    console.log('✅ Phone number is available - no existing user found with this phone hash');
+                }
+            }
+            catch (phoneHashCheckError) {
+                console.error('❌ ERROR in phone hash check:', phoneHashCheckError);
+                console.error('Full error stack:', phoneHashCheckError.stack);
+                return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Error checking phone registration: ' + phoneHashCheckError.message);
+            }
         }
-        if (passkeyHash) {
-            commitmentData.passkeyHash = passkeyHash;
-            console.log('🔵 Added passkeyHash to commitment data');
+        if (duplicateDetails) {
+            console.log('🚫 Registration rejected - duplicate detected:', duplicateDetails);
+            const errorMessages = {
+                'USER_ID_EXISTS': `User ID "${userId}" is already registered. Please use a different ID.`,
+                'PHONE_EXISTS': 'This phone number is already registered. Please use a different number.'
+            };
+            return ResponseUtils.error(res, ErrorCodes.USER_ALREADY_EXISTS, duplicateDetails, errorMessages[duplicateDetails.type] || 'User already exists with provided credentials');
         }
-        
-        console.log('🔵 Commitment data structure:', commitmentData);
-        const zkCommitment = generateZkCommitment(commitmentData);
-        console.log('✅ ZK commitment generated:', zkCommitment);
-
-        console.log('🔵 [8/11] GENERATING ZK PROOF...');
-        const proofData = { phone: finalPhoneNumber };
-        if (finalBiometricData) {
-            proofData.biometric = finalBiometricData;
-            console.log('🔵 Added biometric to proof data');
-        }
-        if (passkey) {
-            proofData.passkey = passkey;
-            console.log('🔵 Added passkey to proof data');
-        }
-        
-        console.log('🔵 Proof data structure:', Object.keys(proofData));
-        const zkProof = generateZkProof(proofData, zkCommitment);
-        console.log('✅ ZK proof generated, valid:', zkProof.isValid);
-        
-        if (!zkProof.isValid) {
-            console.log('❌ ZK PROOF VALIDATION FAILED');
-            return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
-        }
-
-        console.log('🔵 [9/11] PREPARING USER DATA FOR STORAGE...');
-        const userData = {
-            walletAddress: finalUserAddress || null,
-            phoneHash,
-            phoneNumber: finalPhoneNumber,
-            username: username || null,
-            zkCommitment,
-            userId: userId || crypto.randomUUID(),
-            verificationMethod,
-            biometricType: biometricType || null,
-            senderWalletAddress: senderWalletAddress || null
-        };
-        
-        // DEBUG: Log what fields we're about to include
-        console.log('🔵 USER DATA FIELDS TO BE STORED:');
-        console.log('🔵   walletAddress:', userData.walletAddress);
-        console.log('🔵   phoneHash:', userData.phoneHash ? 'SET' : 'NOT SET');
-        console.log('🔵   phoneNumber:', userData.phoneNumber);
-        console.log('🔵   username:', userData.username);
-        console.log('🔵   zkCommitment:', userData.zkCommitment ? 'SET' : 'NOT SET');
-        console.log('🔵   userId:', userData.userId);
-        console.log('🔵   verificationMethod:', userData.verificationMethod);
-        console.log('🔵   biometricType:', userData.biometricType);
-        console.log('🔵   senderWalletAddress:', userData.senderWalletAddress);
-
-        // CONDITIONAL FIELDS - LOG EACH ONE
-        if (biometricHash) {
-            console.log('🔵   ADDING: biometricHash');
-            userData.biometricHash = biometricHash;
-        } else {
-            console.log('🔵   SKIPPING: biometricHash (not provided)');
-        }
-        
-        if (passkeyHash) {
-            console.log('🔵   ADDING: passkeyHash');
-            userData.passkeyHash = passkeyHash;
-        } else {
-            console.log('🔵   SKIPPING: passkeyHash (not provided)');
-        }
-        
-        if (pin) {
-            console.log('🔵   ADDING: pin (THIS IS CAUSING THE ERROR)');
-            console.log('🔵   PIN VALUE:', pin ? '***' + pin.slice(-1) : 'NULL');
-            userData.pin = pin;
-        } else {
-            console.log('🔵   SKIPPING: pin (not provided)');
-        }
-
-        console.log('🔵 FINAL USER DATA STRUCTURE:', Object.keys(userData));
-        console.log('🔵 FINAL USER DATA VALUES:', JSON.stringify({
-            ...userData,
-            phoneHash: userData.phoneHash ? 'HASHED' : 'MISSING',
-            zkCommitment: userData.zkCommitment ? 'SET' : 'MISSING',
-            pin: userData.pin ? '***' + userData.pin.slice(-1) : 'NOT SET'
-        }, null, 2));
-
-        console.log('🔵 [10/11] STORING USER IN DATABASE...');
-        console.log('🔵 Calling storageService.storeUser with:', Object.keys(userData));
-        
-        const userResult = await storageService.storeUser(userData);
-        console.log('🔵 storageService.storeUser RESULT:', userResult);
-        
-        if (!userResult.success) {
-            console.log('❌ USER CREATION FAILED:', userResult.error);
-            console.log('❌ ERROR DETAILS:', JSON.stringify(userResult, null, 2));
-            return ResponseUtils.error(res, ErrorCodes.USER_CREATION_FAILED, null, 'Failed to create user: ' + userResult.error);
-        }
-        
-        const user = { id: userResult.data.id, ...userData };
-        console.log('✅ User created successfully, ID:', user.id);
-        console.log('✅ Storage used:', userResult.storageUsed);
-
-        console.log('🔵 [11/11] GENERATING JWT TOKEN AND SESSION...');
-        const token = jwt.sign(
-            { id: user.id , user_id: user.userId, walletAddress: user.walletAddress },
-            process.env.JWT_SECRET || 'default-secret',
-            { expiresIn: process.env.JWT_EXPIRATION || '24h' }
-        );
-        console.log('✅ JWT token generated');
-
-        await iagon.createSession({
-            userId: user.id,
-            token,
-            expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000)
+        console.log('✅ No duplicates found - proceeding with new user creation');
+        console.log('Step 2: Creating new user with DatabaseService...');
+        console.log('User creation data:', {
+            userId: userId,
+            walletAddress: finalUserAddress,
+            phoneHash: finalPhoneHash ? `${finalPhoneHash.substring(0, 20)}...` : null,
+            pinHash: finalPinHash ? `${finalPinHash.substring(0, 20)}...` : null,
+            zkCommitment: zkCommitment,
+            authMethods: authMethods.map(m => ({ type: m.type, hasData: !!m.data, hasCreatedAt: !!m.createdAt })),
+            verificationMethod: verificationMethod
         });
-        console.log('✅ Session created in Iagon');
-
-        console.log('✅ === SIGNUP COMPLETED SUCCESSFULLY ===');
-        return ResponseUtils.success(res, SuccessCodes.USER_CREATED, {
-            verified: verificationMethod === 'phone' ? false : true,
-            userId: userId || user.id,
-            verificationMethod,
-            message: 'DID created successfully. Welcome to K33P!',
-            depositAddress: finalUserAddress
-        }, 'DID created successfully. Welcome to K33P!');
-
-    } catch (error) {
-        console.log('❌ === SIGNUP ERROR ===');
-        console.log('❌ Error name:', error.name);
-        console.log('❌ Error message:', error.message);
-        console.log('❌ Error stack:', error.stack);
-        console.log('❌ Request body that caused error:', JSON.stringify(req.body, null, 2));
-        console.log('❌ === END SIGNUP ERROR ===');
-        
+        try {
+            const newUser = await dbService.createUser({
+                userId: userId,
+                walletAddress: finalUserAddress,
+                phoneHash: finalPhoneHash,
+                pinHash: finalPinHash,
+                zkCommitment: zkCommitment,
+                authMethods: authMethods,
+                folders: [],
+                verificationMethod: verificationMethod,
+                biometricType: biometricType,
+                senderWalletAddress: senderWalletAddress
+            });
+            console.log('✅ User created successfully with ID:', newUser.user_id);
+            console.log('Phone encrypted data stored:', finalPhoneHash ? `${finalPhoneHash.substring(0, 20)}...` : null);
+            console.log('PIN encrypted data stored:', finalPinHash ? `${finalPinHash.substring(0, 20)}...` : null);
+            console.log('Auth methods saved:', authMethods.map(m => m.type));
+            console.log('Storing ZK proof for new user...');
+            try {
+                await dbService.createZKProof({
+                    user_id: newUser.user_id,
+                    commitment: zkCommitment,
+                    proof: zkProof,
+                    public_inputs: {
+                        phoneHash: finalPhoneHash,
+                        userAddress: finalUserAddress,
+                        verificationMethod,
+                        isNewUser: true,
+                        timestamp: new Date().toISOString()
+                    },
+                    is_valid: true
+                });
+                console.log('ZK proof stored for new user successfully');
+            }
+            catch (zkError) {
+                console.error('Failed to store ZK proof for new user:', zkError);
+                // Don't fail signup if ZK proof storage fails
+            }
+            console.log('Generating JWT token for new user...');
+            const token = jwt.sign({
+                id: newUser.id,
+                userId: newUser.user_id,
+                walletAddress: newUser.wallet_address,
+                authMethods: authMethods.map(m => m.type),
+                verificationMethod: verificationMethod,
+                zkCommitment: zkCommitment,
+                authDetails: {
+                    method: 'signup',
+                    verified: verificationMethod === 'phone' ? false : true,
+                    isNewUser: true
+                }
+            }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+            console.log('JWT token generated successfully');
+            const responseData = {
+                verified: verificationMethod === 'phone' ? false : true,
+                userId: newUser.user_id,
+                walletAddress: newUser.wallet_address,
+                verificationMethod,
+                authMethods: authMethods,
+                zkCommitment: zkCommitment,
+                requiresDeposit: verificationMethod === 'phone',
+                depositAddress: finalUserAddress,
+                authDetails: {
+                    method: 'signup',
+                    verified: verificationMethod === 'phone' ? false : true,
+                    isNewUser: true
+                },
+                message: 'DID created successfully. Welcome to K33P!',
+                token: token
+            };
+            console.log('Response built successfully');
+            console.log('=== SIGNUP DEBUG END (New User) ===');
+            return ResponseUtils.success(res, SuccessCodes.USER_CREATED, responseData, 'DID created successfully. Welcome to K33P!');
+        }
+        catch (dbError) {
+            console.error('❌ Database error during user creation:', dbError);
+            console.error('Database error details:', {
+                name: dbError.name,
+                message: dbError.message,
+                code: dbError.code,
+                constraint: dbError.constraint
+            });
+            if (dbError.code === '23505') {
+                const constraint = dbError.constraint;
+                if (constraint && constraint.includes('user_id')) {
+                    return ResponseUtils.error(res, ErrorCodes.USER_ALREADY_EXISTS, null, 'User ID already exists');
+                }
+                else if (constraint && constraint.includes('phone_hash')) {
+                    return ResponseUtils.error(res, ErrorCodes.PHONE_ALREADY_REGISTERED, null, 'Phone number already registered');
+                }
+                else if (constraint && constraint.includes('wallet_address')) {
+                    return ResponseUtils.error(res, ErrorCodes.VALIDATION_ERROR, null, 'Wallet address already registered');
+                }
+            }
+            return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, null, 'Database error during user creation');
+        }
+    }
+    catch (error) {
+        console.error('=== SIGNUP ERROR ===');
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        if (error.code) {
+            console.error('Database error code:', error.code);
+        }
+        if (error.constraint) {
+            console.error('Database constraint:', error.constraint);
+        }
+        if (error.detail) {
+            console.error('Database error detail:', error.detail);
+        }
+        console.error('=== END SIGNUP ERROR ===');
         return ResponseUtils.error(res, ErrorCodes.SERVER_ERROR, {
             message: error.message,
             debug: process.env.NODE_ENV === 'development' ? error.stack : undefined
         });
     }
 }
+// Add this helper function to validate AES format
+function isValidAESFormat(encryptedData) {
+    if (!encryptedData || typeof encryptedData !== 'string') {
+        return false;
+    }
+    const parts = encryptedData.split(':');
+    if (parts.length !== 3) {
+        return false;
+    }
+    const [iv, authTag, encrypted] = parts;
+    // Check if all parts are valid hex strings
+    const hexRegex = /^[0-9a-f]+$/;
+    if (!hexRegex.test(iv) || !hexRegex.test(authTag) || !hexRegex.test(encrypted)) {
+        return false;
+    }
+    // IV should be 16 bytes (32 hex chars)
+    if (iv.length !== 32) {
+        return false;
+    }
+    // Auth tag should be 16 bytes (32 hex chars)  
+    if (authTag.length !== 32) {
+        return false;
+    }
+    // Encrypted data should not be empty
+    if (encrypted.length === 0) {
+        return false;
+    }
+    return true;
+}
+export { handleSignup };
 /**
  * @route POST /api/auth/login
  * @desc Login a user with ZK proof
@@ -1080,7 +1115,7 @@ router.post('/login', verifyZkProof, async (req, res) => {
             return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
         }
         // Generate JWT token
-        const token = jwt.sign({ id: user.id, user_id: user.userId, walletAddress: user.walletAddress }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '24h' });
+        const token = jwt.sign({ id: user.id, walletAddress: user.walletAddress }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION || '24h' });
         // Create session in Iagon
         await iagon.createSession({ userId: user.id, token, expiresAt: new Date(Date.now() + parseInt(process.env.JWT_EXPIRATION || 86400) * 1000) });
         return ResponseUtils.success(res, SuccessCodes.AUTH_LOGIN_SUCCESS, { token, hasWallet: !!user.walletAddress });
@@ -1129,15 +1164,6 @@ router.post('/signin', async (req, res) => {
             console.log('Validation failed: OTP code must be 5 digits');
             return ResponseUtils.error(res, ErrorCodes.OTP_CODE_INVALID_FORMAT);
         }
-        console.log('Step 1: Verifying OTP...');
-        const otpVerification = await verifyOtp(otpRequestId, otpCode);
-        if (!otpVerification.success) {
-            console.log('OTP verification failed:', otpVerification.error);
-            return ResponseUtils.error(res, ErrorCodes.OTP_INVALID, {
-                message: otpVerification.error || 'Invalid or expired OTP'
-            });
-        }
-        console.log('OTP verified successfully');
         console.log('Step 2: Hashing phone number...');
         const phoneHash = hashPhone(phoneNumber);
         console.log('Phone hash created successfully');
@@ -1166,7 +1192,7 @@ router.post('/signin', async (req, res) => {
             id: user.id,
             walletAddress: user.walletAddress,
             phoneNumber: user.phoneNumber,
-            user_id: user.userId
+            userId: user.userId
         }, process.env.JWT_SECRET || 'default-secret', { expiresIn: process.env.JWT_EXPIRATION || '24h' });
         console.log('JWT token generated successfully');
         console.log('Step 6: Creating session...');

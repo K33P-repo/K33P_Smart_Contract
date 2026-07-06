@@ -5,35 +5,28 @@ import pool from '../database/config.js';
 dotenv.config();
 class PaystackService {
     paystack;
-    config;
+    secretKey;
     constructor() {
-        this.config = {
-            secretKey: process.env.PAYSTACK_SECRET_KEY || '',
-            publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
-            webhookSecret: process.env.PAYSTACK_WEBHOOK_SECRET || '',
-            subscriptionAmount: parseInt(process.env.SUBSCRIPTION_AMOUNT || '399'),
-            subscriptionCurrency: process.env.SUBSCRIPTION_CURRENCY || 'USD'
-        };
-        if (!this.config.secretKey) {
+        this.secretKey = process.env.PAYSTACK_SECRET_KEY || '';
+        if (!this.secretKey) {
             throw new Error('PAYSTACK_SECRET_KEY is required');
         }
-        this.paystack = Paystack(this.config.secretKey);
+        this.paystack = Paystack(this.secretKey);
         logger.info('PaystackService initialized successfully');
     }
     /**
-     * Initialize a payment transaction
+     * Initialize one-time payment
      */
     async initializePayment(data) {
         try {
+            // Use generic email as shown in Paystack docs
             const paymentData = {
-                email: data.email,
-                amount: data.amount * 100, // Paystack expects amount in kobo (cents)
-                currency: data.currency || this.config.subscriptionCurrency,
-                callback_url: data.callback_url,
-                metadata: data.metadata || {}
+                email: 'payment@k33p.app',
+                amount: data.amount * 100, // Convert to kobo
+                currency: data.currency || 'NGN',
+                metadata: data.metadata
             };
             logger.info('Initializing Paystack payment', {
-                email: data.email,
                 amount: data.amount,
                 currency: paymentData.currency
             });
@@ -42,11 +35,11 @@ class PaystackService {
                 // Store payment initialization in database
                 await this.storePaymentRecord({
                     reference: response.data.reference,
-                    email: data.email,
                     amount: data.amount,
                     currency: paymentData.currency,
                     userId: data.metadata?.userId,
-                    status: 'initialized'
+                    status: 'initialized',
+                    access_code: response.data.access_code
                 });
                 return {
                     success: true,
@@ -70,47 +63,66 @@ class PaystackService {
         }
     }
     /**
-     * Verify a payment transaction
+     * Verify payment transaction
      */
+    /**
+   * Verify payment transaction
+   */
     async verifyPayment(reference) {
         try {
             logger.info('Verifying Paystack payment', { reference });
             const response = await this.paystack.transaction.verify(reference);
-            if (response.status && response.data.status === 'success') {
-                // Update payment record in database
+            if (response.status) {
+                const paymentData = response.data;
+                // Update payment record regardless of status
                 await this.updatePaymentRecord(reference, {
-                    status: 'success',
-                    gateway_response: response.data.gateway_response,
-                    paid_at: new Date(response.data.paid_at),
-                    channel: response.data.channel,
-                    fees: response.data.fees / 100 // Convert from kobo to main currency
+                    status: paymentData.status,
+                    gateway_response: paymentData.gateway_response,
+                    paid_at: paymentData.paid_at ? new Date(paymentData.paid_at) : null,
+                    authorization: paymentData.authorization
                 });
-                return {
-                    success: true,
-                    data: {
-                        reference: response.data.reference,
-                        amount: response.data.amount / 100, // Convert from kobo
-                        currency: response.data.currency,
-                        status: response.data.status,
-                        paid_at: response.data.paid_at,
-                        customer: response.data.customer,
-                        metadata: response.data.metadata
-                    }
-                };
+                // Check the actual payment status
+                if (paymentData.status === 'success') {
+                    return {
+                        success: true,
+                        data: {
+                            reference: paymentData.reference,
+                            amount: paymentData.amount / 100,
+                            status: paymentData.status,
+                            authorization: paymentData.authorization,
+                            customer: paymentData.customer,
+                            metadata: paymentData.metadata
+                        }
+                    };
+                }
+                else {
+                    // Payment verification was successful, but payment itself failed
+                    return {
+                        success: false,
+                        error: `Payment status: ${paymentData.status}. ${paymentData.gateway_response || 'Payment not completed'}`,
+                        data: paymentData // Include the data for debugging
+                    };
+                }
             }
             else {
+                // Paystack API call failed
                 await this.updatePaymentRecord(reference, {
                     status: 'failed',
-                    gateway_response: response.data?.gateway_response || 'Payment verification failed'
+                    gateway_response: response.message || 'Payment verification failed'
                 });
                 return {
                     success: false,
-                    error: 'Payment verification failed'
+                    error: response.message || 'Payment verification failed'
                 };
             }
         }
         catch (error) {
             logger.error('Payment verification failed', { error: error.message, reference });
+            // Update status to failed in database
+            await this.updatePaymentRecord(reference, {
+                status: 'failed',
+                gateway_response: error.message
+            });
             return {
                 success: false,
                 error: error.message || 'Payment verification failed'
@@ -118,18 +130,66 @@ class PaystackService {
         }
     }
     /**
-     * Create a subscription plan
+     * Charge authorization for recurring payments
      */
-    async createSubscriptionPlan() {
+    async chargeAuthorization(data) {
+        try {
+            const chargeData = {
+                authorization_code: data.authorization_code,
+                email: data.email,
+                amount: data.amount * 100,
+                currency: data.currency || 'NGN',
+                metadata: data.metadata
+            };
+            logger.info('Charging authorization for recurring payment', {
+                authorization_code: data.authorization_code,
+                amount: data.amount
+            });
+            const response = await this.paystack.transaction.charge_authorization(chargeData);
+            if (response.status) {
+                // Store recurring charge record
+                await this.storePaymentRecord({
+                    reference: response.data.reference,
+                    amount: data.amount,
+                    currency: chargeData.currency,
+                    userId: data.metadata?.userId,
+                    status: 'initialized',
+                    authorization_code: data.authorization_code,
+                    is_recurring: true
+                });
+                return {
+                    success: true,
+                    data: {
+                        reference: response.data.reference,
+                        status: response.data.status
+                    }
+                };
+            }
+            else {
+                throw new Error(response.message || 'Charge authorization failed');
+            }
+        }
+        catch (error) {
+            logger.error('Charge authorization failed', { error: error.message });
+            return {
+                success: false,
+                error: error.message || 'Charge authorization failed'
+            };
+        }
+    }
+    /**
+     * Create subscription plan
+     */
+    async createSubscriptionPlan(data) {
         try {
             const planData = {
-                name: 'K33P Premium Monthly',
-                interval: 'monthly',
-                amount: this.config.subscriptionAmount * 100, // Convert to kobo
-                currency: this.config.subscriptionCurrency,
-                description: 'K33P Premium subscription - Monthly billing'
+                name: data.name,
+                interval: data.interval,
+                amount: data.amount * 100,
+                currency: data.currency || 'NGN',
+                description: `K33P Premium subscription - ${data.interval} billing`
             };
-            logger.info('Creating Paystack subscription plan', planData);
+            logger.info('Creating subscription plan', planData);
             const response = await this.paystack.plan.create(planData);
             if (response.status) {
                 return {
@@ -138,37 +198,35 @@ class PaystackService {
                         plan_code: response.data.plan_code,
                         name: response.data.name,
                         amount: response.data.amount / 100,
-                        interval: response.data.interval,
-                        currency: response.data.currency
+                        interval: response.data.interval
                     }
                 };
             }
             else {
-                throw new Error(response.message || 'Plan creation failed');
+                throw new Error(response.message || 'Subscription plan creation failed');
             }
         }
         catch (error) {
             logger.error('Subscription plan creation failed', { error: error.message });
             return {
                 success: false,
-                error: error.message || 'Plan creation failed'
+                error: error.message || 'Subscription plan creation failed'
             };
         }
     }
     /**
-     * Create a subscription for a customer
+     * Create subscription
      */
     async createSubscription(data) {
         try {
             const subscriptionData = {
-                customer: data.email,
-                plan: data.planCode,
-                authorization: '', // This should be obtained from a successful transaction
-                start_date: new Date().toISOString()
+                customer: data.customer,
+                plan: data.plan,
+                authorization: data.authorization
             };
-            logger.info('Creating Paystack subscription', {
-                email: data.email,
-                planCode: data.planCode
+            logger.info('Creating subscription', {
+                customer: data.customer,
+                plan: data.plan
             });
             const response = await this.paystack.subscription.create(subscriptionData);
             if (response.status) {
@@ -176,7 +234,6 @@ class PaystackService {
                     success: true,
                     data: {
                         subscription_code: response.data.subscription_code,
-                        email_token: response.data.email_token,
                         status: response.data.status,
                         next_payment_date: response.data.next_payment_date
                     }
@@ -195,156 +252,26 @@ class PaystackService {
         }
     }
     /**
-     * Cancel a subscription
-     */
-    async cancelSubscription(subscriptionCode) {
-        try {
-            logger.info('Cancelling Paystack subscription', { subscriptionCode });
-            const response = await this.paystack.subscription.disable({
-                code: subscriptionCode,
-                token: '' // Email token from subscription creation
-            });
-            if (response.status) {
-                return {
-                    success: true,
-                    message: 'Subscription cancelled successfully'
-                };
-            }
-            else {
-                throw new Error(response.message || 'Subscription cancellation failed');
-            }
-        }
-        catch (error) {
-            logger.error('Subscription cancellation failed', { error: error.message });
-            return {
-                success: false,
-                error: error.message || 'Subscription cancellation failed'
-            };
-        }
-    }
-    /**
-     * Verify webhook signature
-     */
-    verifyWebhookSignature(payload, signature) {
-        try {
-            const crypto = require('crypto');
-            const hash = crypto.createHmac('sha512', this.config.webhookSecret)
-                .update(payload)
-                .digest('hex');
-            return hash === signature;
-        }
-        catch (error) {
-            logger.error('Webhook signature verification failed', { error });
-            return false;
-        }
-    }
-    /**
-     * Process webhook events
-     */
-    async processWebhookEvent(event) {
-        try {
-            logger.info('Processing Paystack webhook event', { event: event.event });
-            switch (event.event) {
-                case 'charge.success':
-                    await this.handleSuccessfulPayment(event.data);
-                    break;
-                case 'subscription.create':
-                    await this.handleSubscriptionCreated(event.data);
-                    break;
-                case 'subscription.disable':
-                    await this.handleSubscriptionCancelled(event.data);
-                    break;
-                case 'invoice.create':
-                case 'invoice.payment_failed':
-                    await this.handleInvoiceEvent(event.data, event.event);
-                    break;
-                default:
-                    logger.info('Unhandled webhook event', { event: event.event });
-            }
-            return { success: true };
-        }
-        catch (error) {
-            logger.error('Webhook event processing failed', { error: error.message });
-            return { success: false, error: error.message };
-        }
-    }
-    /**
-     * Handle successful payment
-     */
-    async handleSuccessfulPayment(data) {
-        const client = await pool.connect();
-        try {
-            await client.query('BEGIN');
-            // Update payment record
-            await client.query(`UPDATE payment_transactions 
-         SET status = 'success', paid_at = $1, gateway_response = $2 
-         WHERE reference = $3`, [new Date(data.paid_at), data.gateway_response, data.reference]);
-            // If this is a subscription payment, update user subscription
-            if (data.metadata && data.metadata.userId) {
-                await client.query(`UPDATE users 
-           SET subscription_tier = 'premium', 
-               subscription_start_date = CURRENT_TIMESTAMP,
-               subscription_end_date = CURRENT_TIMESTAMP + INTERVAL '1 month'
-           WHERE user_id = $1`, [data.metadata.userId]);
-            }
-            await client.query('COMMIT');
-            logger.info('Successfully processed payment', { reference: data.reference });
-        }
-        catch (error) {
-            await client.query('ROLLBACK');
-            throw error;
-        }
-        finally {
-            client.release();
-        }
-    }
-    /**
-     * Handle subscription created
-     */
-    async handleSubscriptionCreated(data) {
-        logger.info('Subscription created', {
-            subscription_code: data.subscription_code,
-            customer: data.customer.email
-        });
-    }
-    /**
-     * Handle subscription cancelled
-     */
-    async handleSubscriptionCancelled(data) {
-        const client = await pool.connect();
-        try {
-            // Find user by email and update subscription status
-            await client.query(`UPDATE users 
-         SET subscription_tier = 'freemium', 
-             subscription_end_date = CURRENT_TIMESTAMP 
-         WHERE email = $1`, [data.customer.email]);
-            logger.info('Subscription cancelled', {
-                subscription_code: data.subscription_code,
-                customer: data.customer.email
-            });
-        }
-        finally {
-            client.release();
-        }
-    }
-    /**
-     * Handle invoice events
-     */
-    async handleInvoiceEvent(data, eventType) {
-        logger.info('Invoice event received', {
-            event: eventType,
-            subscription: data.subscription.subscription_code
-        });
-    }
-    /**
      * Store payment record in database
      */
     async storePaymentRecord(data) {
         const client = await pool.connect();
         try {
             await client.query(`INSERT INTO payment_transactions 
-         (reference, email, amount, currency, user_id, status, created_at) 
-         VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)`, [data.reference, data.email, data.amount, data.currency, data.userId, data.status]);
+         (reference, amount, currency, user_id, status, access_code, authorization_code, is_recurring, created_at) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, CURRENT_TIMESTAMP)`, [
+                data.reference,
+                data.amount,
+                data.currency,
+                data.userId,
+                data.status,
+                data.access_code,
+                data.authorization_code,
+                data.is_recurring || false
+            ]);
+        }
+        catch (error) {
+            logger.error('Failed to store payment record', { error });
         }
         finally {
             client.release();
@@ -371,31 +298,246 @@ class PaystackService {
                 updateFields.push(`paid_at = $${paramIndex++}`);
                 values.push(data.paid_at);
             }
-            if (data.channel) {
-                updateFields.push(`channel = $${paramIndex++}`);
-                values.push(data.channel);
-            }
-            if (data.fees) {
-                updateFields.push(`fees = $${paramIndex++}`);
-                values.push(data.fees);
+            if (data.authorization) {
+                updateFields.push(`authorization_code = $${paramIndex++}`);
+                values.push(data.authorization.authorization_code);
             }
             if (updateFields.length > 0) {
                 values.push(reference);
                 await client.query(`UPDATE payment_transactions SET ${updateFields.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE reference = $${paramIndex}`, values);
             }
         }
+        catch (error) {
+            logger.error('Failed to update payment record', { error });
+        }
         finally {
             client.release();
         }
+    }
+    // Add this to PaystackService
+    async createAutoRenewSubscription(userId, email, amount = 5000) {
+        try {
+            // Create monthly plan
+            const planResult = await this.createSubscriptionPlan({
+                name: `K33P Premium Monthly - ${amount} NGN`,
+                amount: amount,
+                interval: 'monthly'
+            });
+            if (!planResult.success) {
+                return planResult;
+            }
+            // Initialize subscription (not one-time payment)
+            const subscriptionData = {
+                customer: email,
+                plan: planResult?.data?.plan_code,
+                authorization: '' // You need authorization from initial payment
+            };
+            const response = await this.paystack.subscription.create(subscriptionData);
+            if (response.status) {
+                return {
+                    success: true,
+                    data: {
+                        subscription_code: response.data.subscription_code,
+                        status: response.data.status,
+                        next_payment_date: response.data.next_payment_date
+                    }
+                };
+            }
+            else {
+                throw new Error(response.message);
+            }
+        }
+        catch (error) {
+            logger.error('Auto-renew subscription creation failed', { error: error.message });
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+    // Add these methods to your PaystackService class
+    /**
+     * Verify Paystack webhook signature
+     */
+    async verifyWebhookSignature(payload, signature) {
+        try {
+            const crypto = await import('crypto');
+            const hash = crypto
+                .createHmac('sha512', this.secretKey)
+                .update(payload)
+                .digest('hex');
+            return hash === signature;
+        }
+        catch (error) {
+            logger.error('Webhook signature verification failed', { error });
+            return false;
+        }
+    }
+    /**
+     * Process webhook event
+     */
+    /**
+     * Process webhook event
+     */
+    async processWebhookEvent(event) {
+        try {
+            logger.info('Processing Paystack webhook event', { event: event.event });
+            // Handle different event types
+            switch (event.event) {
+                case 'charge.success':
+                    return await this.handleChargeSuccess(event.data);
+                case 'subscription.create':
+                    return await this.handleSubscriptionCreate(event.data);
+                case 'subscription.disable':
+                    return await this.handleSubscriptionDisable(event.data);
+                case 'invoice.create':
+                    return await this.handleInvoiceCreate(event.data);
+                default:
+                    logger.info('Unhandled webhook event', { event: event.event });
+                    return { success: true, message: 'Event not handled' };
+            }
+        }
+        catch (error) {
+            logger.error('Webhook event processing failed', { error: error.message });
+            return { success: false, message: error.message }; // Changed from error to message
+        }
+    }
+    /**
+     * Get subscription details
+     */
+    async getSubscription(subscriptionCode) {
+        try {
+            logger.info('Getting subscription details', { subscriptionCode });
+            const response = await this.paystack.subscription.get(subscriptionCode);
+            if (response.status) {
+                return {
+                    success: true,
+                    data: response.data
+                };
+            }
+            else {
+                throw new Error(response.message || 'Failed to get subscription');
+            }
+        }
+        catch (error) {
+            logger.error('Failed to get subscription', { error: error.message, subscriptionCode });
+            return {
+                success: false,
+                error: error.message || 'Failed to get subscription'
+            };
+        }
+    }
+    /**
+     * Create monthly subscription plan (alias for createSubscriptionPlan)
+     */
+    async createMonthlySubscriptionPlan(amount, name) {
+        return this.createSubscriptionPlan({
+            name: name || `K33P Premium Monthly - ${amount} NGN`,
+            amount: amount,
+            interval: 'monthly'
+        });
+    }
+    /**
+     * Initialize recurring subscription
+     */
+    async initializeRecurringSubscription(phone, planCode, metadata) {
+        try {
+            const subscriptionData = {
+                customer: phone, // Using phone as customer identifier
+                plan: planCode,
+                authorization: '', // This should be set after initial authorization
+                metadata: metadata
+            };
+            logger.info('Initializing recurring subscription', { phone, planCode });
+            const response = await this.paystack.subscription.create(subscriptionData);
+            if (response.status) {
+                return {
+                    success: true,
+                    data: {
+                        subscription_code: response.data.subscription_code,
+                        status: response.data.status,
+                        next_payment_date: response.data.next_payment_date
+                    }
+                };
+            }
+            else {
+                throw new Error(response.message || 'Recurring subscription initialization failed');
+            }
+        }
+        catch (error) {
+            logger.error('Recurring subscription initialization failed', { error: error.message });
+            return {
+                success: false,
+                error: error.message || 'Recurring subscription initialization failed'
+            };
+        }
+    }
+    /**
+     * Cancel subscription
+     */
+    async cancelSubscription(subscriptionCode) {
+        try {
+            logger.info('Cancelling subscription', { subscriptionCode });
+            const response = await this.paystack.subscription.disable(subscriptionCode);
+            if (response.status) {
+                return {
+                    success: true,
+                    data: {
+                        subscription_code: response.data.subscription_code,
+                        status: response.data.status
+                    }
+                };
+            }
+            else {
+                throw new Error(response.message || 'Subscription cancellation failed');
+            }
+        }
+        catch (error) {
+            logger.error('Subscription cancellation failed', { error: error.message, subscriptionCode });
+            return {
+                success: false,
+                error: error.message || 'Subscription cancellation failed'
+            };
+        }
+    }
+    // Private helper methods for webhook processing
+    async handleChargeSuccess(data) {
+        logger.info('Charge successful', {
+            reference: data.reference,
+            amount: data.amount,
+            customer: data.customer?.email
+        });
+        return { success: true, message: 'Charge success processed' };
+    }
+    async handleSubscriptionCreate(data) {
+        logger.info('Subscription created', {
+            subscription_code: data.subscription_code,
+            customer: data.customer?.email
+        });
+        return { success: true, message: 'Subscription creation processed' };
+    }
+    async handleSubscriptionDisable(data) {
+        logger.info('Subscription disabled', {
+            subscription_code: data.subscription_code,
+            customer: data.customer?.email
+        });
+        return { success: true, message: 'Subscription disable processed' };
+    }
+    async handleInvoiceCreate(data) {
+        logger.info('Invoice created', {
+            subscription: data.subscription?.subscription_code,
+            amount: data.amount
+        });
+        return { success: true, message: 'Invoice creation processed' };
     }
     /**
      * Get configuration for frontend
      */
     getPublicConfig() {
         return {
-            publicKey: this.config.publicKey,
-            subscriptionAmount: this.config.subscriptionAmount,
-            subscriptionCurrency: this.config.subscriptionCurrency
+            publicKey: process.env.PAYSTACK_PUBLIC_KEY || '',
+            subscriptionAmount: parseInt(process.env.SUBSCRIPTION_AMOUNT || '5000'),
+            subscriptionCurrency: process.env.SUBSCRIPTION_CURRENCY || 'NGN'
         };
     }
 }

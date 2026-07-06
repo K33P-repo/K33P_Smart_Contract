@@ -82,54 +82,23 @@ let usingMockDatabase = false;
 
 async function initializeK33P() {
   try {
-    console.log('🔧 Initializing database connection to Supabase...');
-
-    // Initialize database first
-    /* const dbReady = await;
-    
-    if (!dbReady) {
-      logger.warn('Database initialization failed, using mock database...');
-      await MockDatabaseService.initialize();
-      usingMockDatabase = true;
-    } else {
-      logger.info('✅ Database connected and schema ready');
-      usingMockDatabase = false;
-    }
-     */
-    // Initialize K33P Manager - but skip Cardano if disabled
+    console.log('Initializing database connection to Supabase...');
     k33pManager = new EnhancedK33PManagerDB();
-
-    // Only initialize Cardano features if not disabled
-    if (process.env.DISABLE_CARDANO !== "true") {
-      try {
-        await k33pManager.initialize();
-        logger.info('✅ Cardano features initialized');
-      } catch (cardanoError) {
-        if (cardanoError instanceof Error) {
-          logger.warn('❌ Cardano initialization failed, continuing without Cardano features:', cardanoError.message);
-        } else {
-          logger.warn('❌ Cardano initialization failed, continuing without Cardano features:', cardanoError);
-        }
-      }
-
-    } else {
-      console.log("🚫 Cardano features disabled via DISABLE_CARDANO");
-      // Set a flag or property to indicate Cardano is disabled
-      (k33pManager as any).cardanoEnabled = false;
+    try {
+      await k33pManager.initialize();
+      logger.info('K33P Manager initialized successfully');
+    } catch (k33pError) {
+      logger.warn('K33P Manager initialization failed, continuing in degraded state:', k33pError);
     }
 
-    logger.info('K33P Manager initialized successfully');
-
-    // Initialize auto-refund monitor only if we have a real database AND Cardano is working
     if (!usingMockDatabase) {
       try {
-        // Only start auto-refund if Cardano is enabled and initialized
-        if (process.env.DISABLE_CARDANO !== "true" && (k33pManager as any).cardanoEnabled !== false) {
+        if (process.env.DISABLE_CARDANO !== "true" && k33pManager.cardanoEnabled) {
           await autoRefundMonitor.initialize();
           await autoRefundMonitor.start();
-          logger.info('🚀 Auto-Refund Monitor started');
+          logger.info('Auto-Refund Monitor started');
         } else {
-          logger.info('📝 Auto-Refund Monitor disabled (Cardano features disabled)');
+          logger.info('Auto-Refund Monitor disabled (Cardano features disabled)');
         }
       } catch (error) {
         logger.warn('Auto-Refund Monitor failed to start:', error);

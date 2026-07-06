@@ -1,21 +1,12 @@
-/**
- * ZK Proof Service for K33P Identity System
- * Automatically generates and stores ZK proofs for all database operations
- * Ensures every user registration and data entry has associated ZK proofs
- */
 import pool from '../database/config.js';
 import { generateZkCommitment, generateZkProof } from '../utils/zk.js';
 import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
 import { logger } from '../utils/logger.js';
 import crypto from 'crypto';
 export class ZKProofService {
-    /**
-     * Generate and store ZK proof for a new user registration
-     */
     static async generateAndStoreUserZKProof(userData) {
         try {
             logger.info('Generating ZK proof for user registration', { userId: userData.userId });
-            // Generate hashes for available data
             const hashes = {};
             if (userData.phoneNumber) {
                 hashes.phoneHash = hashPhone(userData.phoneNumber);
@@ -26,9 +17,7 @@ export class ZKProofService {
             if (userData.passkeyData) {
                 hashes.passkeyHash = hashPasskey(userData.passkeyData);
             }
-            // Generate ZK commitment
             const commitment = generateZkCommitment(hashes);
-            // Generate ZK proof
             const proofInputs = {};
             if (userData.phoneNumber)
                 proofInputs.phone = userData.phoneNumber;
@@ -37,20 +26,18 @@ export class ZKProofService {
             if (userData.passkeyData)
                 proofInputs.passkey = userData.passkeyData;
             const proof = generateZkProof(proofInputs, commitment);
-            // Prepare public inputs
             const publicInputs = {
                 ...hashes,
                 userAddress: userData.userAddress,
                 timestamp: new Date().toISOString(),
                 additionalData: userData.additionalData || {}
             };
-            // Store in PostgreSQL
             await this.storeZKProofInDatabase({
                 userId: userData.userId,
                 commitment,
                 proof,
                 publicInputs,
-                isValid: true // Default to true since we're generating the proof
+                isValid: true
             });
             logger.info('ZK proof generated and stored successfully', {
                 userId: userData.userId,
@@ -60,7 +47,7 @@ export class ZKProofService {
                 commitment,
                 proof,
                 publicInputs,
-                isValid: true // Default to true since we're generating the proof
+                isValid: true
             };
         }
         catch (error) {
@@ -71,26 +58,18 @@ export class ZKProofService {
             throw error;
         }
     }
-    /**
-     * Generate and store ZK proof for any data entry
-     */
     static async generateAndStoreDataZKProof(userId, dataType, data) {
         try {
             logger.info('Generating ZK proof for data entry', { userId, dataType });
-            // Create a unique identifier for this data entry
             const dataId = crypto.randomUUID();
-            // Generate hash of the data
             const dataHash = crypto.createHash('sha256')
                 .update(JSON.stringify(data))
                 .digest('hex');
-            // Generate commitment for the data using phone hash format
             const phoneHash = hashPhone(dataHash);
             const biometricHash = hashBiometric('dummy_biometric');
             const passkeyHash = hashPasskey('dummy_passkey');
             const commitment = generateZkCommitment({ phoneHash, biometricHash, passkeyHash });
-            // Generate proof for the data - use dataHash as phone parameter
             const proof = generateZkProof({ phone: dataHash, biometric: 'dummy_biometric', passkey: 'dummy_passkey' }, commitment);
-            // Prepare public inputs
             const publicInputs = {
                 dataId,
                 dataType,
@@ -101,13 +80,12 @@ export class ZKProofService {
                     fields: Object.keys(data)
                 }
             };
-            // Store in PostgreSQL
             await this.storeZKProofInDatabase({
                 userId,
                 commitment,
                 proof,
                 publicInputs,
-                isValid: true // Default to true since we're generating the proof
+                isValid: true
             });
             logger.info('Data ZK proof generated and stored successfully', {
                 userId,
@@ -119,7 +97,7 @@ export class ZKProofService {
                 commitment,
                 proof,
                 publicInputs,
-                isValid: true // Default to true since we're generating the proof
+                isValid: true
             };
         }
         catch (error) {
@@ -131,9 +109,6 @@ export class ZKProofService {
             throw error;
         }
     }
-    /**
-     * Store ZK proof in PostgreSQL database
-     */
     static async storeZKProofInDatabase(zkData) {
         const client = await pool.connect();
         try {
@@ -150,9 +125,6 @@ export class ZKProofService {
             client.release();
         }
     }
-    /**
-     * Retrieve ZK proofs for a user
-     */
     static async getUserZKProofs(userId) {
         const client = await pool.connect();
         try {
@@ -172,9 +144,6 @@ export class ZKProofService {
             client.release();
         }
     }
-    /**
-     * Verify a ZK proof against stored data
-     */
     static async verifyStoredZKProof(userId, commitment) {
         const client = await pool.connect();
         try {
@@ -188,9 +157,6 @@ export class ZKProofService {
             client.release();
         }
     }
-    /**
-     * Get latest ZK proof for a user
-     */
     static async getLatestUserZKProof(userId) {
         const client = await pool.connect();
         try {
@@ -209,6 +175,116 @@ export class ZKProofService {
                 createdAt: row.created_at,
                 verifiedAt: row.verified_at
             };
+        }
+        finally {
+            client.release();
+        }
+    }
+    static async getUserByPhoneHash(phoneHash) {
+        const client = await pool.connect();
+        try {
+            console.log('🔍 getUserByPhoneHash called with hash:', phoneHash ? `${phoneHash.substring(0, 20)}...` : 'null');
+            if (!phoneHash || typeof phoneHash !== 'string') {
+                console.log('❌ Invalid phone hash');
+                return null;
+            }
+            console.log('✅ Querying database with hash...');
+            const result = await client.query('SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", auth_methods as "authMethods", verification_method as "verificationMethod", verified FROM users WHERE phone_hash = $1', [phoneHash]);
+            console.log(`📊 Database query returned ${result.rows.length} rows`);
+            if (result.rows.length === 0) {
+                console.log('✅ No existing user found with this phone hash');
+                return null;
+            }
+            const row = result.rows[0];
+            console.log('✅ Found existing user:', row.userId);
+            return {
+                user_id: row.userId,
+                wallet_address: row.walletAddress,
+                phone_hash: row.phoneHash,
+                zk_commitment: row.zkCommitment,
+                auth_methods: row.authMethods,
+                verification_method: row.verificationMethod,
+                verified: row.verified
+            };
+        }
+        catch (error) {
+            // ... error handling
+        }
+        finally {
+            client.release();
+        }
+    }
+    static async getUserById(userId) {
+        const client = await pool.connect();
+        try {
+            const result = await client.query('SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", auth_methods as "authMethods", verification_method as "verificationMethod", verified FROM users WHERE user_id = $1', [userId]);
+            if (result.rows.length === 0) {
+                return null;
+            }
+            const row = result.rows[0];
+            return {
+                user_id: row.userId,
+                wallet_address: row.walletAddress,
+                phone_hash: row.phoneHash,
+                zk_commitment: row.zkCommitment,
+                auth_methods: row.authMethods,
+                verification_method: row.verificationMethod,
+                verified: row.verified
+            };
+        }
+        finally {
+            client.release();
+        }
+    }
+    static async getUserByWalletAddress(walletAddress) {
+        const client = await pool.connect();
+        try {
+            const result = await client.query('SELECT user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", auth_methods as "authMethods", verification_method as "verificationMethod", verified FROM users WHERE wallet_address = $1', [walletAddress]);
+            if (result.rows.length === 0) {
+                return null;
+            }
+            const row = result.rows[0];
+            return {
+                user_id: row.userId,
+                wallet_address: row.walletAddress,
+                phone_hash: row.phoneHash,
+                zk_commitment: row.zkCommitment,
+                auth_methods: row.authMethods,
+                verification_method: row.verificationMethod,
+                verified: row.verified
+            };
+        }
+        finally {
+            client.release();
+        }
+    }
+    static async createUser(userData) {
+        const client = await pool.connect();
+        try {
+            const result = await client.query('INSERT INTO users (user_id, wallet_address, phone_hash, zk_commitment, auth_methods, verification_method, verified) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", auth_methods as "authMethods", verification_method as "verificationMethod", verified', [
+                userData.userId,
+                userData.walletAddress,
+                userData.phoneHash,
+                userData.zkCommitment,
+                userData.authMethods,
+                userData.verificationMethod,
+                false
+            ]);
+            return result.rows[0];
+        }
+        finally {
+            client.release();
+        }
+    }
+    static async updateUser(userId, updates) {
+        const client = await pool.connect();
+        try {
+            const setClause = Object.keys(updates)
+                .map((key, index) => `${key} = $${index + 2}`)
+                .join(', ');
+            const values = Object.values(updates);
+            const result = await client.query(`UPDATE users SET ${setClause} WHERE user_id = $1 RETURNING user_id as "userId", wallet_address as "walletAddress", phone_hash as "phoneHash", zk_commitment as "zkCommitment", auth_methods as "authMethods", verification_method as "verificationMethod", verified`, [userId, ...values]);
+            return result.rows[0];
         }
         finally {
             client.release();

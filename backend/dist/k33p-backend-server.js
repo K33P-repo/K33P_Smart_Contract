@@ -6,8 +6,6 @@ import dotenv from 'dotenv';
 import { EnhancedK33PManagerDB } from './enhanced-k33p-manager-db.js';
 import { dbService } from './database/service.js';
 import { autoRefundMonitor } from './services/auto-refund-monitor.js';
-import { MockDatabaseService } from './database/mock-service.js';
-import { testConnection } from './database/config.js';
 import winston from 'winston';
 import { authenticateToken } from './middleware/auth.js';
 import { createRateLimiter } from './middleware/rate-limiter.js';
@@ -32,15 +30,24 @@ import seedPhraseRoutes from './routes/seed-phrase-routes.js';
 // @ts-ignore
 import userRoutes from './routes/user-routes.js';
 // @ts-ignore
+import notificationRoutes from './routes/notification-routes.js';
+// Import routes (add this line)
+// @ts-ignore
 import autoRefundRoutes from './routes/auto-refund-routes.js';
 // @ts-ignore
 import paymentRoutes from './routes/payment.js';
 // @ts-ignore
 import subscriptionRoutes from './routes/subscription.js';
+// @ts-ignore
+import walletFoldersRoutes from './routes/wallet-folders.js';
+// @ts-ignore
+import imageNumberRoutes from './routes/image-number-routes.js';
+import { paystackService } from './services/paystack-service.js';
 // Load environment variables
 dotenv.config();
 // Constants
-const PORT = process.env.PORT || 3000;
+// ✅ Respects Render's PORT env var
+const PORT = parseInt(process.env.PORT || '3501', 10);
 // Initialize logger
 const logger = winston.createLogger({
     level: 'info',
@@ -59,34 +66,33 @@ let k33pManager;
 let usingMockDatabase = false;
 async function initializeK33P() {
     try {
-        // Test PostgreSQL connection first
-        const dbConnected = await testConnection();
-        if (!dbConnected) {
-            logger.warn('PostgreSQL connection failed, initializing mock database...');
-            await MockDatabaseService.initialize();
-            usingMockDatabase = true;
-            logger.info('✅ Mock database initialized successfully');
-        }
+        console.log('Initializing database connection to Supabase...');
         k33pManager = new EnhancedK33PManagerDB();
-        await k33pManager.initialize();
-        logger.info('K33P Manager with Database initialized successfully');
-        // Initialize and start auto-refund monitor (only if PostgreSQL is available)
+        try {
+            await k33pManager.initialize();
+            logger.info('K33P Manager initialized successfully');
+        }
+        catch (k33pError) {
+            logger.warn('K33P Manager initialization failed, continuing in degraded state:', k33pError);
+        }
         if (!usingMockDatabase) {
             try {
-                await autoRefundMonitor.initialize();
-                await autoRefundMonitor.start();
-                logger.info('🚀 Auto-Refund Monitor started - 2 ADA deposits will be automatically refunded');
+                if (process.env.DISABLE_CARDANO !== "true" && k33pManager.cardanoEnabled) {
+                    await autoRefundMonitor.initialize();
+                    await autoRefundMonitor.start();
+                    logger.info('Auto-Refund Monitor started');
+                }
+                else {
+                    logger.info('Auto-Refund Monitor disabled (Cardano features disabled)');
+                }
             }
             catch (error) {
-                logger.warn('Auto-Refund Monitor failed to start (using mock database):', error);
+                logger.warn('Auto-Refund Monitor failed to start:', error);
             }
-        }
-        else {
-            logger.info('📝 Running in mock database mode - Auto-Refund Monitor disabled');
         }
     }
     catch (error) {
-        logger.error('Failed to initialize K33P Manager with Database:', error);
+        logger.error('Failed to initialize K33P Manager:', error);
         throw error;
     }
 }
@@ -96,6 +102,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+// Optional: Add a JSON endpoint for the swagger spec
 // Request logging middleware
 app.use((req, res, next) => {
     logger.info(`${req.method} ${req.url}`, {
@@ -114,9 +121,12 @@ app.use('/api/recovery', recoveryRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/seed-phrases', seedPhraseRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/notifications', notificationRoutes);
 app.use('/api/auto-refund', autoRefundRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/wallet-folders', walletFoldersRoutes);
+app.use('/api/image-number', imageNumberRoutes);
 // Global error handler (must be last middleware)
 app.use(globalErrorHandler);
 // Validation error handler
@@ -166,7 +176,7 @@ app.get('/api/version', systemEndpointLimiter, (req, res) => {
         version: '1.0.0',
         apiVersion: 'v1',
         buildDate: new Date().toISOString(),
-        features: ['auth', 'utxo', 'zk', 'users']
+        features: ['auth', 'utxo', 'zk', 'users', 'wallet-folders'] // ADD 'wallet-folders' HERE
     }, undefined, 'API version information'));
 });
 // User Profile endpoints
@@ -235,6 +245,43 @@ app.post('/api/user/profile', async (req, res) => {
         res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get user profile'));
     }
 });
+// Paystack webhook endpoint - must be before express.json() middleware
+app.post('/api/payment/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+    try {
+        const signature = req.headers['x-paystack-signature'];
+        // For local development, you might want to log the webhook for debugging
+        if (process.env.NODE_ENV === 'development') {
+            console.log('📩 Webhook received:', {
+                signature: signature ? 'present' : 'missing',
+                body: req.body.toString().substring(0, 500) + '...'
+            });
+        }
+        // Verify webhook signature
+        const isValid = paystackService.verifyWebhookSignature(req.body.toString(), signature);
+        if (!isValid) {
+            logger.warn('Invalid webhook signature', { signature });
+            return res.status(401).json({ error: 'Invalid signature' });
+        }
+        const event = JSON.parse(req.body.toString());
+        // Log webhook event for debugging
+        logger.info('Processing Paystack webhook', {
+            event: event.event,
+            reference: event.data?.reference
+        });
+        // Process the webhook
+        const result = await paystackService.processWebhookEvent(event);
+        if (result.success) {
+            res.status(200).json({ message: 'Webhook processed successfully' });
+        }
+        else {
+            res.status(400).json({ error: result.message });
+        }
+    }
+    catch (error) {
+        logger.error('Webhook processing error', { error: error.message });
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 // Root endpoint
 app.get('/', (req, res) => {
     res.json(createResponse(true, {
@@ -251,7 +298,8 @@ app.get('/', (req, res) => {
             '/api/phone/*',
             '/api/recovery/*',
             '/api/user/profile',
-            '/api/auto-refund/*'
+            '/api/auto-refund/*',
+            '/api/wallet-folders/*' // ADD THIS LINE
         ]
     }, undefined, 'Welcome to K33P Backend API'));
 });
@@ -267,8 +315,6 @@ async (req, res) => {
         res.status(500).json(createResponse(false, undefined, undefined, 'Failed to get deposit address'));
     }
 });
-// Signup route removed - use /api/auth/signup instead
-// Retry verification for a user
 app.post('/api/retry-verification', [
     body('userAddress')
         .isLength({ min: 50, max: 200 })
@@ -497,6 +543,7 @@ async function startServer() {
                 ? process.env.FRONTEND_URL || `https://${process.env.RENDER_EXTERNAL_URL || 'your-app.onrender.com'}`
                 : `http://localhost:${PORT}`;
             logger.info(`Health check: ${baseUrl}/api/health`);
+            logger.info(`Wallet folders API: ${baseUrl}/api/wallet-folders`); // ADD THIS LINE
         });
         // Graceful shutdown
         process.on('SIGTERM', async () => {

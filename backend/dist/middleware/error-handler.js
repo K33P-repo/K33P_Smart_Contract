@@ -84,6 +84,7 @@ export var ErrorCodes;
     ErrorCodes["OTP_REQUEST_ID_REQUIRED"] = "OTP_REQUEST_ID_REQUIRED";
     ErrorCodes["OTP_CODE_REQUIRED"] = "OTP_CODE_REQUIRED";
     ErrorCodes["OTP_CODE_INVALID_FORMAT"] = "OTP_CODE_INVALID_FORMAT";
+    ErrorCodes["OTP_ALREADY_SENT"] = "OTP_ALREADY_SENT";
     // Biometric & PIN
     ErrorCodes["BIOMETRIC_VERIFICATION_FAILED"] = "BIOMETRIC_VERIFICATION_FAILED";
     ErrorCodes["BIOMETRIC_NOT_ENROLLED"] = "BIOMETRIC_NOT_ENROLLED";
@@ -217,6 +218,7 @@ const ERROR_MESSAGES = {
     [ErrorCodes.SERVER_ERROR]: 'Something went wrong on our end. Please try again later',
     [ErrorCodes.DATABASE_ERROR]: 'Database connection error. Please try again later',
     [ErrorCodes.EXTERNAL_SERVICE_ERROR]: 'External service temporarily unavailable. Please try again later',
+    [ErrorCodes.OTP_ALREADY_SENT]: 'An OTP has already been sent. Please wait before requesting a new one',
     // Storage & Seed Phrases
     [ErrorCodes.SEED_PHRASE_NOT_FOUND]: 'Seed phrase not found',
     [ErrorCodes.SEED_PHRASE_ENCRYPTION_FAILED]: 'Failed to encrypt seed phrase',
@@ -346,6 +348,7 @@ const ERROR_STATUS_CODES = {
     [ErrorCodes.SERVER_ERROR]: 500,
     [ErrorCodes.DATABASE_ERROR]: 500,
     [ErrorCodes.EXTERNAL_SERVICE_ERROR]: 503,
+    [ErrorCodes.OTP_ALREADY_SENT]: 429,
     // Storage & Seed Phrases (404, 500)
     [ErrorCodes.SEED_PHRASE_NOT_FOUND]: 404,
     [ErrorCodes.SEED_PHRASE_ENCRYPTION_FAILED]: 500,

@@ -9,9 +9,16 @@ interface SubscriptionStatus {
 }
 interface SubscriptionUpdate {
     tier?: 'freemium' | 'premium';
+    isActive?: boolean;
     startDate?: Date;
     endDate?: Date;
     autoRenew?: boolean;
+}
+interface PaymentResult {
+    success: boolean;
+    paymentUrl?: string;
+    reference?: string;
+    message?: string;
 }
 declare class SubscriptionService {
     private renewalCheckInterval;
@@ -19,13 +26,47 @@ declare class SubscriptionService {
     /**
      * Get subscription status for a user
      */
-    getSubscriptionStatus(userId: string): Promise<SubscriptionStatus | null>;
+    getSubscriptionStatus(userId: string): Promise<SubscriptionStatus>;
     /**
      * Update subscription for a user
      */
     updateSubscription(userId: string, updates: SubscriptionUpdate): Promise<boolean>;
     /**
-     * Activate premium subscription
+     * Initialize premium subscription payment via Paystack
+     */
+    initializePremiumSubscription(userId: string, email: string, durationMonths?: number, amount?: number): Promise<PaymentResult>;
+    /**
+     * Verify and activate premium subscription after payment
+     */
+    verifyAndActivateSubscription(reference: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    /**
+     * Handle Paystack webhook for subscription payments
+     */
+    handlePaystackWebhook(event: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    /**
+     * Verify Paystack webhook signature
+     */
+    verifyPaystackWebhookSignature(payload: string, signature: string): Promise<boolean>;
+    /**
+     * Handle successful payment webhook
+     */
+    private handleSuccessfulPaymentWebhook;
+    /**
+     * Handle subscription created webhook
+     */
+    private handleSubscriptionCreatedWebhook;
+    /**
+     * Handle subscription cancelled webhook
+     */
+    private handleSubscriptionCancelledWebhook;
+    /**
+     * Activate premium subscription directly (for testing or admin use)
      */
     activatePremiumSubscription(userId: string, durationMonths?: number): Promise<boolean>;
     /**
@@ -37,13 +78,43 @@ declare class SubscriptionService {
      */
     isSubscriptionExpired(userId: string): Promise<boolean>;
     /**
-     * Get users with expiring subscriptions (within next 3 days)
+     * Get users with expiring subscriptions (within next 7 days)
      */
     getExpiringSubscriptions(): Promise<string[]>;
     /**
      * Get expired subscriptions
      */
     getExpiredSubscriptions(): Promise<string[]>;
+    /**
+     * Initialize monthly recurring subscription with phone number
+     */
+    /**
+     * Initialize monthly recurring subscription with phone number
+     */
+    initializeMonthlyRecurringSubscription(userId: string, phone: string, amount?: number): Promise<PaymentResult>;
+    /**
+     * Process recurring payment webhook
+     */
+    handleRecurringPaymentWebhook(event: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
+    /**
+     * Handle successful recurring charge
+     */
+    private handleRecurringChargeSuccess;
+    /**
+     * Handle recurring subscription created
+     */
+    private handleRecurringSubscriptionCreated;
+    /**
+     * Handle monthly invoice creation
+     */
+    private handleMonthlyInvoiceCreated;
+    /**
+     * Cancel recurring subscription
+     */
+    cancelRecurringSubscription(userId: string): Promise<boolean>;
     /**
      * Process expired subscriptions
      */

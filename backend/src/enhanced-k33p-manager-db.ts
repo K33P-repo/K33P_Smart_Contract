@@ -201,6 +201,8 @@ class BlockchainVerifier {
 // ============================================================================
 
 export class EnhancedK33PManagerDB {
+  public cardanoEnabled: boolean = true;
+  private initPromise?: Promise<void>;
   private lucid?: Lucid;
   private validator?: SpendingValidator;
   private depositAddress: string = '';
@@ -214,46 +216,54 @@ export class EnhancedK33PManagerDB {
   }
 
   async initialize(): Promise<void> {
-    try {
-      console.log('🚀 Initializing Enhanced K33P Manager with Database...');
-      
-      // Test database connection
-      const dbConnected = await testConnection();
-      if (!dbConnected) {
-        console.warn('PostgreSQL connection failed, using mock database service...');
-        this.usingMockDatabase = true;
-        this.mockDbService = MockDatabaseService;
-        await this.mockDbService.initialize();
-        console.log('✅ Mock database service initialized');
-      }
-      
-      // Initialize Lucid
-      this.lucid = await Lucid.new(
-        new Blockfrost(CONFIG.blockfrostUrl, CONFIG.blockfrostApiKey),
-        CONFIG.network
-      );
-      
-      this.lucid.selectWalletFromSeed(CONFIG.seedPhrase);
-      
-      // Load validator
-      const validatorScript = JSON.parse(await this.readFile('plutus.json'));
-      this.validator = {
-        type: "PlutusV2",
-        script: validatorScript.cborHex
-      };
-      
-      // Get deposit address
-      this.depositAddress = this.lucid.utils.validatorToAddress(this.validator);
-      await this.verifier.setDepositAddress(this.depositAddress);
-      
-      this.initialized = true;
-      console.log('✅ Enhanced K33P Manager with Database initialized successfully');
-      console.log(`📍 Deposit Address: ${this.depositAddress}`);
-      
-    } catch (error) {
-      console.error('❌ Failed to initialize Enhanced K33P Manager:', error);
-      throw error;
+    if (this.initPromise) {
+      return this.initPromise;
     }
+    this.initPromise = (async () => {
+      try {
+        console.log('Initializing Enhanced K33P Manager with Database...');
+        const dbConnected = await testConnection();
+        if (!dbConnected) {
+          console.warn('PostgreSQL connection failed, using mock database service...');
+          this.usingMockDatabase = true;
+          this.mockDbService = MockDatabaseService;
+          await this.mockDbService.initialize();
+          console.log('Mock database service initialized');
+        }
+        if (process.env.DISABLE_CARDANO === "true") {
+          this.cardanoEnabled = false;
+          this.depositAddress = "addr_test_mock_deposit_address_disabled_cardano";
+          this.initialized = true;
+          console.log('Cardano features disabled via DISABLE_CARDANO, database initialized');
+          return;
+        }
+        try {
+          this.lucid = await Lucid.new(
+            new Blockfrost(CONFIG.blockfrostUrl, CONFIG.blockfrostApiKey),
+            CONFIG.network
+          );
+          this.lucid.selectWalletFromSeed(CONFIG.seedPhrase);
+          const validatorScript = JSON.parse(await this.readFile('plutus.json'));
+          this.validator = {
+            type: "PlutusV2",
+            script: validatorScript.cborHex
+          };
+          this.depositAddress = this.lucid.utils.validatorToAddress(this.validator);
+          await this.verifier.setDepositAddress(this.depositAddress);
+          this.cardanoEnabled = true;
+        } catch (cardanoError) {
+          console.warn('Cardano initialization failed, continuing without Cardano features:', cardanoError);
+          this.cardanoEnabled = false;
+          this.depositAddress = "addr_test_mock_deposit_address_failed_cardano";
+        }
+        this.initialized = true;
+        console.log('Enhanced K33P Manager with Database initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize Enhanced K33P Manager:', error);
+        throw error;
+      }
+    })();
+    return this.initPromise;
   }
 
   private async readFile(filename: string): Promise<string> {
@@ -262,9 +272,9 @@ export class EnhancedK33PManagerDB {
     return fs.readFileSync(path.resolve(filename), 'utf8');
   }
 
-  private ensureInitialized(): void {
+  private async ensureInitialized(): Promise<void> {
     if (!this.initialized) {
-      throw new Error('K33P Manager not initialized. Call initialize() first.');
+      await this.initialize();
     }
   }
 
@@ -273,7 +283,7 @@ export class EnhancedK33PManagerDB {
   }
 
   async getDepositAddress(): Promise<string> {
-    this.ensureInitialized();
+    await this.ensureInitialized();
     return this.depositAddress;
   }
 
@@ -281,7 +291,7 @@ export class EnhancedK33PManagerDB {
    * Verify transaction by wallet address
    */
   async verifyTransactionByWalletAddress(senderWalletAddress: string, expectedAmount: bigint): Promise<any> {
-    this.ensureInitialized();
+    await this.ensureInitialized();
     return await this.verifier.verifyTransactionByWalletAddress(senderWalletAddress, expectedAmount);
   }
 
@@ -299,7 +309,7 @@ export class EnhancedK33PManagerDB {
     verificationMethod: 'phone' | 'pin' | 'biometric' = 'phone',
     biometricType?: 'fingerprint' | 'faceid' | 'voice' | 'iris'
   ): Promise<SignupResult> {
-    this.ensureInitialized();
+    await this.ensureInitialized();
     
     try {
       console.log(`📝 Recording signup for user ${userId} with verification method: ${verificationMethod}`);
@@ -432,7 +442,7 @@ export class EnhancedK33PManagerDB {
   // ============================================================================
 
   async retryVerification(userAddress: string): Promise<SignupResult> {
-    this.ensureInitialized();
+    await this.ensureInitialized();
     
     try {
       const currentDbService = this.getDbService();
@@ -491,7 +501,7 @@ export class EnhancedK33PManagerDB {
   }
 
   async autoVerifyDeposits(): Promise<void> {
-    this.ensureInitialized();
+    await this.ensureInitialized();
     
     try {
       console.log('🔄 Starting auto-verification of unverified deposits...');
@@ -526,42 +536,36 @@ export class EnhancedK33PManagerDB {
   // ============================================================================
 
   async processRefund(userAddress: string, walletAddress?: string): Promise<RefundResult> {
-    this.ensureInitialized();
+    await this.ensureInitialized();
     
     try {
       const currentDbService = this.getDbService();
       const deposit = await currentDbService.getDepositByUserAddress(userAddress);
       
-      console.log(`🔍 Processing refund for user: ${userAddress}`);
-      console.log(`📊 Deposit found: ${!!deposit}`);
+      console.log('Processing refund for user: ' + userAddress);
+      console.log('Deposit found: ' + !!deposit);
       if (deposit) {
-        console.log(`📊 Deposit refunded status: ${deposit.refunded}`);
+        console.log('Deposit refunded status: ' + deposit.refunded);
       }
       
-      // Check if deposit exists and has already been refunded
       if (deposit && deposit.refunded) {
-        console.log(`❌ Refund already processed for user: ${userAddress}`);
+        console.log('Refund already processed for user: ' + userAddress);
         return {
           success: false,
           message: 'Deposit has already been refunded'
         };
       }
       
-      // Determine refund address - prioritize walletAddress, then deposit sender, then userAddress
       const refundAddress = walletAddress || (deposit?.sender_wallet_address) || userAddress;
       
-      console.log(`💰 Processing refund to ${refundAddress}...`);
+      console.log('Processing refund to ' + refundAddress + '...');
       
       let txHash: string;
       
-      if (this.usingMockDatabase) {
-        // Simulate refund transaction for mock database
+      if (this.usingMockDatabase || !this.cardanoEnabled) {
         txHash = 'mock_refund_' + Date.now().toString() + '_' + Math.random().toString(36).substr(2, 9);
-        console.log(`📝 Mock refund transaction simulated: ${txHash}`);
+        console.log('Mock refund transaction simulated: ' + txHash);
       } else {
-        // Process the actual refund transaction
-        // Note: This is a simplified refund - in production, you'd need to find the actual UTXO
-        // For now, we'll create a direct payment transaction
         const lucid = this.lucid!;
         const tx = await lucid.newTx()
           .payToAddress(refundAddress, { lovelace: CONFIG.refundAmount })

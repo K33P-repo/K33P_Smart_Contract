@@ -1,8 +1,3 @@
-/**
- * ZK Proof Service for K33P Identity System
- * Automatically generates and stores ZK proofs for all database operations
- * Ensures every user registration and data entry has associated ZK proofs
- */
 export interface ZKProofData {
     commitment: string;
     proof: any;
@@ -18,30 +13,24 @@ export interface UserZKData {
     additionalData?: Record<string, any>;
 }
 export declare class ZKProofService {
-    /**
-     * Generate and store ZK proof for a new user registration
-     */
     static generateAndStoreUserZKProof(userData: UserZKData): Promise<ZKProofData>;
-    /**
-     * Generate and store ZK proof for any data entry
-     */
     static generateAndStoreDataZKProof(userId: string, dataType: string, data: Record<string, any>): Promise<ZKProofData>;
-    /**
-     * Store ZK proof in PostgreSQL database
-     */
     private static storeZKProofInDatabase;
-    /**
-     * Retrieve ZK proofs for a user
-     */
     static getUserZKProofs(userId: string): Promise<any[]>;
-    /**
-     * Verify a ZK proof against stored data
-     */
     static verifyStoredZKProof(userId: string, commitment: string): Promise<boolean>;
-    /**
-     * Get latest ZK proof for a user
-     */
     static getLatestUserZKProof(userId: string): Promise<any | null>;
+    static getUserByPhoneHash(phoneHash: string): Promise<any | null>;
+    static getUserById(userId: string): Promise<any | null>;
+    static getUserByWalletAddress(walletAddress: string): Promise<any | null>;
+    static createUser(userData: {
+        userId: string;
+        walletAddress?: string;
+        phoneHash: string;
+        zkCommitment: string;
+        authMethods: any[];
+        verificationMethod: string;
+    }): Promise<any>;
+    static updateUser(userId: string, updates: any): Promise<any>;
 }
 export default ZKProofService;
 //# sourceMappingURL=zk-proof-service.d.ts.map

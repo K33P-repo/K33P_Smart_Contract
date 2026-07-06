@@ -9,17 +9,35 @@ export class DatabaseService {
     // USER OPERATIONS
     // ============================================================================
     async createUser(userData) {
+        // Create default auth methods if not provided
+        const defaultAuthMethods = [
+            {
+                type: 'phone',
+                createdAt: new Date()
+            },
+            {
+                type: 'pin',
+                data: userData.pinHash || 'pending-pin-setup',
+                createdAt: new Date()
+            },
+            {
+                type: 'fingerprint',
+                createdAt: new Date()
+            }
+        ];
         const user = await UserModel.create({
             user_id: userData.userId,
             email: userData.email,
             name: userData.name,
             wallet_address: userData.walletAddress,
             phone_hash: userData.phoneHash,
-            zk_commitment: userData.zkCommitment
+            pin_hash: userData.pinHash,
+            zk_commitment: userData.zkCommitment,
+            auth_methods: userData.authMethods || defaultAuthMethods,
+            folders: userData.folders || [],
+            image_number: userData.imageNumber || 1
         });
-        // Generate and store ZK proof for user creation
         try {
-            // Only generate ZK proof if we have phone number data
             if (userData.phoneNumber) {
                 await ZKProofService.generateAndStoreUserZKProof(userData);
                 console.log(`✅ ZK proof generated for user creation: ${userData.userId}`);
@@ -30,7 +48,6 @@ export class DatabaseService {
         }
         catch (zkError) {
             console.error('Failed to generate ZK proof for user creation:', zkError);
-            // Don't fail user creation if ZK proof generation fails
         }
         return user;
     }
@@ -114,6 +131,7 @@ export class DatabaseService {
         }
         return await this.updateDeposit(userAddress, updates);
     }
+    // In database/service.ts - update the markRefunded method
     async incrementVerificationAttempts(userAddress) {
         const deposit = await this.getDepositByUserAddress(userAddress);
         if (!deposit)
@@ -130,11 +148,23 @@ export class DatabaseService {
         });
     }
     async markRefunded(userAddress, refundTxHash) {
-        return await this.updateDeposit(userAddress, {
+        const updates = {
             refunded: true,
             refund_tx_hash: refundTxHash,
-            refund_timestamp: new Date()
-        });
+            refund_timestamp: new Date(),
+            verified: false,
+            signup_completed: false,
+            verification_attempts: 0
+        };
+        // Only include fields that need to be cleared if they exist
+        const deposit = await this.getDepositByUserAddress(userAddress);
+        if (deposit?.tx_hash) {
+            updates.tx_hash = undefined;
+        }
+        if (deposit?.last_verification_attempt) {
+            updates.last_verification_attempt = undefined;
+        }
+        return await this.updateDeposit(userAddress, updates);
     }
     // ============================================================================
     // TRANSACTION OPERATIONS
@@ -318,6 +348,55 @@ export class DatabaseService {
         finally {
             client.release();
         }
+    }
+    // Add this method to your DatabaseService class, before the createZKProof method:
+    async getUserByPhoneHash(phoneHash) {
+        const client = await pool.connect();
+        try {
+            const result = await client.query('SELECT * FROM users WHERE phone_hash = $1', [phoneHash]);
+            return result.rows.length > 0 ? result.rows[0] : null;
+        }
+        finally {
+            client.release();
+        }
+    }
+    // Add these to your database service
+    async getUserByUsername(username) {
+        const client = await pool.connect();
+        try {
+            const result = await client.query('SELECT user_id, username, wallet_address FROM users WHERE username = $1', [username]);
+            return result.rows[0] || null;
+        }
+        finally {
+            client.release();
+        }
+    }
+    async updateUserName(userId, updates) {
+        const client = await pool.connect();
+        try {
+            const setClause = Object.keys(updates).map((key, index) => `${key} = $${index + 2}`).join(', ');
+            const values = [userId, ...Object.values(updates)];
+            const result = await client.query(`UPDATE users SET ${setClause}, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 RETURNING *`, values);
+            return result.rows[0] || null;
+        }
+        finally {
+            client.release();
+        }
+    }
+    // Then your existing createZKProof method:
+    async createZKProof(proofData) {
+        const client = await pool.connect();
+        try {
+            const { user_id, commitment, proof, public_inputs, is_valid } = proofData;
+            const result = await client.query('INSERT INTO zk_proofs (user_id, commitment, proof, public_inputs, is_valid) VALUES ($1, $2, $3, $4, $5) RETURNING *', [user_id, commitment, proof, public_inputs, is_valid]);
+            return result.rows[0];
+        }
+        finally {
+            client.release();
+        }
+    }
+    async updatePin(userId, pinHash, authMethods) {
+        return await UserModel.updatePin(userId, pinHash, authMethods);
     }
 }
 // Export singleton instance
