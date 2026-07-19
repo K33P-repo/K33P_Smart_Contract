@@ -18,11 +18,11 @@ import { HDWallet, Roles, generateRandomSeed } from '@midnight-ntwrk/wallet-sdk-
 import { ShieldedWallet } from '@midnight-ntwrk/wallet-sdk-shielded';
 import {
   createKeystore,
-  InMemoryTransactionHistoryStorage,
   PublicKey,
   UnshieldedWallet,
   type UnshieldedKeystore,
 } from '@midnight-ntwrk/wallet-sdk-unshielded-wallet';
+import { NoOpTransactionHistoryStorage } from '@midnight-ntwrk/wallet-sdk-abstractions';
 import { type Logger } from 'pino';
 import * as Rx from 'rxjs';
 import { WebSocket } from 'ws';
@@ -153,7 +153,7 @@ const buildShieldedConfig = ({ indexer, indexerWS, node, proofServer }: Config) 
 const buildUnshieldedConfig = ({ indexer, indexerWS }: Config) => ({
   networkId: getNetworkId(),
   indexerClientConnection: { indexerHttpUrl: indexer, indexerWsUrl: indexerWS },
-  txHistoryStorage: new InMemoryTransactionHistoryStorage(),
+  txHistoryStorage: new NoOpTransactionHistoryStorage(),
 });
 
 const buildDustConfig = ({ indexer, indexerWS, node, proofServer }: Config) => ({
@@ -347,7 +347,7 @@ export const getDustBalance = async (
   const available = state.dust.balance(new Date());
   const availableCoins = state.dust.availableCoins.length;
   const pendingCoins = state.dust.pendingCoins.length;
-  const pending = state.dust.pendingCoins.reduce((sum, c) => sum + c.initialValue, 0n);
+  const pending = state.dust.pendingCoins.reduce((sum, c) => sum + c.token.initialValue, 0n);
   return { available, pending, availableCoins, pendingCoins };
 };
 
