@@ -46,6 +46,8 @@ import subscriptionRoutes from './routes/subscription.js';
 import walletFoldersRoutes from './routes/wallet-folders.js';
 // @ts-ignore
 import imageNumberRoutes from './routes/image-number-routes.js';
+// @ts-ignore
+import nokRoutes from './routes/nok-routes.js';
 
 import { paystackService } from './services/paystack-service.js';
 
@@ -149,6 +151,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/subscription', subscriptionRoutes);
 app.use('/api/wallet-folders', walletFoldersRoutes);
 app.use('/api/image-number', imageNumberRoutes);
+app.use('/api/nok', nokRoutes);
 
 // Global error handler (must be last middleware)
 app.use(globalErrorHandler);
