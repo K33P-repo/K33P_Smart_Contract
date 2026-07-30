@@ -1,0 +1,151 @@
+{
+  "compiler-version": "0.31.0",
+  "language-version": "0.23.0",
+  "runtime-version": "0.16.0",
+  "circuits": [
+    {
+      "name": "publicKey",
+      "pure": true,
+      "proof": false,
+      "arguments": [
+        {
+          "name": "sk",
+          "type": {
+            "type-name": "Bytes",
+            "length": 32
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "register_nok",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "owner_identifier",
+          "type": {
+            "type-name": "Field"
+          }
+        },
+        {
+          "name": "nok_hash",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Tuple",
+        "types": [
+        ]
+      }
+    },
+    {
+      "name": "approve_nok_login",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "owner_identifier",
+          "type": {
+            "type-name": "Field"
+          }
+        },
+        {
+          "name": "nok_hash",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Boolean"
+      }
+    },
+    {
+      "name": "check_nok_registered",
+      "pure": false,
+      "proof": true,
+      "arguments": [
+        {
+          "name": "owner_identifier",
+          "type": {
+            "type-name": "Field"
+          }
+        }
+      ],
+      "result-type": {
+        "type-name": "Boolean"
+      }
+    }
+  ],
+  "witnesses": [
+    {
+      "name": "secretKey",
+      "arguments": [
+      ],
+      "result type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    }
+  ],
+  "contracts": [
+  ],
+  "ledger": [
+    {
+      "name": "noks",
+      "index": 0,
+      "exported": true,
+      "storage": "Map",
+      "key": {
+        "type-name": "Field"
+      },
+      "value": {
+        "type-name": "Struct",
+        "name": "RegisteredNOK",
+        "elements": [
+          {
+            "name": "nokHash",
+            "type": {
+              "type-name": "Field"
+            }
+          },
+          {
+            "name": "ownerIdentifier",
+            "type": {
+              "type-name": "Field"
+            }
+          },
+          {
+            "name": "registeredAt",
+            "type": {
+              "type-name": "Field"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "admin",
+      "index": 1,
+      "exported": true,
+      "storage": "Cell",
+      "type": {
+        "type-name": "Bytes",
+        "length": 32
+      }
+    },
+    {
+      "name": "round",
+      "index": 2,
+      "exported": true,
+      "storage": "Counter"
+    }
+  ]
+}
