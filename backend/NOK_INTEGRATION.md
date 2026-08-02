@@ -90,6 +90,63 @@ curl -X POST http://localhost:3501/api/nok/approve-login \
   -d '{"userId":"k33p-user-123","nokIdentifier":"+15551234567"}'
 ```
 
+## Troubleshooting
+
+The backend imports `@k33p/nok-cli` (a `file:../Contract/cli` dependency) and its
+**compiled** `dist/` output. Two things must be true before the backend can start:
+the CLI must be **built**, and the `file:` link must be **installed**. If either is
+missing you'll see one of the errors below.
+
+### `npm error Missing: @k33p/nok-cli@1.0.0 from lock file` (during `npm ci`)
+
+`backend/package.json` lists `@k33p/nok-cli` but `backend/package-lock.json` was
+out of sync, so `npm ci` (used by Render / CI) refuses to install.
+
+```bash
+# from backend/  — regenerate the lock so it includes @k33p/nok-cli
+npm install --package-lock-only --legacy-peer-deps
+# commit the updated backend/package-lock.json
+```
+
+### `Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@k33p/nok-cli'` (during `npm run dev`)
+
+The `file:` link isn't present in `backend/node_modules` and/or the CLI's `dist/`
+hasn't been built. Run the one-time build **in order**:
+
+```bash
+# 1) install + build the Contract workspace (creates Contract/cli/dist)
+cd Contract
+npm install
+npm run build:all               # compiles nok.compact + builds @k33p/nok-contract
+npm run build -w @k33p/nok-cli  # builds Contract/cli/dist (what the backend imports)
+
+# 2) link the package into the backend
+cd ../backend
+npm install                     # creates node_modules/@k33p/nok-cli -> ../../../Contract/cli
+```
+
+Verify:
+
+```bash
+ls -la backend/node_modules/@k33p/nok-cli   # should be a symlink to ../../../Contract/cli
+ls backend/node_modules/@k33p/nok-cli/dist  # should list nok-api.js, config.js, hash.js, wallet.js, ...
+```
+
+### Running on WSL
+
+This repo lives on the WSL filesystem. Run all `npm` commands **inside WSL**
+(`wsl -d Ubuntu` / a Linux shell), not Windows PowerShell — Windows `npm`/`cmd.exe`
+cannot operate on `\\wsl.localhost\...` UNC paths and will fail with
+`UNC paths are not supported` / `C:\Windows\package.json` errors.
+
+### Other startup errors (unrelated to NOK)
+
+If the server gets **past** the NOK import and fails on things like
+`PAYSTACK_SECRET_KEY is required`, `UPSTASH_REDIS_REST_URL missing`, or
+`INFOBIP_API_KEY is missing`, those are ordinary missing `.env` values — the NOK
+wiring is fine. Populate `backend/.env` (see **Environment variables** above plus
+the app's other required keys).
+
 ## Notes / limitations
 
 - First request triggers a wallet sync + contract join (slow); the joined
