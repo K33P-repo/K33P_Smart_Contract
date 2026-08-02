@@ -11,9 +11,16 @@ class PaystackService {
 
   constructor() {
     this.secretKey = process.env.PAYSTACK_SECRET_KEY || '';
-    
+
+    // Paystack is currently not used. Do not hard-fail on a missing key so the
+    // server can boot without PAYSTACK_SECRET_KEY. Re-enable by setting the env
+    // var (and uncommenting the throw below) when Paystack is needed again.
+    // if (!this.secretKey) {
+    //   throw new Error('PAYSTACK_SECRET_KEY is required');
+    // }
     if (!this.secretKey) {
-      throw new Error('PAYSTACK_SECRET_KEY is required');
+      logger.warn('PAYSTACK_SECRET_KEY not set — PaystackService is disabled.');
+      return;
     }
 
     this.paystack = Paystack(this.secretKey);
