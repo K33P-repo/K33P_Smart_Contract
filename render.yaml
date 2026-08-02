@@ -6,7 +6,7 @@ services:
     nodeVersion: 18.x # Deployment will use Node.js 18.x while local development uses 22.14.0
     region: oregon # Choose the region closest to your users
     plan: free # Upgrade to a paid plan for production
-    buildCommand: cd backend && npm ci --legacy-peer-deps --include=dev && npx tsc && node fix-imports.js
+    buildCommand: cd Contract && npm ci --include=dev && npm run build && npm run build -w @k33p/nok-cli && cd ../backend && npm ci --legacy-peer-deps --include=dev && npx tsc && node fix-imports.js
     startCommand: cd backend && npm start
     healthCheckPath: /api/health
     envVars:
