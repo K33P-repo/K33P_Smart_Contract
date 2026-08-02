@@ -12807,3 +12807,14 @@
 {"error":"Connection terminated due to connection timeout","level":"warn","message":"PostgreSQL storage health check failed","service":"storage-abstraction","timestamp":"2026-06-04T09:58:14.305Z"}
 {"dataType":"refund_operation","level":"info","message":"Generating ZK proof for data entry","service":"k33p-backend","timestamp":"2026-07-06T08:23:43.875Z","userId":"refund_1783326223874"}
 {"dataType":"refund_operation","error":"Do not know how to serialize a BigInt","level":"error","message":"Failed to generate and store data ZK proof","service":"k33p-backend","timestamp":"2026-07-06T08:23:43.880Z","userId":"refund_1783326223874"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-08-02T16:06:47.768Z"}
+{"level":"info","message":"UserDataStorageService initialized","service":"k33p-backend","timestamp":"2026-08-02T16:06:47.774Z"}
+{"level":"info","message":"PaystackService initialized successfully","service":"k33p-backend","timestamp":"2026-08-02T16:06:48.313Z"}
+{"level":"info","message":"Subscription renewal checker started (daily at 9:00 AM)","service":"k33p-backend","timestamp":"2026-08-02T16:06:48.588Z"}
+{"interval":60000,"level":"info","message":"Storage health monitoring started","service":"storage-abstraction","timestamp":"2026-08-02T16:06:53.789Z"}
+{"level":"info","message":"K33P Manager initialized successfully","service":"k33p-backend","timestamp":"2026-08-02T16:06:55.094Z"}
+{"level":"info","message":"Auto-Refund Monitor disabled (Cardano features disabled)","service":"k33p-backend","timestamp":"2026-08-02T16:06:55.096Z"}
+{"level":"info","message":"K33P Backend Server running on port 3000","service":"k33p-backend","timestamp":"2026-08-02T16:06:55.104Z"}
+{"level":"info","message":"Health check: http://localhost:3000/api/health","service":"k33p-backend","timestamp":"2026-08-02T16:06:55.104Z"}
+{"level":"info","message":"Wallet folders API: http://localhost:3000/api/wallet-folders","service":"k33p-backend","timestamp":"2026-08-02T16:06:55.105Z"}
+{"level":"info","message":"SIGTERM received, shutting down gracefully","service":"k33p-backend","timestamp":"2026-08-02T16:07:00.352Z"}
