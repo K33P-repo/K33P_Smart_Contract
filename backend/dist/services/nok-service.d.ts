@@ -14,7 +14,7 @@ export declare function checkNokRegisteredForUser(userId: string): Promise<NokRe
 export declare function getNokContractState(): Promise<{
     contractAddress: string;
     adminPubKey: string;
-    round: any;
-    registeredCount: any;
+    round: string;
+    registeredCount: string;
 } | null>;
 //# sourceMappingURL=nok-service.d.ts.map

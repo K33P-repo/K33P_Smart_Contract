@@ -14,6 +14,7 @@
     "build": "npm run build -w @k33p/nok-contract",
     "build:all": "npm run compact -w @k33p/nok-contract && npm run build -w @k33p/nok-contract",
     "typecheck": "npm run typecheck -w @k33p/nok-cli",
+    "test": "npm run test -w @k33p/nok-cli",
     "deploy": "npm run deploy -w @k33p/nok-cli",
     "admin": "npm run admin -w @k33p/nok-cli"
   },

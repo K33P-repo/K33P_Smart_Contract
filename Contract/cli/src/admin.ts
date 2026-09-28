@@ -101,8 +101,8 @@ while (running) {
       case '1': {
         const owner = (await rli.question('  K33P user handle (id/phone/wallet): ')).trim();
         const nok = (await rli.question('  Next-of-kin identifier (phone/email/id): ')).trim();
-        const ownerField = ownerIdentifierToField(owner);
-        const nokField = nokHashToField(nok);
+        const ownerField = ownerIdentifierToField(owner, adminSecret);
+        const nokField = nokHashToField(nok, adminSecret);
         console.log(`  owner Field: ${ownerField}`);
         console.log(`  nok   Field: ${nokField}`);
         const joined = await joinNok(providers, contractAddress, adminSecret, logger);
@@ -114,13 +114,13 @@ while (running) {
         const owner = (await rli.question('  K33P user handle: ')).trim();
         const nok = (await rli.question('  Next-of-kin identifier: ')).trim();
         const joined = await joinNok(providers, contractAddress, adminSecret, logger);
-        const ok = await approveNokLogin(joined, ownerIdentifierToField(owner), nokHashToField(nok), logger);
+        const ok = await approveNokLogin(joined, ownerIdentifierToField(owner, adminSecret), nokHashToField(nok, adminSecret), logger);
         console.log(ok ? '  ✓ Login approved\n' : '  ✗ Not approved\n');
         break;
       }
       case '3': {
         const owner = (await rli.question('  K33P user handle: ')).trim();
-        const ok = await isNokRegistered(providers, contractAddress, ownerIdentifierToField(owner), logger);
+        const ok = await isNokRegistered(providers, contractAddress, ownerIdentifierToField(owner, adminSecret), logger);
         console.log(ok ? '  ✓ Registered\n' : '  ✗ Not registered\n');
         break;
       }

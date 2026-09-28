@@ -8,6 +8,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc --project tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test test/hash.test.ts",
     "deploy": "TS_NODE_TRANSPILE_ONLY=true node --max-old-space-size=8192 --experimental-specifier-resolution=node --loader ts-node/esm src/deploy.ts",
     "admin": "TS_NODE_TRANSPILE_ONLY=true node --max-old-space-size=8192 --experimental-specifier-resolution=node --loader ts-node/esm src/admin.ts"
   },
