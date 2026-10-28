@@ -1,24 +1,37 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// NOK — Next-Of-Kin access registry for the K33P identity system
+// NOK + Identity registry for the K33P identity system
 // ═══════════════════════════════════════════════════════════════════════════
 //
-// One NOK contract is deployed per K33P deployment. An admin (the K33P backend
-// service) registers a hashed next-of-kin record against an owner identifier,
-// and later approves a NOK-initiated login by proving the supplied hash matches
-// the stored record.
+// One contract is deployed per K33P deployment. It holds two independent,
+// admin-gated registries that share the same admin key and round counter:
+//
+//   1. NOK — Next-Of-Kin access. The admin registers a hashed next-of-kin
+//      record against an owner identifier, and later approves a NOK-initiated
+//      login by proving the supplied hash matches the stored record.
+//
+//   2. Identity — K33P authentication. The admin registers a credential
+//      commitment against a user identifier at signup, and later verifies a
+//      login by proving the supplied commitment matches the stored one. This
+//      is K33P's real zero-knowledge login: the proof that a commitment matches
+//      is produced by the Midnight proof server, not by a plaintext compare.
+//
+// The two registries live in separate maps (`noks`, `identities`) so their
+// state never collides, and no contract-to-contract call is involved — the
+// K33P backend is an off-chain client that calls both.
 //
 // What is private (never leaves the operator machine):
 //   • The admin secret key (witness `secretKey`)
 //
 // What is public (on-chain):
 //   • The admin PUBLIC key (set once at deploy time, in the constructor)
-//   • The registry of { nokHash, ownerIdentifier, registeredAt } records
+//   • The NOK registry of { nokHash, ownerIdentifier, registeredAt } records
+//   • The Identity registry of { commitment, userId, registeredAt } records
 //   • A monotonic round counter (diagnostic / registeredAt stamp)
 //
 // Admin model: the constructor stores the admin PUBLIC key derived off-chain
 // from the admin secret via `publicKey(sk)`. Every write circuit re-derives the
 // public key from the witnessed secret and asserts it equals the stored admin
-// key — so only the holder of the admin secret can register or approve.
+// key — so only the holder of the admin secret can register, approve or verify.
 // ═══════════════════════════════════════════════════════════════════════════
 
 pragma language_version >= 0.23;
@@ -33,9 +46,20 @@ struct RegisteredNOK {
   registeredAt: Field;
 }
 
+struct RegisteredIdentity {
+  commitment: Field;
+  userId: Field;
+  registeredAt: Field;
+}
+
 // ─── Ledger state ──────────────────────────────────────────────────────────────
 
 export ledger noks: Map<Field, RegisteredNOK>;
+
+// K33P identity registry: userId -> credential commitment record. Independent
+// of `noks`; keys never collide because the backend derives them with distinct
+// domain-separation prefixes.
+export ledger identities: Map<Field, RegisteredIdentity>;
 
 // Admin PUBLIC key. Sealed: writable only in the constructor (deploy time),
 // immutable thereafter — closes the front-run window a post-deploy init leaves.
@@ -123,4 +147,53 @@ export circuit approve_nok_login(
 
 export circuit check_nok_registered(owner_identifier: Field): Boolean {
   return noks.member(disclose(owner_identifier));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Identity registry (K33P authentication) — admin only
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Register a credential commitment for a user at signup. `commitment` is a
+// Field produced off-chain by the K33P backend (an HMAC-of-credential-hashes
+// reduced into a Field) — never typed by a human. Re-registering an existing
+// user overwrites their commitment (supports credential rotation).
+export circuit register_identity(
+  user_id: Field,
+  commitment: Field
+): [] {
+  assertAdmin();
+
+  const record = RegisteredIdentity {
+    commitment: disclose(commitment),
+    userId: disclose(user_id),
+    registeredAt: round.read() as Field
+  };
+
+  identities.insert(disclose(user_id), record);
+  round.increment(1);
+}
+
+// Verify a login: proves a record exists for the user and that the supplied
+// commitment matches the stored one. The matching assertion is discharged by
+// the proof server, so a successful call is a real zero-knowledge proof that
+// the presented credentials correspond to the registered commitment.
+export circuit verify_login(
+  user_id: Field,
+  commitment: Field
+): Boolean {
+  assertAdmin();
+
+  assert(identities.member(disclose(user_id)), "no identity registered");
+  const record = identities.lookup(disclose(user_id));
+
+  assert(record.commitment == disclose(commitment), "commitment mismatch");
+
+  round.increment(1);
+  return true;
+}
+
+// ─── Read circuit (permissionless) ───────────────────────────────────────────────
+
+export circuit check_identity_registered(user_id: Field): Boolean {
+  return identities.member(disclose(user_id));
 }

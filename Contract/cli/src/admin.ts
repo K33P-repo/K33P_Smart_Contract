@@ -4,11 +4,17 @@
 // — never hardcoded here (Issue 4). Hashes are computed automatically from
 // human-readable identifiers (Issue 5) — never typed by hand.
 //
-//   npm run admin                 # PreProd (default)
-//   NOK_NETWORK=preview npm run admin
+//   npm run admin                       # Preview (default)
+//   MIDNIGHT_NETWORK=preprod npm run admin
+//   MIDNIGHT_NETWORK=mainnet npm run admin
 //
-// If cli/nok-deployment.json exists (written by deploy.ts) its contractAddress
-// and adminSecret are used as defaults.
+// Secrets are read from the environment / the gitignored deployment file only.
+// The wallet seed is NEVER prompted for or printed:
+//   WALLET_SEED        (required) hex seed of the funded wallet. Keep it secret.
+//   NOK_ADMIN_SECRET   (optional) hex admin secret; else taken from the
+//                      per-network nok-deployment.<network>.json written at deploy.
+// The contract address is taken from MIDNIGHT_[MAIN_]NOK_ADDRESS, the deployment
+// file, or (as a convenience) an interactive prompt — it is not sensitive.
 
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -16,9 +22,9 @@ import { fileURLToPath } from 'node:url';
 import { stdin as input, stdout as output } from 'node:process';
 import { createInterface } from 'node:readline/promises';
 
-import { loadConfig, ACTIVE_NETWORK } from './config.js';
+import { loadConfig, ACTIVE_NETWORK, contractAddressEnvName } from './config.js';
 import { createLogger } from './logger-utils.js';
-import { buildWalletAndWaitForFunds, buildFreshWallet, setLogger } from './wallet.js';
+import { buildWalletAndWaitForFunds, disposeWallet, setLogger } from './wallet.js';
 import {
   configureNokProviders,
   joinNok,
@@ -26,7 +32,6 @@ import {
   approveNokLogin,
   isNokRegistered,
   getNokLedgerState,
-  generateAdminSecret,
 } from './nok-api.js';
 import { ownerIdentifierToField, nokHashToField } from './hash.js';
 
@@ -37,15 +42,20 @@ const config = loadConfig();
 const logger = await createLogger(config.logDir);
 setLogger(logger);
 
-// Load deploy defaults if present
-const deployInfoPath = path.resolve(currentDir, '..', 'nok-deployment.json');
+// Load deploy defaults if present — prefer the per-network file, fall back to
+// the legacy single-file name for older deploys.
 let defaultAddress = '';
 let defaultAdminSecret = '';
-if (existsSync(deployInfoPath)) {
+for (const name of [`nok-deployment.${ACTIVE_NETWORK}.json`, 'nok-deployment.json']) {
+  const p = path.resolve(currentDir, '..', name);
+  if (!existsSync(p)) continue;
   try {
-    const info = JSON.parse(readFileSync(deployInfoPath, 'utf8'));
-    defaultAddress = info.contractAddress ?? '';
-    defaultAdminSecret = info.adminSecret ?? '';
+    const info = JSON.parse(readFileSync(p, 'utf8'));
+    if (!info.network || info.network === ACTIVE_NETWORK) {
+      defaultAddress = info.contractAddress ?? '';
+      defaultAdminSecret = info.adminSecret ?? '';
+      break;
+    }
   } catch { /* ignore */ }
 }
 
@@ -53,31 +63,43 @@ const rli = createInterface({ input, output, terminal: true });
 
 console.log(`\n  NOK admin console — network: ${ACTIVE_NETWORK}\n`);
 
-// Wallet
-const seedEnv = process.env.NOK_WALLET_SEED?.trim();
-const walletContext = seedEnv
-  ? await buildWalletAndWaitForFunds(config, seedEnv)
-  : await (async () => {
-      const seed = (await rli.question('  Wallet seed (hex, Enter to generate fresh): ')).trim();
-      return seed.length >= 32 ? buildWalletAndWaitForFunds(config, seed) : buildFreshWallet(config);
-    })();
+// Wallet seed — environment only. We never prompt for or echo the seed.
+const seed = process.env.WALLET_SEED?.trim();
+if (!seed || seed.length < 32) {
+  console.error(
+    '  ✗ WALLET_SEED is not set (or too short). Provide the funded wallet seed via\n' +
+      '    the WALLET_SEED environment variable (e.g. a gitignored .env). The CLI\n' +
+      '    never prompts for or prints the seed.',
+  );
+  rli.close();
+  process.exit(1);
+}
+const walletContext = await buildWalletAndWaitForFunds(config, seed);
 
-// Contract + admin secret
-const addrIn = (await rli.question(`  Contract address${defaultAddress ? ` [${defaultAddress.slice(0, 16)}...]` : ''}: `)).trim();
-const contractAddress = addrIn || defaultAddress;
+// Contract address — env var, deployment file, or (non-sensitive) prompt.
+const addrEnvName = contractAddressEnvName('NOK');
+const addrEnv = process.env[addrEnvName]?.trim();
+const addrFallback = addrEnv || defaultAddress;
+const addrIn = (await rli.question(`  Contract address${addrFallback ? ` [${addrFallback.slice(0, 16)}...]` : ''}: `)).trim();
+const contractAddress = addrIn || addrFallback;
 if (!contractAddress) {
-  console.error('  ✗ No contract address provided.');
+  console.error(`  ✗ No contract address. Set ${addrEnvName}, deploy first, or enter one.`);
+  await disposeWallet(walletContext);
   rli.close();
   process.exit(1);
 }
 
-const secretIn = (await rli.question('  Admin secret (hex, Enter to use saved/generate): ')).trim();
-const adminSecret =
-  secretIn.length >= 64
-    ? Buffer.from(secretIn, 'hex')
-    : defaultAdminSecret.length >= 64
-      ? Buffer.from(defaultAdminSecret, 'hex')
-      : generateAdminSecret();
+// Admin secret — env var or the gitignored deployment file. We do NOT invent one:
+// a mismatched admin secret would make every write silently unauthorized.
+const secretEnv = process.env.NOK_ADMIN_SECRET?.trim();
+const adminSecretHex = secretEnv && secretEnv.length >= 64 ? secretEnv : defaultAdminSecret;
+if (!adminSecretHex || adminSecretHex.length < 64) {
+  console.error('  ✗ No admin secret available. Set NOK_ADMIN_SECRET or run from a host with the deployment file.');
+  await disposeWallet(walletContext);
+  rli.close();
+  process.exit(1);
+}
+const adminSecret = Buffer.from(adminSecretHex, 'hex');
 
 const providers = await configureNokProviders(walletContext, config, logger);
 
@@ -149,6 +171,6 @@ while (running) {
   }
 }
 
-try { await walletContext.wallet.stop(); } catch { /* ignore */ }
+await disposeWallet(walletContext);
 rli.close();
 console.log('\n  Goodbye.\n');

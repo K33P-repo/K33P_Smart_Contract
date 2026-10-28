@@ -1,25 +1,29 @@
 # NOK Security — App Update (Midnight Deployment Auth)
 
-**Status:** Blocked for deployment (1 fixable issue). Read before continuing.
+**Status:** ✅ Blocker resolved. Privacy fix implemented in `c999e824`
+(`fix(nok): switch to keyed commitment HMAC-SHA256 for Midnight deployment rubric`).
+All three rubric categories are now ≤ 2 → clear to apply for deployment auth
+once the operational items below are in place.
 **Scope:** The Midnight **NOK (Next-Of-Kin)** contract only.
 **Why this exists:** Midnight is opening smart-contract deployment via a
 self-assessed risk rubric ([how-to-apply-for-deployment-auth](https://docs.midnight.network/blog/how-to-apply-for-deployment-auth),
 [contract-deployment-rubric](https://github.com/midnightntwrk/midnight-improvement-proposals/blob/main/deployments/contract-deployment-rubric.md)).
-A score of **3 in any category blocks deployment** until fixed. We currently
-score a 3 in one category — for an **app-side** reason that is quick to fix.
+A score of **3 in any category blocks deployment** until fixed.
 
 ---
 
 ## TL;DR
 
-- The blocker is an **app (off-chain) issue**, not contract logic.
-- On-chain we permanently store **unsalted SHA-256** of phone numbers / emails /
-  user ids. Phone numbers (~33 bits) and emails are trivially brute-forceable,
-  so those "hashes" are effectively **plaintext PII on-chain forever**.
-- Fix lives in one file: `Contract/cli/src/hash.ts` → switch to a **keyed
-  commitment** (HMAC / secret salt held by the backend). `nok.compact` does
-  **not** need to change for this.
-- After the fix, all three rubric categories are ≤ 2 → ready to apply.
+- The former blocker was an **app (off-chain) issue**, not contract logic.
+- Previously we stored **unsalted SHA-256** of phone numbers / emails / user ids
+  on-chain. Those are low-entropy and brute-forceable, so the "hashes" were
+  effectively **plaintext PII on-chain forever** → Privacy-at-risk **3**.
+- **Fixed:** `Contract/cli/src/hash.ts` now derives the on-chain `Field`s with a
+  **keyed commitment (HMAC-SHA256)** under a server-held secret. Without that
+  secret the commitments are not brute-forceable → Privacy-at-risk drops to **1**.
+- `nok.compact` did **not** change — the fix is entirely off-chain, as predicted.
+- **Action required before deploy:** set a dedicated, backed-up `NOK_HASH_SALT`
+  and re-register existing records (derivation changed — see caveats).
 
 ---
 
@@ -38,59 +42,73 @@ score a 3 in one category — for an **app-side** reason that is quick to fix.
 - **No funds / tokens are ever held.**
 - The only private (witness) value is the admin secret key.
 - `ownerIdentifier` and `nokHash` are computed **off-chain** in
-  `Contract/cli/src/hash.ts` as unsalted domain-separated SHA-256, reduced into
-  the BLS field.
+  `Contract/cli/src/hash.ts` — now as an **HMAC-SHA256 keyed commitment**,
+  reduced into the BLS field.
 
 ---
 
-## Rubric self-assessment
+## Rubric self-assessment (updated)
 
-| Category | Score | Rationale | Fix |
+| Category | Score | Rationale | Status |
 |---|---|---|---|
-| **Privacy-at-risk** | **3 (BLOCKER)** | `noks` permanently stores unsalted SHA-256 of phone/email/user-id. Phone numbers and emails are low-entropy and brute-forceable, so the on-chain Fields are effectively recoverable PII. This reveals a person is a K33P user, their next-of-kin's phone/email, and the owner↔NOK relationship — Tier 3 ("email addresses" / real-world identity linkage). | **App fix:** use a keyed commitment (HMAC-SHA256 under a backend secret, or Pedersen commitment with random blinding) in `hash.ts`. Drops to **Tier 1**. |
+| **Privacy-at-risk** | **1** ✅ (was 3) | On-chain `ownerIdentifier` / `nokHash` are now **HMAC-SHA256** keyed by a server-held secret (`hmacSha256ToField`), not plain SHA-256. Without the secret the commitments cannot be brute-forced back to a phone/email, so the ledger no longer exposes recoverable PII. | **Resolved** in `c999e824`. Verify `NOK_HASH_SALT` is set in every environment (see below). |
 | **Value-at-risk** | **1** | Contract holds no funds; an exploit can't drain principal. (A compromised admin secret could approve fraudulent NOK logins — an access-control risk in the wider K33P flow — but no value is locked in the contract.) | Rotate the admin secret committed to `Contract/nok_compact_deployment.md` (treat as compromised) and load it only from a vault. `admin` is already `sealed`. |
-| **State-space-at-risk** | **2** | Grows linearly with users but **bounded per user** (map keyed by `ownerIdentifier`, `insert` overwrites) and **admin-only** writes (no cheap permissionless spam). Weakness: **no delete/expiry** circuit, so records are never pruned. | **Contract fix (non-blocking):** add a permissioned `delete_nok` / expiry circuit (also supports GDPR-style erasure of the PII above). |
+| **State-space-at-risk** | **2** | Grows linearly with users but **bounded per user** (map keyed by `ownerIdentifier`, `insert` overwrites) and **admin-only** writes (no cheap permissionless spam). Weakness: **no delete/expiry** circuit, so records are never pruned. | Non-blocking. Optionally add a permissioned `delete_nok` / expiry circuit (also supports GDPR-style erasure). |
 
-**Verdict:** Not deployable as-is due to Privacy = 3. This is a small, scoped
-fix, not an architecture rewrite.
-
----
-
-## Contract issue vs. app issue
-
-- **Privacy (the blocker) = APP issue.** The contract stores two opaque `Field`
-  values and doesn't care how they were derived. The weak derivation is entirely
-  in `hash.ts`. Fixing it needs **no Compact change** — `register` and `approve`
-  both call the same helper, so a keyed derivation stays consistent for free.
-- **State-space = CONTRACT issue.** Adding a `delete_nok`/expiry circuit is the
-  only genuine `nok.compact` change, and it's the non-blocking Score-2 item.
-- **Committed admin secret = OPS/config issue.** Rotate + vault; not code logic.
+**Verdict:** No category scores 3 → **no deployment override block**. Proceed to
+apply once the operational items below are confirmed.
 
 ---
 
-## Proposed fix (privacy blocker)
+## What changed in the fix (`c999e824`)
 
-Replace unsalted `SHA-256(domain + identifier)` in
-`Contract/cli/src/hash.ts` with a **keyed commitment**:
+`Contract/cli/src/hash.ts`:
 
-- HMAC-SHA256 with a secret key held only by the backend admin (env/vault), or
-- a Pedersen/persistentHash commitment with a random blinding factor.
+- Added `hmacSha256` / `hmacSha256ToField` (HMAC-SHA256, reduced mod the
+  BLS12-381 scalar field).
+- `ownerIdentifierToField` and `nokHashToField` now call `hmacSha256ToField`
+  instead of the old unsalted `sha256ToField`.
+- Secret resolution order (`resolveCommitmentSecret`):
+  1. `NOK_HASH_SALT` env var, else
+  2. an explicit `secret` argument, else
+  3. `NOK_ADMIN_SECRET` env var, else
+  4. throws (fails closed — no accidental unsalted fallback).
 
-Because the backend is the sole admin (it performs every `register` and
-`approve`), it can safely hold the secret. On-chain Fields then reveal nothing
-about the underlying phone/email → Privacy-at-risk becomes **1**.
+`register` and `approve` both go through the same helpers, so the keyed
+derivation stays consistent across register-time and approve-time.
 
-> Caveat: this changes the derivation, so **existing on-chain records become
-> unmatchable**. Fine for the current preview deployment (re-register), but plan
-> a migration if any records must be preserved.
+---
+
+## Operational requirements before deployment
+
+1. **Set a dedicated `NOK_HASH_SALT`** (do not rely on the `NOK_ADMIN_SECRET`
+   fallback). Keeping the commitment key separate from the write-authorization
+   key means rotating one does not invalidate the other, and the key that
+   protects PII is not the same material that authorizes admin writes.
+2. **Treat `NOK_HASH_SALT` as a permanent, backed-up secret in a vault.** It is
+   required to recompute commitments at approve-time. If it is lost or changed,
+   **every existing record becomes unmatchable** (see caveat).
+3. **Do not commit the salt** to the repo; load it from the vault/env only.
+4. **Rotate the admin secret** that was committed to
+   `Contract/nok_compact_deployment.md` and scrub it from history.
+
+> ⚠️ **Migration caveat:** the derivation changed from unsalted SHA-256 to keyed
+> HMAC, so any records registered under the old scheme are **no longer
+> matchable**. For the current preview deployment, **re-register** after setting
+> `NOK_HASH_SALT`. If any records must be preserved, plan a re-registration
+> migration keyed by the new salt.
 
 ---
 
 ## Next steps
 
-1. [ ] App fix: keyed commitment in `hash.ts` (clears the Score-3 blocker).
-2. [ ] Ops: rotate the admin secret + move to a vault; scrub it from
+1. [x] App fix: keyed commitment in `hash.ts` (`c999e824`) — clears the Score-3
+       blocker.
+2. [ ] Set a dedicated `NOK_HASH_SALT` (vault-managed) in all environments;
+       stop relying on the `NOK_ADMIN_SECRET` fallback.
+3. [ ] Re-register existing preview records under the new salt.
+4. [ ] Ops: rotate the admin secret + move to a vault; scrub it from
        `Contract/nok_compact_deployment.md` history.
-3. [ ] (Optional, non-blocking) Contract: add `delete_nok`/expiry circuit.
-4. [ ] Apply: fork `midnight-improvement-proposals`, add
+5. [ ] (Optional, non-blocking) Contract: add `delete_nok`/expiry circuit.
+6. [ ] Apply: fork `midnight-improvement-proposals`, add
        `deployments/k33p-nok.md`, open PR `[Deployment Request] K33P NOK`.

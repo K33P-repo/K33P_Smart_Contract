@@ -52,3 +52,23 @@ export function ownerIdentifierToField(k33pUserHandle: string, secret?: string |
 export function nokHashToField(nokIdentifier: string, secret?: string | Uint8Array): bigint {
   return hmacSha256ToField(`k33p:nok:hash:${nokIdentifier}`, secret);
 }
+
+// ─── Identity registry field derivation ─────────────────────────────────────────
+//
+// Distinct `k33p:id:*` domain-separation prefixes guarantee identity keys never
+// collide with NOK keys even though both registries share one contract.
+
+/** Derive the on-chain user key (identities map key) from a K33P user id. */
+export function userIdentifierToField(k33pUserId: string, secret?: string | Uint8Array): bigint {
+  return hmacSha256ToField(`k33p:id:user:${k33pUserId}`, secret);
+}
+
+/**
+ * Derive the credential commitment Field from the already-hashed credential
+ * material. `credentialDigest` is whatever the backend commits to (e.g. a
+ * combined hash of phoneHash|biometricHash|passkeyHash). The secret (admin
+ * salt) binds the commitment so it cannot be recomputed by an observer.
+ */
+export function credentialCommitmentToField(credentialDigest: string, secret?: string | Uint8Array): bigint {
+  return hmacSha256ToField(`k33p:id:commitment:${credentialDigest}`, secret);
+}

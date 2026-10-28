@@ -32,6 +32,12 @@ No NOK integration code lives in the contract repo.
 | POST | `/api/nok/approve-login` | public | `{ userId, nokIdentifier }` | Approve a NOK login (`approve_nok_login`) |
 | GET | `/api/nok/check/:userId` | public | — | Is a NOK registered? (`check_nok_registered`) |
 | GET | `/api/nok/state` | Bearer | — | Contract ledger state (admin pubkey, round, count) |
+| GET | `/api/auth/identity-status/:userId` | Bearer | — | Has the signup-time identity registration landed on-chain? (`pending` / `registered` / `failed` / `unknown`) |
+
+All write circuits are serialized through one in-process queue (`enqueueWrite`
+in `nok-service.ts`) because the operator wallet can only have one fee-paying
+transaction in flight. Signup does **not** wait for its registration tx — it
+queues it and responds immediately with `identityRegistration: "pending"`.
 
 - `userId` — the stable K33P user id → `owner_identifier = ownerIdentifierToField(userId)`.
 - `nokIdentifier` — the NOK's phone/email/id → `nok_hash = nokHashToField(nokIdentifier)`.

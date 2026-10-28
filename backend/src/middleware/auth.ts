@@ -1,7 +1,6 @@
 // Authentication middleware for K33P Identity System
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
-import { verifyZkProof as zkVerify } from '../utils/zk.js';
 import { ResponseUtils, ErrorCodes } from './error-handler.js';
 
 interface AuthenticatedRequest extends Request {
@@ -72,30 +71,22 @@ export const verifyToken = (req: AuthenticatedRequest, res: Response, next: Next
 };
 
 /**
- * Middleware to verify ZK proof
- * Uses the actual ZK proof verification function
+ * Middleware guarding routes that require a ZK proof + commitment.
+ *
+ * This only checks that both fields are present. The REAL cryptographic
+ * verification happens inside the route handler, once the user has been
+ * resolved, via `nok-service.verifyLoginForUser` (a genuine Midnight ZK
+ * proof). We intentionally do not do a local commitment compare here.
  */
 export const verifyZkProof = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { proof, commitment } = req.body;
-    
+
     if (!proof || !commitment) {
       return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_REQUIRED);
     }
-    
-    // Validate proof structure
-    if (!proof.publicInputs || !proof.publicInputs.commitment || typeof proof.isValid !== 'boolean') {
-      return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID, null, 'Invalid proof object structure. Expected: { publicInputs: { commitment: string }, isValid: boolean }');
-    }
-    
-    // Use the actual ZK verification function
-    const isValid = zkVerify(proof, commitment);
-    
-    if (!isValid) {
-      return ResponseUtils.error(res, ErrorCodes.ZK_PROOF_INVALID);
-    }
-    
-    req.zkVerified = true;
+
+    req.zkVerified = false; // set true by the handler after on-chain verification
     next();
   } catch (error) {
     console.error('ZK verification error:', error);

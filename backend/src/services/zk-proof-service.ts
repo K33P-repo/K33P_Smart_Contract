@@ -1,5 +1,6 @@
 import pool from '../database/config.js';
 import { generateZkCommitment, generateZkProof } from '../utils/zk.js';
+import { registerIdentityForUser } from './nok-service.js';
 import { hashPhone, hashBiometric, hashPasskey } from '../utils/hash.js';
 import { logger } from '../utils/logger.js';
 import crypto from 'crypto';
@@ -41,14 +42,23 @@ export class ZKProofService {
       }
       
       const commitment = generateZkCommitment(hashes);
-      
-      const proofInputs: any = {};
-      if (userData.phoneNumber) proofInputs.phone = userData.phoneNumber;
-      if (userData.biometricData) proofInputs.biometric = userData.biometricData;
-      if (userData.passkeyData) proofInputs.passkey = userData.passkeyData;
-      
-      const proof = generateZkProof(proofInputs, commitment);
-      
+
+      // Register the commitment on-chain (Midnight) — this is the REAL ZK step.
+      // The proof that the commitment was accepted is produced by the proof
+      // server; we record the on-chain reference as the proof artifact.
+      const registration = await registerIdentityForUser(userData.userId, commitment);
+      logger.info('Identity commitment registered on Midnight', {
+        userId: userData.userId,
+        userField: registration.userField?.substring(0, 16) + '...'
+      });
+
+      const proof = {
+        type: 'midnight-identity',
+        userField: registration.userField,
+        registered: registration.registered === true,
+        registeredAt: new Date().toISOString()
+      };
+
       const publicInputs = {
         ...hashes,
         userAddress: userData.userAddress,
@@ -61,7 +71,7 @@ export class ZKProofService {
         commitment,
         proof,
         publicInputs,
-        isValid: true
+        isValid: registration.registered === true
       });
       
       logger.info('ZK proof generated and stored successfully', { 

@@ -13,3 +13,4 @@ docs/
 .env.*.local
 backend/.env
 backend/.env.*
+!backend/.env.example

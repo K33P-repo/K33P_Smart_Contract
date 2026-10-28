@@ -1,0 +1,13 @@
+// Minimal control contract: a public counter with one circuit and no witnesses.
+// Used ONLY to test whether a trivial deploy lands on mainnet through the same
+// wallet / submit path as the NOK contract. Not part of the product.
+
+pragma language_version >= 0.23;
+
+import CompactStandardLibrary;
+
+export ledger round: Counter;
+
+export circuit increment(): [] {
+  round.increment(1);
+}

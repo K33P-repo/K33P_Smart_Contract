@@ -199,9 +199,17 @@ export class SeedPhraseStorageService {
     }
   }
 
+  // Derive the AES key from a server-held master secret bound to the user id
+  // and a per-record salt. The master secret (SEED_PHRASE_ENCRYPTION_KEY) is
+  // NOT derivable from public data — unlike the previous implementation, which
+  // used the (public) userId as the password and so provided no real secrecy.
   private deriveEncryptionKey(userId: string, salt: Buffer): Buffer {
+    const masterSecret = process.env.SEED_PHRASE_ENCRYPTION_KEY?.trim();
+    if (!masterSecret || masterSecret.length < 32) {
+      throw new Error('SEED_PHRASE_ENCRYPTION_KEY must be set (>=32 chars) to encrypt seed phrases.');
+    }
     return crypto.pbkdf2Sync(
-      userId,
+      `${masterSecret}:${userId}`,
       salt,
       this.config.keyDerivationRounds,
       32,
@@ -209,22 +217,26 @@ export class SeedPhraseStorageService {
     );
   }
 
+  // AES-256-GCM: random 12-byte IV + 16-byte auth tag, stored as
+  // `iv:authTag:ciphertext` (all hex). Authenticated so tampering is detected.
   private encryptSeedPhrase(seedPhrase: string, key: Buffer): string {
-    const cipher = crypto.createCipher('aes-256-cbc', key);
-    
-    let encrypted = cipher.update(seedPhrase, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    
-    return encrypted;
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    const encrypted = Buffer.concat([cipher.update(seedPhrase, 'utf8'), cipher.final()]);
+    const authTag = cipher.getAuthTag();
+    return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted.toString('hex')}`;
   }
 
   private decryptSeedPhrase(encryptedData: string, key: Buffer): string {
-    const decipher = crypto.createDecipher('aes-256-cbc', key);
-    
-    let decrypted = decipher.update(encryptedData, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return decrypted;
+    const parts = encryptedData.split(':');
+    if (parts.length !== 3) {
+      throw new Error('Invalid encrypted seed phrase format (expected iv:authTag:ciphertext).');
+    }
+    const [ivHex, authTagHex, cipherHex] = parts;
+    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
+    decipher.setAuthTag(Buffer.from(authTagHex, 'hex'));
+    const decrypted = Buffer.concat([decipher.update(Buffer.from(cipherHex, 'hex')), decipher.final()]);
+    return decrypted.toString('utf8');
   }
 
   // Removed NOK-related utility methods

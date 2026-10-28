@@ -15,6 +15,16 @@ CREATE TABLE IF NOT EXISTS users (
     phone_hash VARCHAR(128),
     pin_hash VARCHAR(128),
     zk_commitment TEXT,
+    -- At-rest encryption (pgcrypto). See migrations 003/004 and encryption.ts.
+    -- Encrypted (bytea) forms of the sensitive columns above + blind indexes
+    -- for the columns we look up by equality. Phase 2 drops the plaintext ones.
+    phone_hash_enc BYTEA,
+    pin_hash_enc BYTEA,
+    zk_commitment_enc BYTEA,
+    wallet_address_enc BYTEA,
+    sender_wallet_address_enc BYTEA,
+    phone_hash_bidx VARCHAR(64),
+    wallet_address_bidx VARCHAR(64),
     auth_methods JSONB NOT NULL DEFAULT '[]'::jsonb,
     folders JSONB NOT NULL DEFAULT '[]'::jsonb,
     verification_method VARCHAR(50) DEFAULT 'phone',
@@ -34,6 +44,14 @@ CREATE TABLE IF NOT EXISTS user_deposits (
     phone_hash VARCHAR(128) NOT NULL,
     zk_proof TEXT,
     zk_commitment TEXT,
+    -- At-rest encryption (pgcrypto). See migrations 003/004.
+    phone_hash_enc BYTEA,
+    pin_hash_enc BYTEA,
+    biometric_hash_enc BYTEA,
+    zk_commitment_enc BYTEA,
+    user_address_enc BYTEA,
+    sender_wallet_address_enc BYTEA,
+    user_address_bidx VARCHAR(64),
     tx_hash VARCHAR(128),
     amount BIGINT NOT NULL DEFAULT 0,
     timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
@@ -132,6 +150,8 @@ CREATE TABLE IF NOT EXISTS auth_data (
     user_id VARCHAR(50) NOT NULL,
     auth_type VARCHAR(20) NOT NULL CHECK (auth_type IN ('phone', 'pin', 'biometric', 'passkey')),
     auth_hash VARCHAR(128) NOT NULL,
+    -- At-rest encryption (pgcrypto). See migrations 003/004.
+    auth_hash_enc BYTEA,
     salt VARCHAR(64),
     metadata JSONB,
     is_active BOOLEAN DEFAULT TRUE,
@@ -326,6 +346,10 @@ GROUP BY u.user_id, u.email, u.name, u.username;
 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id);
 CREATE INDEX IF NOT EXISTS idx_users_wallet_address ON users(wallet_address);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+-- Blind-index lookups for encrypted columns (see encryption.ts)
+CREATE INDEX IF NOT EXISTS idx_users_phone_hash_bidx ON users(phone_hash_bidx);
+CREATE INDEX IF NOT EXISTS idx_users_wallet_address_bidx ON users(wallet_address_bidx);
+CREATE INDEX IF NOT EXISTS idx_user_deposits_user_address_bidx ON user_deposits(user_address_bidx);
 CREATE INDEX IF NOT EXISTS idx_users_auth_methods ON users USING gin (auth_methods);
 CREATE INDEX IF NOT EXISTS idx_users_folders ON users USING gin (folders);
 

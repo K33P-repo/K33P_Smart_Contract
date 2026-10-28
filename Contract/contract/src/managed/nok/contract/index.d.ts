@@ -13,6 +13,14 @@ export type ImpureCircuits<PS> = {
                     nok_hash_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
   check_nok_registered(context: __compactRuntime.CircuitContext<PS>,
                        owner_identifier_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
+  register_identity(context: __compactRuntime.CircuitContext<PS>,
+                    user_id_0: bigint,
+                    commitment_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  verify_login(context: __compactRuntime.CircuitContext<PS>,
+               user_id_0: bigint,
+               commitment_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
+  check_identity_registered(context: __compactRuntime.CircuitContext<PS>,
+                            user_id_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
 }
 
 export type ProvableCircuits<PS> = {
@@ -24,6 +32,14 @@ export type ProvableCircuits<PS> = {
                     nok_hash_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
   check_nok_registered(context: __compactRuntime.CircuitContext<PS>,
                        owner_identifier_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
+  register_identity(context: __compactRuntime.CircuitContext<PS>,
+                    user_id_0: bigint,
+                    commitment_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  verify_login(context: __compactRuntime.CircuitContext<PS>,
+               user_id_0: bigint,
+               commitment_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
+  check_identity_registered(context: __compactRuntime.CircuitContext<PS>,
+                            user_id_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
 }
 
 export type PureCircuits = {
@@ -40,6 +56,14 @@ export type Circuits<PS> = {
                     nok_hash_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
   check_nok_registered(context: __compactRuntime.CircuitContext<PS>,
                        owner_identifier_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
+  register_identity(context: __compactRuntime.CircuitContext<PS>,
+                    user_id_0: bigint,
+                    commitment_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  verify_login(context: __compactRuntime.CircuitContext<PS>,
+               user_id_0: bigint,
+               commitment_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
+  check_identity_registered(context: __compactRuntime.CircuitContext<PS>,
+                            user_id_0: bigint): __compactRuntime.CircuitResults<PS, boolean>;
 }
 
 export type Ledger = {
@@ -52,6 +76,16 @@ export type Ledger = {
                              registeredAt: bigint
                            };
     [Symbol.iterator](): Iterator<[bigint, { nokHash: bigint, ownerIdentifier: bigint, registeredAt: bigint }]>
+  };
+  identities: {
+    isEmpty(): boolean;
+    size(): bigint;
+    member(key_0: bigint): boolean;
+    lookup(key_0: bigint): { commitment: bigint,
+                             userId: bigint,
+                             registeredAt: bigint
+                           };
+    [Symbol.iterator](): Iterator<[bigint, { commitment: bigint, userId: bigint, registeredAt: bigint }]>
   };
   readonly admin: Uint8Array;
   readonly round: bigint;
